@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { getCrops, getAnnouncements, addAnnouncement, getActivities, addActivity, mockCropPartners, getInboxCount, getPlannedEvents, getDailyRecords, syncAnnouncementsFromSupabase, createAnnouncementSupabase } from '../services/cropService';
+import { supabase } from '../services/supabaseClient';
 import type { Announcement, Activity, Crop, ActivityType } from '../types';
 import { useNavigate } from 'react-router-dom';
 // Iconos reemplazados por emojis para evitar incompatibilidades de tipos en algunos entornos
@@ -107,6 +108,41 @@ const Home: React.FC = () => {
       const server = await syncAnnouncementsFromSupabase();
       if (server) setAnnouncements(server);
     })();
+
+    // Realtime: escuchar inserts en announcements
+    if (supabase) {
+      const channel = supabase
+        .channel('realtime:announcements')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'announcements' },
+          (payload: any) => {
+            const r = payload.new;
+            if (!r) return;
+            const a: Announcement = {
+              id: r.id,
+              message: r.message,
+              type: r.type || 'info',
+              createdBy: r.createdBy || 'partner-1',
+              createdAt: r.createdAt,
+            };
+            setAnnouncements(prev => (prev.some(x => x.id === a.id) ? prev : [a, ...prev]));
+          }
+        )
+        .subscribe();
+
+      // Al volver el foco, refrescar lista completa (por si hubo desconexión)
+      const onFocus = async () => {
+        const server = await syncAnnouncementsFromSupabase();
+        if (server) setAnnouncements(server);
+      };
+      window.addEventListener('focus', onFocus);
+
+      return () => {
+        window.removeEventListener('focus', onFocus);
+        supabase.removeChannel(channel);
+      };
+    }
   }, []);
 
   const addMsg = async (e: React.FormEvent) => {
