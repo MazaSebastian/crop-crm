@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import styled from 'styled-components';
 import type { Crop } from '../types';
 import { getCrops } from '../services/cropService';
@@ -76,7 +76,6 @@ const Button = styled.button`
 
 const Crops: React.FC = () => {
   const crops: Crop[] = useMemo(() => getCrops(), []);
-  const [selected, setSelected] = useState<Crop | null>(crops[0] ?? null);
 
   const statusVariant = (s: Crop['status']): 'green' | 'yellow' | 'gray' => {
     if (s === 'active') return 'green';
@@ -93,7 +92,7 @@ const Crops: React.FC = () => {
 
       <Grid>
         {crops.map(c => (
-          <Card key={c.id} onClick={() => setSelected(c)}>
+          <Card key={c.id}>
             <CardHeader>
               🌱 {c.name}
             </CardHeader>

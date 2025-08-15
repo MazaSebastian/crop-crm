@@ -85,7 +85,7 @@ const DailyLog: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [listVersion, setListVersion] = useState(0);
 
-  const records = useMemo(() => cropId ? getDailyRecords(cropId) : [], [cropId, listVersion]);
+  const records = useMemo(() => cropId ? getDailyRecords(cropId) : [], [cropId]);
 
   // actualizar eventos planificados al cambiar cultivo
   React.useEffect(() => {

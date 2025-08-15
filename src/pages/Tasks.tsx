@@ -71,7 +71,7 @@ const Tasks: React.FC = () => {
   const [dueDate, setDueDate] = useState('');
   const [version, setVersion] = useState(0);
 
-  const tasks = useMemo(() => cropId ? getTasks(cropId) : [], [cropId, version]);
+  const tasks = useMemo(() => cropId ? getTasks(cropId) : [], [cropId]);
 
   const addTask = (e: React.FormEvent) => {
     e.preventDefault();
