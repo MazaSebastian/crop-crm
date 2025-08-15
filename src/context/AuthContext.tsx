@@ -25,7 +25,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const mockUsers: AuthUser[] = [
   { id: '1', email: 'admin@crop.com', name: 'Admin Cultivo', role: 'owner' },
-  { id: '2', email: 'socio@crop.com', name: 'Socio Cultivo', role: 'partner' }
+  { id: '2', email: 'socio@crop.com', name: 'Socio Cultivo', role: 'partner' },
+  { id: '3', email: 'socio2@crop.com', name: 'Socio 2', role: 'partner' }
 ];
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
