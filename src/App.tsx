@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import Home from './pages/Home';
 import Crops from './pages/Crops';
@@ -38,6 +38,19 @@ const TopNav = styled.nav`
   }
 `;
 
+const LogoutBtn = styled.button`
+  margin-left: auto;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  &:hover { background: #dc2626; }
+`;
+
 const AppContainer = styled.div`
   min-height: 100vh;
   background: #f8fafc;
@@ -53,6 +66,12 @@ const RequireAuth: React.FC<{ children: React.ReactElement }> = ({ children }) =
 function App() {
   const location = useLocation();
   const isLogin = location.pathname === '/login';
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
   return (
     <AppContainer>
       {!isLogin && (
@@ -62,6 +81,7 @@ function App() {
           <Link to="/daily-log">📝 Registro Diario</Link>
           <Link to="/parameters">📊 Parámetros</Link>
           <Link to="/tasks">✅ Tareas</Link>
+          <LogoutBtn onClick={handleLogout}>Cerrar sesión</LogoutBtn>
         </TopNav>
       )}
 
