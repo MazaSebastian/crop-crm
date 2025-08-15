@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
-import { getCrops, getAnnouncements, addAnnouncement, getActivities, addActivity, mockCropPartners, getInboxCount, getPlannedEvents, getDailyRecords } from '../services/cropService';
+import { getCrops, getAnnouncements, addAnnouncement, getActivities, addActivity, mockCropPartners, getInboxCount, getPlannedEvents, getDailyRecords, syncAnnouncementsFromSupabase, createAnnouncementSupabase } from '../services/cropService';
 import type { Announcement, Activity, Crop, ActivityType } from '../types';
 import { useNavigate } from 'react-router-dom';
 // Iconos reemplazados por emojis para evitar incompatibilidades de tipos en algunos entornos
@@ -101,7 +101,15 @@ const Home: React.FC = () => {
   const [actTitle, setActTitle] = useState<string>('');
   const [actDetails, setActDetails] = useState<string>('');
 
-  const addMsg = (e: React.FormEvent) => {
+  React.useEffect(() => {
+    // Carga inicial desde Supabase (si está configurado)
+    (async () => {
+      const server = await syncAnnouncementsFromSupabase();
+      if (server) setAnnouncements(server);
+    })();
+  }, []);
+
+  const addMsg = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMsg.trim()) return;
     const a: Announcement = {
@@ -112,6 +120,7 @@ const Home: React.FC = () => {
       createdAt: new Date().toISOString()
     };
     addAnnouncement(a);
+    await createAnnouncementSupabase(a);
     setAnnouncements(prev => [a, ...prev]);
     setNewMsg('');
   };

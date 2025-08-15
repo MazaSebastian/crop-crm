@@ -1,4 +1,5 @@
 import type { Crop, CropTask, DailyRecord, Announcement, Activity, PlannedEvent } from '../types';
+import { supabase } from './supabaseClient';
 
 // ==========================
 // Servicio de datos para Gestión de Cultivos (2 personas)
@@ -170,6 +171,40 @@ export function addAnnouncement(a: Announcement) {
   const updated = [a, ...list];
   inMemory.announcements = updated;
   saveToStorage(STORAGE_KEYS.announcements, updated);
+}
+
+// ============ Supabase Sync (Announcements) ============
+export async function syncAnnouncementsFromSupabase(): Promise<Announcement[] | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('announcements')
+    .select('*')
+    .order('createdAt', { ascending: false })
+    .limit(100);
+  if (error) return null;
+  // map records
+  const mapped: Announcement[] = (data || []).map((r: any) => ({
+    id: r.id,
+    message: r.message,
+    type: r.type || 'info',
+    createdBy: r.createdBy || 'partner-1',
+    createdAt: r.createdAt,
+  }));
+  inMemory.announcements = mapped;
+  saveToStorage(STORAGE_KEYS.announcements, mapped);
+  return mapped;
+}
+
+export async function createAnnouncementSupabase(a: Announcement): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('announcements').insert({
+    id: a.id,
+    message: a.message,
+    type: a.type,
+    createdBy: a.createdBy,
+    createdAt: a.createdAt,
+  });
+  return !error;
 }
 
 // Activities (acciones realizadas: fertilización, té de compost, etc.)
