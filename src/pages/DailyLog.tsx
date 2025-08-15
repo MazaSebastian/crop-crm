@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { addDailyRecord, getCrops, getDailyRecords, mockCropPartners, getPlannedEvents, addPlannedEvent, readInbox } from '../services/cropService';
 import type { Crop, DailyRecord, PlannedEvent } from '../types';
