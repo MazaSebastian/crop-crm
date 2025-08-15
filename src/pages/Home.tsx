@@ -137,9 +137,12 @@ const Home: React.FC = () => {
         if (server) setAnnouncements(server);
       };
       window.addEventListener('focus', onFocus);
+      // Polling de respaldo cada 10s por si se pierde la suscripción
+      const iv = window.setInterval(onFocus, 10000);
 
       return () => {
         window.removeEventListener('focus', onFocus);
+        window.clearInterval(iv);
         supabase.removeChannel(channel);
       };
     }
