@@ -69,9 +69,7 @@ const Tasks: React.FC = () => {
   const [assignee, setAssignee] = useState<string>('');
   const [status, setStatus] = useState<CropTask['status']>('pending');
   const [dueDate, setDueDate] = useState('');
-  const [version, setVersion] = useState(0);
-
-  const tasks = useMemo(() => cropId ? getTasks(cropId) : [], [cropId]);
+  const tasks = cropId ? getTasks(cropId) : [];
 
   const addTask = (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,7 +87,6 @@ const Tasks: React.FC = () => {
     };
     upsertTask(task);
     setTitle(''); setAssignee(''); setDueDate(''); setStatus('pending'); setPriority('medium');
-    setVersion(v => v + 1);
   };
 
   const toggleDone = (t: CropTask) => {
@@ -99,7 +96,6 @@ const Tasks: React.FC = () => {
       completedAt: t.status === 'done' ? undefined : new Date().toISOString()
     };
     upsertTask(updated);
-    setVersion(v => v + 1);
   };
 
   return (

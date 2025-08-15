@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { addDailyRecord, getCrops, getDailyRecords, mockCropPartners, getPlannedEvents, addPlannedEvent, readInbox } from '../services/cropService';
 import type { Crop, DailyRecord, PlannedEvent } from '../types';
@@ -83,9 +83,7 @@ const DailyLog: React.FC = () => {
   const [ph, setPh] = useState('');
   const [ec, setEc] = useState('');
   const [notes, setNotes] = useState('');
-  const [listVersion, setListVersion] = useState(0);
-
-  const records = useMemo(() => cropId ? getDailyRecords(cropId) : [], [cropId]);
+  const records = cropId ? getDailyRecords(cropId) : [];
 
   // actualizar eventos planificados al cambiar cultivo
   React.useEffect(() => {
@@ -123,27 +121,9 @@ const DailyLog: React.FC = () => {
     };
     addDailyRecord(rec);
     setTemp(''); setHum(''); setSoil(''); setPh(''); setEc(''); setNotes('');
-    setListVersion(v => v + 1);
   };
 
-  const quickRecordForDate = (iso: string) => {
-    const humidityStr = prompt(`Humedad (%) para ${iso}`) || '';
-    const temperatureStr = prompt(`Temperatura (°C) para ${iso}`) || '';
-    if (!humidityStr && !temperatureStr) return;
-    const rec: DailyRecord = {
-      id: `rec-${Date.now()}`,
-      cropId,
-      date: iso,
-      params: {
-        temperatureC: Number(temperatureStr || 0),
-        humidityPct: Number(humidityStr || 0)
-      },
-      createdBy: mockCropPartners[0].id,
-      createdAt: new Date().toISOString()
-    };
-    addDailyRecord(rec);
-    setListVersion(v => v + 1);
-  };
+  // quickRecordForDate removido (no se usa)
 
   return (
     <Page>
@@ -204,7 +184,6 @@ const DailyLog: React.FC = () => {
             createdAt: new Date().toISOString()
           };
           addDailyRecord(rec);
-          setListVersion(v => v + 1);
           setIsRecordOpen(false);
           // Estado visual 100% decidido por el usuario: guarda verde/amarillo/rojo
           if (status || notes) {
