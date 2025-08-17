@@ -9,6 +9,7 @@ import Parameters from './pages/Parameters';
 import Tasks from './pages/Tasks';
 import Login from './pages/Login';
 import { useAuth } from './context/AuthContext';
+import CropSummary from './pages/CropSummary';
 
 const TopNav = styled.nav`
   position: fixed;
@@ -90,6 +91,7 @@ function App() {
           <Route path="/login" element={<Page><Login /></Page>} />
           <Route path="/" element={<RequireAuth><Page><Home /></Page></RequireAuth>} />
           <Route path="/crops" element={<RequireAuth><Page><Crops /></Page></RequireAuth>} />
+          <Route path="/crops/:id" element={<RequireAuth><Page><CropSummary /></Page></RequireAuth>} />
           <Route path="/daily-log" element={<RequireAuth><Page><DailyLog /></Page></RequireAuth>} />
           <Route path="/parameters" element={<RequireAuth><Page><Parameters /></Page></RequireAuth>} />
           <Route path="/tasks" element={<RequireAuth><Page><Tasks /></Page></RequireAuth>} />

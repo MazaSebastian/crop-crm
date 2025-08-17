@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import styled from 'styled-components';
 import type { Crop } from '../types';
 import { getCrops } from '../services/cropService';
+import { useNavigate } from 'react-router-dom';
 
 const Page = styled.div`
   padding: 1rem;
@@ -32,6 +33,9 @@ const Card = styled.div`
   border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
   overflow: hidden;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease;
+  &:hover { transform: scale(1.02); box-shadow: 0 10px 20px rgba(0,0,0,0.06); }
 `;
 
 const CardHeader = styled.div`
@@ -76,7 +80,7 @@ const Button = styled.button`
 
 const Crops: React.FC = () => {
   const crops: Crop[] = useMemo(() => getCrops(), []);
-
+  const navigate = useNavigate();
   const statusVariant = (s: Crop['status']): 'green' | 'yellow' | 'gray' => {
     if (s === 'active') return 'green';
     if (s === 'paused') return 'yellow';
@@ -92,7 +96,7 @@ const Crops: React.FC = () => {
 
       <Grid>
         {crops.map(c => (
-          <Card key={c.id}>
+          <Card key={c.id} onClick={() => navigate(`/crops/${c.id}`)}>
             <CardHeader>
               🌱 {c.name}
             </CardHeader>
