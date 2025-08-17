@@ -84,11 +84,14 @@ const DailyLog: React.FC = () => {
   const [ph, setPh] = useState('');
   const [ec, setEc] = useState('');
   const [notes, setNotes] = useState('');
-  const records = cropId ? getDailyRecords(cropId) : [];
+  const [records, setRecords] = useState<DailyRecord[]>(cropId ? getDailyRecords(cropId) : []);
 
   // actualizar eventos planificados al cambiar cultivo
   React.useEffect(() => {
-    if (cropId) setPlanned(getPlannedEvents(cropId));
+    if (cropId) {
+      setPlanned(getPlannedEvents(cropId));
+      setRecords(getDailyRecords(cropId));
+    }
   }, [cropId]);
   // Al abrir esta vista, marcar como revisadas las notificaciones del cultivo actual
   React.useEffect(() => {
@@ -103,10 +106,7 @@ const DailyLog: React.FC = () => {
     (async () => {
       if (!cropId) return;
       const srvRec = await syncDailyRecordsFromSupabase(cropId);
-      if (srvRec) {
-        // trigger re-render
-        setYear(y => y);
-      }
+      if (srvRec) setRecords(srvRec);
       const srvPlan = await syncPlannedEventsFromSupabase(cropId);
       if (srvPlan) setPlanned(srvPlan);
     })();
@@ -114,8 +114,9 @@ const DailyLog: React.FC = () => {
     // Realtime listeners
     if (supabase && cropId) {
       const ch = supabase.channel('realtime:daily');
-      ch.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'daily_records', filter: `crop_id=eq.${cropId}` }, (_payload: any) => {
-        syncDailyRecordsFromSupabase(cropId);
+      ch.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'daily_records', filter: `crop_id=eq.${cropId}` }, async (_payload: any) => {
+        const srvRec = await syncDailyRecordsFromSupabase(cropId);
+        if (srvRec) setRecords(srvRec);
       });
       ch.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'planned_events', filter: `crop_id=eq.${cropId}` }, (_payload: any) => {
         (async () => {
@@ -125,7 +126,8 @@ const DailyLog: React.FC = () => {
       });
       ch.subscribe();
       const onFocus = async () => {
-        await syncDailyRecordsFromSupabase(cropId);
+        const srvRec = await syncDailyRecordsFromSupabase(cropId);
+        if (srvRec) setRecords(srvRec);
         const srvPlan = await syncPlannedEventsFromSupabase(cropId);
         if (srvPlan) setPlanned(srvPlan);
       };
@@ -139,7 +141,7 @@ const DailyLog: React.FC = () => {
     }
   }, [cropId]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cropId) return;
     const rec: DailyRecord = {
@@ -159,6 +161,7 @@ const DailyLog: React.FC = () => {
       createdAt: new Date().toISOString()
     };
     addDailyRecord(rec);
+    setRecords(prev => [rec, ...prev]);
     await createDailyRecordSupabase(rec);
     setTemp(''); setHum(''); setSoil(''); setPh(''); setEc(''); setNotes('');
   };
@@ -183,6 +186,16 @@ const DailyLog: React.FC = () => {
           <div>
             <Label>&nbsp;</Label>
             <Button type="button" onClick={() => setIsEventOpen(true)}>➕ Agregar Evento</Button>
+          </div>
+          <div>
+            <Label>&nbsp;</Label>
+            <Button type="button" onClick={async () => {
+              if (!cropId) return;
+              const srvRec = await syncDailyRecordsFromSupabase(cropId);
+              if (srvRec) setRecords(srvRec);
+              const srvPlan = await syncPlannedEventsFromSupabase(cropId);
+              if (srvPlan) setPlanned(srvPlan);
+            }}>🔄 Forzar sync</Button>
           </div>
         </Row>
         <div style={{ marginTop: '0.5rem' }}>
