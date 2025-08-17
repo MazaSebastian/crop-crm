@@ -305,7 +305,7 @@ export function getPlannedEvents(cropId: string): PlannedEvent[] {
 
 export function addPlannedEvent(event: PlannedEvent) {
   const list = inMemory.planned ?? getPlannedEvents(event.cropId);
-  const updated = [{ ...event, createdAt: new Date().toISOString() }, ...list];
+  const updated = [{ ...event, status: event.status || 'yellow', createdAt: new Date().toISOString() }, ...list];
   inMemory.planned = updated;
   saveToStorage(STORAGE_KEYS.planned, updated);
   bumpInbox(event.cropId);
@@ -327,7 +327,7 @@ export async function syncPlannedEventsFromSupabase(cropId: string): Promise<Pla
     date: r.date,
     title: r.title,
     type: r.type || 'other',
-    status: r.status || null,
+    status: r.status || 'yellow',
     createdAt: r.created_at,
   }));
   const others = (inMemory.planned || []).filter(x => x.cropId !== cropId);

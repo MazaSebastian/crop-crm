@@ -253,7 +253,7 @@ const DailyLog: React.FC = () => {
         onClose={() => setIsEventOpen(false)}
         onSave={async ({ date, description }) => {
           if (!cropId) return setIsEventOpen(false);
-          const ev: PlannedEvent = { id: `pl-${Date.now()}`, cropId, date, title: description || 'Evento', type: 'milestone' };
+          const ev: PlannedEvent = { id: `pl-${Date.now()}`, cropId, date, title: description || 'Evento', type: 'milestone', status: 'yellow' };
           addPlannedEvent(ev);
           await createPlannedEventSupabase(ev);
           setPlanned(prev => [ev, ...prev]);
