@@ -43,13 +43,6 @@ const Section = styled.div`
   padding: 0.75rem;
 `;
 
-const Actions = styled.div`
-  padding: 0.75rem 1rem;
-  border-top: 1px solid #e5e7eb;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-`;
 
 const Button = styled.button<{ variant?: 'primary' | 'secondary' }>`
   padding: 0.5rem 0.75rem;
