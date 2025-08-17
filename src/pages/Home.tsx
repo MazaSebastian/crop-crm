@@ -113,7 +113,10 @@ const Home: React.FC = () => {
               createdBy: r.createdBy || 'partner-1',
               createdAt: r.createdAt,
             };
-            setAnnouncements(prev => (prev.some(x => x.id === a.id) ? prev : [a, ...prev]));
+            setAnnouncements(prev => {
+              const next = prev.some(x => x.id === a.id) ? prev : [a, ...prev];
+              return next.slice(0, 4);
+            });
           }
         )
         .subscribe();
