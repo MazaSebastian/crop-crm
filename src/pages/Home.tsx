@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
+import { Card as UiCard, Button as UiButton, SectionHeader as UiSectionHeader } from '../components/ui';
 import { getCrops, getAnnouncements, addAnnouncement, getActivities, addActivity, mockCropPartners, getInboxCount, getPlannedEvents, getDailyRecords, syncAnnouncementsFromSupabase, createAnnouncementSupabase } from '../services/cropService';
 import { supabase } from '../services/supabaseClient';
 import type { Announcement, Activity, Crop, ActivityType } from '../types';
@@ -24,20 +25,9 @@ const Grid = styled.div`
   }
 `;
 
-const Card = styled.div`
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
-  padding: 1rem;
-`;
+const Card = UiCard;
 
-const SectionHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.75rem;
-  h3 { font-size: 1rem; }
-`;
+const SectionHeader = UiSectionHeader;
 
 const Row = styled.div`
   display: grid;
@@ -60,12 +50,7 @@ const Select = styled.select`
   border: 1px solid #d1d5db;
 `;
 
-const Button = styled.button`
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
-  background: #10b981;
-  color: white;
-`;
+const Button = UiButton;
 
 const List = styled.div`
   display: grid;

@@ -17,9 +17,9 @@ const TopNav = styled.nav`
   height: 56px;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0 1rem;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  gap: 0.5rem;
+  padding: 0 0.75rem;
+  background: linear-gradient(135deg, ${({ theme }) => theme.colors.primary} 0%, ${({ theme }) => theme.colors.primaryDark} 100%);
   color: white;
   z-index: 1000;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -28,8 +28,8 @@ const TopNav = styled.nav`
     color: white; 
     font-weight: 600; 
     text-decoration: none;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
     transition: background-color 0.2s;
     
     &:hover {
@@ -40,11 +40,11 @@ const TopNav = styled.nav`
 
 const LogoutBtn = styled.button`
   margin-left: auto;
-  background: #ef4444;
+  background: ${({ theme }) => theme.colors.danger};
   color: white;
   border: none;
-  border-radius: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s;
