@@ -90,6 +90,7 @@ const Badge = styled.span<{ variant?: 'green' | 'yellow' | 'gray' }>`
 const Home: React.FC = () => {
   const crops: Crop[] = useMemo(() => getCrops(), []);
   const [announcements, setAnnouncements] = useState<Announcement[]>(getAnnouncements());
+  const [lastSync, setLastSync] = useState<string | null>(null);
   const [activities, setActivities] = useState<Activity[]>(getActivities());
 
   const [newMsg, setNewMsg] = useState('');
@@ -164,6 +165,12 @@ const Home: React.FC = () => {
     setNewMsg('');
   };
 
+  const forceSync = async () => {
+    const server = await syncAnnouncementsFromSupabase();
+    if (server) setAnnouncements(server);
+    setLastSync(new Date().toLocaleTimeString('es-AR'));
+  };
+
   const addQuickActivity = (e: React.FormEvent) => {
     e.preventDefault();
     if (!actCropId) return;
@@ -204,6 +211,10 @@ const Home: React.FC = () => {
           <Card>
             <SectionHeader>
               <h3>🔔 Comunicaciones</h3>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                {lastSync && <span style={{ color: '#94a3b8', fontSize: 12 }}>Última sync: {lastSync}</span>}
+                <button onClick={forceSync} style={{ padding: '6px 10px', borderRadius: 8, background: '#e2e8f0' }}>Forzar sincronización</button>
+              </div>
             </SectionHeader>
             <form onSubmit={addMsg} style={{ display: 'grid', gap: '0.5rem', marginBottom: '0.75rem' }}>
               <Input placeholder="Escribe un aviso para tu socio..." value={newMsg} onChange={e => setNewMsg(e.target.value)} />
