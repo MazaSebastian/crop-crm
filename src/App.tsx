@@ -10,6 +10,8 @@ import Tasks from './pages/Tasks';
 import Login from './pages/Login';
 import { useAuth } from './context/AuthContext';
 import CropSummary from './pages/CropSummary';
+import Expenses from './pages/Expenses';
+import Stock from './pages/Stock';
 
 const TopNav = styled.nav`
   position: fixed;
@@ -83,6 +85,8 @@ function App() {
           <Link to="/daily-log">📝 Registro Diario</Link>
           <Link to="/parameters">📊 Parámetros</Link>
           <Link to="/tasks">✅ Tareas</Link>
+          <Link to="/expenses">💰 Gastos</Link>
+          <Link to="/stock">📦 Stock</Link>
           <LogoutBtn onClick={handleLogout}>Cerrar sesión</LogoutBtn>
         </TopNav>
       )}
@@ -95,6 +99,8 @@ function App() {
           <Route path="/daily-log" element={<RequireAuth><Page><DailyLog /></Page></RequireAuth>} />
           <Route path="/parameters" element={<RequireAuth><Page><Parameters /></Page></RequireAuth>} />
           <Route path="/tasks" element={<RequireAuth><Page><Tasks /></Page></RequireAuth>} />
+          <Route path="/expenses" element={<RequireAuth><Page><Expenses /></Page></RequireAuth>} />
+          <Route path="/stock" element={<RequireAuth><Page><Stock /></Page></RequireAuth>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AnimatePresence>

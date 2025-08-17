@@ -244,6 +244,7 @@ const DailyLog: React.FC = () => {
             const ev: PlannedEvent = { id: `pl-${Date.now()}-flag`, cropId, date, title: evTitle, type: 'other', status: evStatus };
             addPlannedEvent(ev);
             setPlanned(prev => [ev, ...prev]);
+            await createPlannedEventSupabase(ev);
           }
         }}
       />
