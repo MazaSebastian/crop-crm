@@ -46,8 +46,8 @@ const Section = styled.div`
 const Actions = styled.div`
   padding: 0.75rem 1rem;
   border-top: 1px solid #e5e7eb;
-  display: flex;
-  justify-content: flex-end;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
 `;
 
@@ -80,6 +80,10 @@ const DayPopover: React.FC<DayPopoverProps> = ({ isOpen, date, events, records, 
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', fontSize: 16 }}>✕</button>
         </Header>
         <Body>
+          <div style={{ display: 'grid', gap: 8 }}>
+            <Button onClick={onAddRecord}>➕ Registrar Parámetros Diarios</Button>
+            <Button variant="secondary" onClick={onAddEvent}>🗓️ Registrar Evento</Button>
+          </div>
           <Section>
             <div style={{ fontWeight: 600, marginBottom: 6 }}>Eventos planificados</div>
             {events.length === 0 ? (
@@ -105,10 +109,6 @@ const DayPopover: React.FC<DayPopoverProps> = ({ isOpen, date, events, records, 
             )}
           </Section>
         </Body>
-        <Actions>
-          <Button variant="secondary" onClick={onAddEvent}>➕ Evento</Button>
-          <Button onClick={onAddRecord}>➕ Registrar</Button>
-        </Actions>
       </Popover>
     </Overlay>
   );

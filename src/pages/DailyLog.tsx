@@ -183,10 +183,7 @@ const DailyLog: React.FC = () => {
               {crops.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
-          <div>
-            <Label>&nbsp;</Label>
-            <Button type="button" onClick={() => setIsEventOpen(true)}>➕ Agregar Evento</Button>
-          </div>
+          {/* Eliminamos el botón de Agregar Evento para usar el menú del día */}
           <div>
             <Label>&nbsp;</Label>
             <Button type="button" onClick={async () => {
