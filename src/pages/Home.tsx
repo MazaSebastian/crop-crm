@@ -5,6 +5,7 @@ import { getCrops, getAnnouncements, addAnnouncement, getActivities, addActivity
 import { supabase } from '../services/supabaseClient';
 import type { Announcement, Activity, Crop, ActivityType } from '../types';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 // Iconos reemplazados por emojis para evitar incompatibilidades de tipos en algunos entornos
 
 const Page = styled.div`
@@ -197,6 +198,7 @@ const Home: React.FC = () => {
     <Page>
       <Grid>
         <div style={{ display: 'grid', gap: '1rem' }}>
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}> 
           <Card>
             <SectionHeader>
               <h3>🔔 Comunicaciones</h3>
@@ -220,7 +222,9 @@ const Home: React.FC = () => {
               ))}
             </List>
           </Card>
+          </motion.div>
 
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.25 }}>
           <Card>
             <SectionHeader>
               <h3>✅ Últimas acciones</h3>
@@ -237,9 +241,11 @@ const Home: React.FC = () => {
               ))}
             </List>
           </Card>
+          </motion.div>
         </div>
 
         <div style={{ display: 'grid', gap: '1rem' }}>
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.25 }}>
           <Card>
             <SectionHeader>
               <h3>🌱 Resumen de cultivos</h3>
@@ -277,7 +283,9 @@ const Home: React.FC = () => {
               ))}
             </List>
           </Card>
+          </motion.div>
 
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.25 }}>
           <Card>
             <SectionHeader>
               <h3>Próximos recordatorios</h3>
@@ -296,6 +304,7 @@ const Home: React.FC = () => {
               ))}
             </List>
           </Card>
+          </motion.div>
 
           <Card>
             <SectionHeader>

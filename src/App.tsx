@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import styled from 'styled-components';
 import Home from './pages/Home';
 import Crops from './pages/Crops';
@@ -84,18 +85,30 @@ function App() {
           <LogoutBtn onClick={handleLogout}>Cerrar sesión</LogoutBtn>
         </TopNav>
       )}
-
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/" element={<RequireAuth><Home /></RequireAuth>} />
-        <Route path="/crops" element={<RequireAuth><Crops /></RequireAuth>} />
-        <Route path="/daily-log" element={<RequireAuth><DailyLog /></RequireAuth>} />
-        <Route path="/parameters" element={<RequireAuth><Parameters /></RequireAuth>} />
-        <Route path="/tasks" element={<RequireAuth><Tasks /></RequireAuth>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/login" element={<Page><Login /></Page>} />
+          <Route path="/" element={<RequireAuth><Page><Home /></Page></RequireAuth>} />
+          <Route path="/crops" element={<RequireAuth><Page><Crops /></Page></RequireAuth>} />
+          <Route path="/daily-log" element={<RequireAuth><Page><DailyLog /></Page></RequireAuth>} />
+          <Route path="/parameters" element={<RequireAuth><Page><Parameters /></Page></RequireAuth>} />
+          <Route path="/tasks" element={<RequireAuth><Page><Tasks /></Page></RequireAuth>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AnimatePresence>
     </AppContainer>
   );
 }
+
+const Page: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 8 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -8 }}
+    transition={{ duration: 0.22, ease: 'easeOut' }}
+  >
+    {children}
+  </motion.div>
+);
 
 export default App;
