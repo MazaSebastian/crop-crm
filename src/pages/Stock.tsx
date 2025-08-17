@@ -68,6 +68,8 @@ const Stock: React.FC = () => {
               <div style={{ display:'flex', gap:8 }}>
                 <button onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: x.qty + 10}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>+10 g</button>
                 <button onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: Math.max(0, x.qty - 10)}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>-10 g</button>
+                <button onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: x.qty + 100}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>+100 g</button>
+                <button onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: Math.max(0, x.qty - 100)}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>-100 g</button>
               </div>
               <div style={{ textAlign:'right' }}>
                 <button onClick={() => {

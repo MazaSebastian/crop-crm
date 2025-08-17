@@ -262,49 +262,7 @@ const DailyLog: React.FC = () => {
           setIsEventOpen(false);
         }}
       />
-      <Card>
-        <form onSubmit={handleSubmit}>
-          <Row>
-            <div>
-              <Label>Fecha</Label>
-              <Input type="date" value={new Date().toISOString().slice(0,10)} readOnly />
-            </div>
-            <div></div>
-          </Row>
-          <Row>
-            <div>
-              <Label>Temperatura (°C)</Label>
-              <Input type="number" value={temp} onChange={e => setTemp(e.target.value)} required />
-            </div>
-            <div>
-              <Label>Humedad (%)</Label>
-              <Input type="number" value={hum} onChange={e => setHum(e.target.value)} required />
-            </div>
-          </Row>
-          <Row>
-            <div>
-              <Label>Humedad Suelo (%)</Label>
-              <Input type="number" value={soil} onChange={e => setSoil(e.target.value)} />
-            </div>
-            <div>
-              <Label>pH</Label>
-              <Input type="number" step="0.1" value={ph} onChange={e => setPh(e.target.value)} />
-            </div>
-          </Row>
-          <Row>
-            <div>
-              <Label>EC (mS/cm)</Label>
-              <Input type="number" step="0.1" value={ec} onChange={e => setEc(e.target.value)} />
-            </div>
-            <div></div>
-          </Row>
-          <div style={{ marginBottom: '0.75rem' }}>
-            <Label>Observaciones</Label>
-            <Textarea rows={3} value={notes} onChange={e => setNotes(e.target.value)} />
-          </div>
-          <Button type="submit">Guardar</Button>
-        </form>
-      </Card>
+      {/* Se elimina el formulario inferior; ahora se usa el menú del día para registrar */}
 
       <h2 style={{ margin: '1rem 0 0.5rem' }}>Últimos registros</h2>
       <List>
