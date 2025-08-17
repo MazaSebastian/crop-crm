@@ -179,16 +179,20 @@ export async function syncAnnouncementsFromSupabase(): Promise<Announcement[] | 
   const { data, error } = await supabase
     .from('announcements')
     .select('*')
-    .order('createdAt', { ascending: false })
+    .order('created_at', { ascending: false })
     .limit(100);
-  if (error) return null;
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error('Supabase select error (announcements):', error);
+    return null;
+  }
   // map records
   const mapped: Announcement[] = (data || []).map((r: any) => ({
     id: r.id,
     message: r.message,
     type: r.type || 'info',
-    createdBy: r.createdBy || 'partner-1',
-    createdAt: r.createdAt,
+    createdBy: r.created_by || r.createdBy || 'partner-1',
+    createdAt: r.created_at || r.createdAt,
   }));
   inMemory.announcements = mapped;
   saveToStorage(STORAGE_KEYS.announcements, mapped);
@@ -201,10 +205,15 @@ export async function createAnnouncementSupabase(a: Announcement): Promise<boole
     id: a.id,
     message: a.message,
     type: a.type,
-    createdBy: a.createdBy,
-    createdAt: a.createdAt,
+    created_by: a.createdBy,
+    created_at: a.createdAt,
   });
-  return !error;
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error('Supabase insert error (announcements):', error);
+    return false;
+  }
+  return true;
 }
 
 // Activities (acciones realizadas: fertilización, té de compost, etc.)
