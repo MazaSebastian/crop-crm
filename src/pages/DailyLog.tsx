@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
-import { addDailyRecord, getCrops, getDailyRecords, mockCropPartners, getPlannedEvents, addPlannedEvent, readInbox } from '../services/cropService';
+import { addDailyRecord, getCrops, getDailyRecords, mockCropPartners, getPlannedEvents, addPlannedEvent, readInbox, syncDailyRecordsFromSupabase, createDailyRecordSupabase, syncPlannedEventsFromSupabase, createPlannedEventSupabase } from '../services/cropService';
+import { supabase } from '../services/supabaseClient';
 import type { Crop, DailyRecord, PlannedEvent } from '../types';
 import YearCalendar from '../components/YearCalendar';
 import EventModal from '../components/EventModal';
@@ -98,6 +99,44 @@ const DailyLog: React.FC = () => {
     if (qCrop && qCrop !== cropId) setCropId(qCrop);
     if (qDate) setSelectedDate(qDate);
     if (cropId) readInbox(cropId);
+    // Sync inicial con Supabase
+    (async () => {
+      if (!cropId) return;
+      const srvRec = await syncDailyRecordsFromSupabase(cropId);
+      if (srvRec) {
+        // trigger re-render
+        setYear(y => y);
+      }
+      const srvPlan = await syncPlannedEventsFromSupabase(cropId);
+      if (srvPlan) setPlanned(srvPlan);
+    })();
+
+    // Realtime listeners
+    if (supabase && cropId) {
+      const ch = supabase.channel('realtime:daily');
+      ch.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'daily_records', filter: `crop_id=eq.${cropId}` }, (_payload: any) => {
+        syncDailyRecordsFromSupabase(cropId);
+      });
+      ch.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'planned_events', filter: `crop_id=eq.${cropId}` }, (_payload: any) => {
+        (async () => {
+          const srvPlan = await syncPlannedEventsFromSupabase(cropId);
+          if (srvPlan) setPlanned(srvPlan);
+        })();
+      });
+      ch.subscribe();
+      const onFocus = async () => {
+        await syncDailyRecordsFromSupabase(cropId);
+        const srvPlan = await syncPlannedEventsFromSupabase(cropId);
+        if (srvPlan) setPlanned(srvPlan);
+      };
+      window.addEventListener('focus', onFocus);
+      const iv = window.setInterval(onFocus, 10000);
+      return () => {
+        window.removeEventListener('focus', onFocus);
+        window.clearInterval(iv);
+        supabase.removeChannel(ch);
+      };
+    }
   }, [cropId]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -120,6 +159,7 @@ const DailyLog: React.FC = () => {
       createdAt: new Date().toISOString()
     };
     addDailyRecord(rec);
+    await createDailyRecordSupabase(rec);
     setTemp(''); setHum(''); setSoil(''); setPh(''); setEc(''); setNotes('');
   };
 
@@ -184,6 +224,7 @@ const DailyLog: React.FC = () => {
             createdAt: new Date().toISOString()
           };
           addDailyRecord(rec);
+          await createDailyRecordSupabase(rec);
           setIsRecordOpen(false);
           // Estado visual 100% decidido por el usuario: guarda verde/amarillo/rojo
           if (status || notes) {
@@ -203,6 +244,7 @@ const DailyLog: React.FC = () => {
           if (!cropId) return setIsEventOpen(false);
           const ev: PlannedEvent = { id: `pl-${Date.now()}`, cropId, date, title: description || 'Evento', type: 'milestone' };
           addPlannedEvent(ev);
+          await createPlannedEventSupabase(ev);
           setPlanned(prev => [ev, ...prev]);
           setSelectedDate(date);
           setIsEventOpen(false);

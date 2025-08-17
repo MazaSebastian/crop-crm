@@ -119,6 +119,49 @@ export function addDailyRecord(record: DailyRecord) {
   bumpInbox(record.cropId);
 }
 
+// Supabase sync for Daily Records
+export async function syncDailyRecordsFromSupabase(cropId: string): Promise<DailyRecord[] | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('daily_records')
+    .select('*')
+    .eq('crop_id', cropId)
+    .order('created_at', { ascending: false })
+    .limit(500);
+  if (error) { console.error('Supabase select error (daily_records):', error); return null; }
+  const mapped: DailyRecord[] = (data || []).map((r: any) => ({
+    id: r.id,
+    cropId: r.crop_id,
+    date: r.date,
+    params: r.params,
+    notes: r.notes || undefined,
+    photos: r.photos || undefined,
+    createdBy: r.created_by,
+    createdAt: r.created_at,
+  }));
+  // merge en memoria solo del crop
+  const others = (inMemory.records || []).filter(x => x.cropId !== cropId);
+  inMemory.records = [...mapped, ...others];
+  saveToStorage(STORAGE_KEYS.records, inMemory.records);
+  return mapped;
+}
+
+export async function createDailyRecordSupabase(rec: DailyRecord): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('daily_records').insert({
+    id: rec.id,
+    crop_id: rec.cropId,
+    date: rec.date,
+    params: rec.params,
+    notes: rec.notes || null,
+    photos: rec.photos || null,
+    created_by: rec.createdBy,
+    created_at: rec.createdAt,
+  });
+  if (error) { console.error('Supabase insert error (daily_records):', error); return false; }
+  return true;
+}
+
 export function getTasks(cropId: string): CropTask[] {
   if (!inMemory.tasks) {
     inMemory.tasks = loadFromStorage<CropTask[]>(STORAGE_KEYS.tasks, [
@@ -263,6 +306,46 @@ export function addPlannedEvent(event: PlannedEvent) {
   inMemory.planned = updated;
   saveToStorage(STORAGE_KEYS.planned, updated);
   bumpInbox(event.cropId);
+}
+
+// Supabase sync for Planned Events
+export async function syncPlannedEventsFromSupabase(cropId: string): Promise<PlannedEvent[] | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('planned_events')
+    .select('*')
+    .eq('crop_id', cropId)
+    .order('created_at', { ascending: false })
+    .limit(500);
+  if (error) { console.error('Supabase select error (planned_events):', error); return null; }
+  const mapped: PlannedEvent[] = (data || []).map((r: any) => ({
+    id: r.id,
+    cropId: r.crop_id,
+    date: r.date,
+    title: r.title,
+    type: r.type || 'other',
+    status: r.status || null,
+    createdAt: r.created_at,
+  }));
+  const others = (inMemory.planned || []).filter(x => x.cropId !== cropId);
+  inMemory.planned = [...mapped, ...others];
+  saveToStorage(STORAGE_KEYS.planned, inMemory.planned);
+  return mapped;
+}
+
+export async function createPlannedEventSupabase(ev: PlannedEvent): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('planned_events').insert({
+    id: ev.id,
+    crop_id: ev.cropId,
+    date: ev.date,
+    title: ev.title,
+    type: ev.type || 'other',
+    status: ev.status || null,
+    created_at: new Date().toISOString(),
+  });
+  if (error) { console.error('Supabase insert error (planned_events):', error); return false; }
+  return true;
 }
 
 export function removePlannedEvent(id: string) {
