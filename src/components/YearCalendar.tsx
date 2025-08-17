@@ -41,8 +41,14 @@ const DayCell = styled.button<{ isToday: boolean; status?: 'red' | 'yellow' | 'g
   &:hover {
     background: ${p => p.status === 'red' ? '#fecaca' : p.status === 'yellow' ? '#fde68a' : p.status === 'green' ? '#bbf7d0' : '#f1f5f9'};
   }
-  transform: ${p => p.status ? 'scale(1.05)' : 'none'};
-  box-shadow: ${p => p.status === 'red' ? 'inset 0 0 0 2px #ef4444' : p.status === 'yellow' ? 'inset 0 0 0 2px #f59e0b' : p.status === 'green' ? 'inset 0 0 0 2px #16a34a' : 'none'};
+  transform: ${p => p.isToday ? 'scale(1.12)' : p.status ? 'scale(1.05)' : 'none'};
+  font-weight: ${p => (p.isToday ? 700 : 500)};
+  box-shadow: ${p => p.isToday
+    ? '0 0 0 2px rgba(37,99,235,0.35)'
+    : p.status === 'red' ? 'inset 0 0 0 2px #ef4444'
+    : p.status === 'yellow' ? 'inset 0 0 0 2px #f59e0b'
+    : p.status === 'green' ? 'inset 0 0 0 2px #16a34a'
+    : 'none'};
 `;
 
 const WeekHeader = styled.div`
@@ -82,11 +88,20 @@ const YearCalendar: React.FC<YearCalendarProps> = ({ year, planned, onSelectDate
   const yellowSet = new Set(planned.filter(p => p.status === 'yellow').map(p => p.date));
   const greenSet = new Set(planned.filter(p => p.status === 'green').map(p => p.date));
   const todayIso = new Date().toISOString().slice(0,10);
+  const today = new Date();
+  const todayMonthIdx = year === today.getFullYear() ? today.getMonth() : -1;
+  const todayMonthRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    if (todayMonthRef.current) {
+      todayMonthRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
 
   return (
     <Wrapper>
       {Array.from({ length: 12 }, (_, m) => (
-        <Month key={m}>
+        <Month key={m} ref={m === todayMonthIdx ? todayMonthRef : undefined}>
           <MonthHeader>{monthNames[m]} {year}</MonthHeader>
           <WeekHeader>
             {weekNames.map(d => (<div key={d} style={{ textAlign:'center' }}>{d}</div>))}
