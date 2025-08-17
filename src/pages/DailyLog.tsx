@@ -226,7 +226,7 @@ const DailyLog: React.FC = () => {
         isOpen={isRecordOpen}
         initialDate={selectedDate}
         onClose={() => setIsRecordOpen(false)}
-        onSave={({ date, humidity, temperature, notes, status }) => {
+        onSave={async ({ date, humidity, temperature, notes, status }) => {
           const rec: DailyRecord = {
             id: `rec-${Date.now()}`,
             cropId,
@@ -237,6 +237,7 @@ const DailyLog: React.FC = () => {
             createdAt: new Date().toISOString()
           };
           addDailyRecord(rec);
+          setRecords(prev => [rec, ...prev]);
           await createDailyRecordSupabase(rec);
           setIsRecordOpen(false);
           // Estado visual 100% decidido por el usuario: guarda verde/amarillo/rojo
@@ -253,7 +254,7 @@ const DailyLog: React.FC = () => {
         isOpen={isEventOpen}
         initialDate={selectedDate}
         onClose={() => setIsEventOpen(false)}
-        onSave={({ date, description }) => {
+        onSave={async ({ date, description }) => {
           if (!cropId) return setIsEventOpen(false);
           const ev: PlannedEvent = { id: `pl-${Date.now()}`, cropId, date, title: description || 'Evento', type: 'milestone' };
           addPlannedEvent(ev);
