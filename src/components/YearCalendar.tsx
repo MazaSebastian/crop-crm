@@ -32,20 +32,20 @@ const Grid = styled.div`
 const DayCell = styled.button<{ isToday: boolean; status?: 'red' | 'yellow' | 'green' }>`
   padding: 0.5rem 0;
   border: 1px solid #e5e7eb;
-  background: ${p => p.status === 'red' ? '#fee2e2' : p.status === 'yellow' ? '#fde68a' : p.status === 'green' ? '#dcfce7' : 'white'};
+  background: ${p => p.status === 'red' ? '#fca5a5' : p.status === 'yellow' ? '#fde68a' : p.status === 'green' ? '#dcfce7' : 'white'};
   color: ${p => p.isToday ? '#2563eb' : '#374151'};
   border-radius: 0.25rem;
   font-size: 0.875rem;
   cursor: pointer;
   transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
   &:hover {
-    background: ${p => p.status === 'red' ? '#fecaca' : p.status === 'yellow' ? '#facc15' : p.status === 'green' ? '#bbf7d0' : '#f1f5f9'};
+    background: ${p => p.status === 'red' ? '#f87171' : p.status === 'yellow' ? '#facc15' : p.status === 'green' ? '#bbf7d0' : '#f1f5f9'};
   }
-  transform: ${p => (p.isToday || p.status === 'yellow') ? 'scale(1.12)' : p.status ? 'scale(1.05)' : 'none'};
+  transform: ${p => (p.isToday || p.status === 'yellow' || p.status === 'red') ? 'scale(1.12)' : p.status ? 'scale(1.05)' : 'none'};
   font-weight: ${p => (p.isToday ? 700 : 500)};
   box-shadow: ${p => p.isToday
     ? '0 0 0 2px rgba(37,99,235,0.35)'
-    : p.status === 'red' ? 'inset 0 0 0 2px #ef4444'
+    : p.status === 'red' ? '0 0 0 2px rgba(239,68,68,0.45)'
     : p.status === 'yellow' ? '0 0 0 2px rgba(250,204,21,0.45)'
     : p.status === 'green' ? 'inset 0 0 0 2px #16a34a'
     : 'none'};

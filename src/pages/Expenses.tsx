@@ -30,29 +30,35 @@ interface Movement {
   concept: string;
   amount: number;
   date: string; // ISO
+  owner: 'Santiago' | 'Sebastian';
 }
 
 const Expenses: React.FC = () => {
   const [balance, setBalance] = useState<number>(() => Number(localStorage.getItem('chakra_balance') || 0));
   const [list, setList] = useState<Movement[]>(() => JSON.parse(localStorage.getItem('chakra_movs') || '[]'));
   const [type, setType] = useState<Movement['type']>('EGRESO');
+  const [owner, setOwner] = useState<Movement['owner']>('Sebastian');
   const [concept, setConcept] = useState('');
   const [amount, setAmount] = useState('');
 
   const total = useMemo(() => list.reduce((acc, m) => acc + (m.type === 'INGRESO' ? m.amount : -m.amount), 0), [list]);
+  const byOwner = useMemo(() => ({
+    Sebastian: list.filter(m => m.owner === 'Sebastian').reduce((a, m) => a + (m.type === 'INGRESO' ? m.amount : -m.amount), 0),
+    Santiago: list.filter(m => m.owner === 'Santiago').reduce((a, m) => a + (m.type === 'INGRESO' ? m.amount : -m.amount), 0),
+  }), [list]);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const val = Number(amount);
     if (!concept.trim() || !val) return;
-    const mov: Movement = { id: `mov-${Date.now()}`, type, concept: concept.trim(), amount: val, date: new Date().toISOString().slice(0,10) };
+    const mov: Movement = { id: `mov-${Date.now()}`, type, concept: concept.trim(), amount: val, date: new Date().toISOString().slice(0,10), owner };
     const next = [mov, ...list];
     setList(next);
     const newBalance = balance + (type === 'INGRESO' ? val : -val);
     setBalance(newBalance);
     localStorage.setItem('chakra_movs', JSON.stringify(next));
     localStorage.setItem('chakra_balance', String(newBalance));
-    setConcept(''); setAmount(''); setType('EGRESO');
+    setConcept(''); setAmount(''); setType('EGRESO'); setOwner('Sebastian');
   };
 
   return (
@@ -61,6 +67,10 @@ const Expenses: React.FC = () => {
         <h2>Saldo Chakra</h2>
         <div style={{ fontSize: 28, fontWeight: 800 }}>${balance.toLocaleString('es-AR')}</div>
         <div style={{ color: '#64748b' }}>Resultado (histórico): ${total.toLocaleString('es-AR')}</div>
+        <div style={{ display:'flex', gap:16, marginTop:8 }}>
+          <div>Saldo Sebastian: <strong>${byOwner.Sebastian.toLocaleString('es-AR')}</strong></div>
+          <div>Saldo Santiago: <strong>${byOwner.Santiago.toLocaleString('es-AR')}</strong></div>
+        </div>
       </Card>
 
       <Card>
@@ -70,6 +80,10 @@ const Expenses: React.FC = () => {
             <select value={type} onChange={e => setType(e.target.value as any)}>
               <option>EGRESO</option>
               <option>INGRESO</option>
+            </select>
+            <select value={owner} onChange={e => setOwner(e.target.value as any)}>
+              <option>Sebastian</option>
+              <option>Santiago</option>
             </select>
             <input placeholder="Concepto" value={concept} onChange={e => setConcept(e.target.value)} />
             <input placeholder="Monto" type="number" value={amount} onChange={e => setAmount(e.target.value)} />
@@ -82,8 +96,9 @@ const Expenses: React.FC = () => {
         <h3>Movimientos</h3>
         <div style={{ display:'grid', gap:8 }}>
           {list.map(m => (
-            <div key={m.id} style={{ display:'grid', gridTemplateColumns:'1fr 3fr 1fr 1fr', gap:8, padding:'6px 8px', background:'#f8fafc', border:'1px solid #e5e7eb', borderRadius:8 }}>
+            <div key={m.id} style={{ display:'grid', gridTemplateColumns:'1fr 1fr 2fr 1fr 1fr', gap:8, padding:'6px 8px', background:'#f8fafc', border:'1px solid #e5e7eb', borderRadius:8 }}>
               <div style={{ color: m.type === 'INGRESO' ? '#16a34a' : '#ef4444', fontWeight:700 }}>{m.type}</div>
+              <div style={{ color:'#374151' }}>{m.owner}</div>
               <div>{m.concept}</div>
               <div style={{ textAlign:'right' }}>${m.amount.toLocaleString('es-AR')}</div>
               <div style={{ textAlign:'right', color:'#64748b' }}>{m.date}</div>
