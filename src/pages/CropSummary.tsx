@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { getCrops, getDailyRecords, getPlannedEvents, getTasks } from '../services/cropService';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid } from 'recharts';
 
 const Page = styled.div`
   padding: 1rem;
@@ -55,6 +56,7 @@ const CropSummary: React.FC = () => {
   const records = useMemo(() => (id ? getDailyRecords(id) : []), [id]);
   const events = useMemo(() => (id ? getPlannedEvents(id) : []), [id]);
   const tasks = useMemo(() => (id ? getTasks(id) : []), [id]);
+  const [rangeDays, setRangeDays] = useState(30);
 
   if (!crop) return (
     <Page>
@@ -68,6 +70,17 @@ const CropSummary: React.FC = () => {
   const lastRecord = records[0];
   const lastEvent = events[0];
   const openTasks = tasks.filter(t => t.status !== 'done');
+
+  // Datos para gráfico (últimos N días)
+  const chartData = useMemo(() => {
+    const cutoff = new Date(Date.now() - rangeDays * 24 * 3600 * 1000);
+    const within = records.filter(r => new Date(r.date) >= cutoff).slice().reverse();
+    return within.map(r => ({
+      date: r.date,
+      temperatureC: r.params.temperatureC,
+      humidityPct: r.params.humidityPct
+    }));
+  }, [records, rangeDays]);
 
   return (
     <Page>
@@ -103,6 +116,35 @@ const CropSummary: React.FC = () => {
                 {lastRecord.notes && <div style={{ color:'#64748b' }}>{lastRecord.notes}</div>}
               </div>
             )}
+          </Card>
+
+          <Card>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <h3 style={{ margin:0 }}>Tendencias</h3>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <label style={{ fontSize:12, color:'#64748b' }}>Rango</label>
+                <select value={rangeDays} onChange={e => setRangeDays(Number(e.target.value))}>
+                  <option value={7}>7 días</option>
+                  <option value={14}>14 días</option>
+                  <option value={30}>30 días</option>
+                  <option value={60}>60 días</option>
+                </select>
+              </div>
+            </div>
+            <div style={{ width:'100%', height:280 }}>
+              <ResponsiveContainer>
+                <LineChart data={chartData} margin={{ top: 8, right: 16, bottom: 0, left: -20 }}>
+                  <CartesianGrid stroke="#f1f5f9" />
+                  <XAxis dataKey="date" stroke="#94a3b8" tick={{ fontSize: 12 }} />
+                  <YAxis yAxisId="left" stroke="#94a3b8" tick={{ fontSize: 12 }} />
+                  <YAxis yAxisId="right" orientation="right" stroke="#94a3b8" tick={{ fontSize: 12 }} />
+                  <Tooltip />
+                  <Legend />
+                  <Line yAxisId="left" type="monotone" dataKey="temperatureC" name="Temp (°C)" stroke="#ef4444" dot={false} />
+                  <Line yAxisId="right" type="monotone" dataKey="humidityPct" name="Hum (%)" stroke="#3b82f6" dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </Card>
 
           <Card>
