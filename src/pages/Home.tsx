@@ -217,7 +217,7 @@ const Home: React.FC = () => {
               </div>
             </form>
             <List>
-              {announcements.map(a => (
+              {announcements.slice(0, 4).map(a => (
                 <Item key={a.id}>
                   <div style={{ fontSize: '0.875rem' }}>{a.message}</div>
                   <div style={{ color: '#64748b', fontSize: '0.75rem' }}>{new Date(a.createdAt).toLocaleString('es-AR')}</div>
