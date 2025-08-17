@@ -10,11 +10,11 @@ import { motion } from 'framer-motion';
 
 const Page = styled.div`
   padding: 1rem;
-  padding-top: 5rem;
+  padding-top: 4rem;
   max-width: 1100px;
   margin: 0 auto;
   display: grid;
-  gap: 1rem;
+  gap: 0.75rem;
 `;
 
 const Grid = styled.div`
@@ -200,7 +200,7 @@ const Home: React.FC = () => {
   return (
     <Page>
       <Grid>
-        <div style={{ display: 'grid', gap: '1rem' }}>
+        <div style={{ display: 'grid', gap: '0.5rem' }}>
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}> 
           <Card>
             <SectionHeader>
@@ -210,7 +210,7 @@ const Home: React.FC = () => {
                 <button onClick={forceSync} style={{ padding: '6px 10px', borderRadius: 8, background: '#e2e8f0' }}>Forzar sincronización</button>
               </div>
             </SectionHeader>
-            <form onSubmit={addMsg} style={{ display: 'grid', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <form onSubmit={addMsg} style={{ display: 'grid', gap: '0.5rem', marginBottom: '0.5rem' }}>
               <Input placeholder="Escribe un aviso para tu socio..." value={newMsg} onChange={e => setNewMsg(e.target.value)} />
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <Button type="submit">➕&nbsp;Agregar</Button>
@@ -247,7 +247,7 @@ const Home: React.FC = () => {
           </motion.div>
         </div>
 
-        <div style={{ display: 'grid', gap: '1rem' }}>
+        <div style={{ display: 'grid', gap: '0.5rem' }}>
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.25 }}>
           <Card>
             <SectionHeader>

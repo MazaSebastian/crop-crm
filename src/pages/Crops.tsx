@@ -63,20 +63,7 @@ const Badge = styled.span<{ variant?: 'green' | 'yellow' | 'gray' }>`
   color: ${p => p.variant === 'green' ? '#166534' : p.variant === 'yellow' ? '#92400e' : '#374151'};
 `;
 
-const ActionBar = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border-top: 1px solid #e2e8f0;
-`;
-
-const Button = styled.button`
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
-  background: #3b82f6;
-  color: white;
-  font-size: 0.875rem;
-`;
+// (se quitaron botones de acciones para un diseño más limpio)
 
 const Crops: React.FC = () => {
   const crops: Crop[] = useMemo(() => getCrops(), []);
@@ -91,7 +78,6 @@ const Crops: React.FC = () => {
     <Page>
       <Header>
         <h1>Mis Cultivos</h1>
-        <Button>➕&nbsp;Nuevo</Button>
       </Header>
 
       <Grid>
@@ -108,11 +94,6 @@ const Crops: React.FC = () => {
                 Estado: <Badge variant={statusVariant(c.status)}>{c.status}</Badge>
               </div>
             </CardBody>
-            <ActionBar>
-              <Button title="Registro Diario">🌡️</Button>
-              <Button title="Parámetros">💧</Button>
-              <Button title="Tareas">📋</Button>
-            </ActionBar>
           </Card>
         ))}
       </Grid>
