@@ -58,19 +58,6 @@ const CropSummary: React.FC = () => {
   const tasks = useMemo(() => (id ? getTasks(id) : []), [id]);
   const [rangeDays, setRangeDays] = useState(30);
 
-  if (!crop) return (
-    <Page>
-      <Card>
-        <div>El cultivo no existe.</div>
-        <div><Link to="/crops">Volver a Cultivos</Link></div>
-      </Card>
-    </Page>
-  );
-
-  const lastRecord = records[0];
-  const lastEvent = events[0];
-  const openTasks = tasks.filter(t => t.status !== 'done');
-
   // Datos para gráfico (últimos N días)
   const chartData = useMemo(() => {
     const cutoff = new Date(Date.now() - rangeDays * 24 * 3600 * 1000);
@@ -81,6 +68,18 @@ const CropSummary: React.FC = () => {
       humidityPct: r.params.humidityPct
     }));
   }, [records, rangeDays]);
+
+  if (!crop) return (
+    <Page>
+      <Card>
+        <div>El cultivo no existe.</div>
+        <div><Link to="/crops">Volver a Cultivos</Link></div>
+      </Card>
+    </Page>
+  );
+
+  const lastRecord = records[0];
+  const openTasks = tasks.filter(t => t.status !== 'done');
 
   return (
     <Page>
