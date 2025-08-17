@@ -206,12 +206,14 @@ export function getAnnouncements(): Announcement[] {
       }
     ]);
   }
+  // Limitar a 4 últimos en memoria
+  inMemory.announcements = (inMemory.announcements || []).sort((a, b) => (a.createdAt > b.createdAt ? -1 : 1)).slice(0, 4);
   return inMemory.announcements;
 }
 
 export function addAnnouncement(a: Announcement) {
   const list = inMemory.announcements ?? getAnnouncements();
-  const updated = [a, ...list];
+  const updated = [a, ...list].slice(0, 4);
   inMemory.announcements = updated;
   saveToStorage(STORAGE_KEYS.announcements, updated);
 }
@@ -223,7 +225,7 @@ export async function syncAnnouncementsFromSupabase(): Promise<Announcement[] | 
     .from('announcements')
     .select('*')
     .order('created_at', { ascending: false })
-    .limit(100);
+    .limit(4);
   if (error) {
     // eslint-disable-next-line no-console
     console.error('Supabase select error (announcements):', error);
@@ -237,9 +239,10 @@ export async function syncAnnouncementsFromSupabase(): Promise<Announcement[] | 
     createdBy: r.created_by || r.createdBy || 'partner-1',
     createdAt: r.created_at || r.createdAt,
   }));
-  inMemory.announcements = mapped;
-  saveToStorage(STORAGE_KEYS.announcements, mapped);
-  return mapped;
+  const limited = mapped.slice(0, 4);
+  inMemory.announcements = limited;
+  saveToStorage(STORAGE_KEYS.announcements, limited);
+  return limited;
 }
 
 export async function createAnnouncementSupabase(a: Announcement): Promise<boolean> {
