@@ -5,6 +5,6 @@ const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY as string;
 
 export const supabase = (supabaseUrl && supabaseAnonKey)
   ? createClient(supabaseUrl, supabaseAnonKey)
-  : (null as any);
+  : (console.warn('[Supabase] Variables REACT_APP_SUPABASE_URL/REACT_APP_SUPABASE_ANON_KEY no definidas. Usando modo local.'), null as any);
 
 

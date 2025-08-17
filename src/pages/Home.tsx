@@ -160,7 +160,11 @@ const Home: React.FC = () => {
       createdAt: new Date().toISOString()
     };
     addAnnouncement(a);
-    await createAnnouncementSupabase(a);
+    const ok = await createAnnouncementSupabase(a);
+    if (!ok) {
+      // feedback mínimo en UI si falla el insert remoto
+      alert('No se pudo sincronizar con el servidor. El aviso quedó local. Revisa consola.');
+    }
     setAnnouncements(prev => [a, ...prev]);
     setNewMsg('');
   };
