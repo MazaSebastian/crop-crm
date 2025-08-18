@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Card as UiCard, Button as UiButton, Input as UiInput } from '../components/ui';
+import { supabase } from '../services/supabaseClient';
+import { StockItem, syncStockItemsFromSupabase, createStockItemSupabase, updateStockQtySupabase, deleteStockItemSupabase } from '../services/cropService';
 
 const Page = styled.div`
   padding: 1rem;
@@ -16,7 +18,7 @@ const Card = UiCard;
 interface Item { id: string; name: string; qty: number; unit?: string; }
 
 const Stock: React.FC = () => {
-  const [items, setItems] = useState<Item[]>(() => JSON.parse(localStorage.getItem('chakra_stock') || '[]'));
+  const [items, setItems] = useState<Item[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState('');
   const [qty, setQty] = useState('');
@@ -25,11 +27,40 @@ const Stock: React.FC = () => {
     e.preventDefault();
     const q = Number(qty);
     if (!name.trim() || !q) return;
-    const next = [{ id: `it-${Date.now()}`, name: name.trim(), qty: q, unit: 'g' }, ...items];
+    const nextItem = { id: `it-${Date.now()}`, name: name.trim(), qty: q, unit: 'g' };
+    const next = [nextItem, ...items];
     setItems(next);
-    localStorage.setItem('chakra_stock', JSON.stringify(next));
+    await createStockItemSupabase(nextItem as StockItem);
     setName(''); setQty(''); setIsOpen(false);
   };
+
+  React.useEffect(() => {
+    (async () => {
+      const server = await syncStockItemsFromSupabase();
+      if (server) setItems(server as Item[]);
+      else setItems(JSON.parse(localStorage.getItem('chakra_stock') || '[]'));
+    })();
+
+    if (supabase) {
+      const ch = supabase.channel('realtime:stock')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'stock_items' }, (payload: any) => {
+          const r = payload.new;
+          if (!r) return;
+          const it: Item = { id: r.id, name: r.name, qty: r.qty, unit: r.unit };
+          setItems(prev => (prev.some(x => x.id === it.id) ? prev : [it, ...prev]));
+        })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'stock_items' }, (payload: any) => {
+          const r = payload.new; if (!r) return;
+          setItems(prev => prev.map(x => x.id === r.id ? { ...x, qty: r.qty } : x));
+        })
+        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'stock_items' }, (payload: any) => {
+          const r = payload.old; if (!r) return;
+          setItems(prev => prev.filter(x => x.id !== r.id));
+        })
+        .subscribe();
+      return () => { supabase.removeChannel(ch); };
+    }
+  }, []);
 
   return (
     <Page>
@@ -62,17 +93,18 @@ const Stock: React.FC = () => {
               <div style={{ fontWeight:600 }}>{it.name}</div>
               <div>{it.qty} g</div>
               <div style={{ display:'flex', gap:6 }}>
-                <UiButton onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: x.qty + 1}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>+1</UiButton>
-                <UiButton onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: Math.max(0, x.qty - 1)}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>-1</UiButton>
-                <UiButton onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: x.qty + 10}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>+10</UiButton>
-                <UiButton onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: Math.max(0, x.qty - 10)}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>-10</UiButton>
-                <UiButton onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: x.qty + 100}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>+100</UiButton>
-                <UiButton onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: Math.max(0, x.qty - 100)}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>-100</UiButton>
+                <UiButton onClick={async () => { const n = items.map(x => x.id===it.id?{...x, qty: x.qty + 1}:x); setItems(n); await updateStockQtySupabase(it.id, it.qty+1); }}>+1</UiButton>
+                <UiButton onClick={async () => { const n = items.map(x => x.id===it.id?{...x, qty: Math.max(0, x.qty - 1)}:x); setItems(n); await updateStockQtySupabase(it.id, Math.max(0, it.qty-1)); }}>-1</UiButton>
+                <UiButton onClick={async () => { const n = items.map(x => x.id===it.id?{...x, qty: x.qty + 10}:x); setItems(n); await updateStockQtySupabase(it.id, it.qty+10); }}>+10</UiButton>
+                <UiButton onClick={async () => { const n = items.map(x => x.id===it.id?{...x, qty: Math.max(0, x.qty - 10)}:x); setItems(n); await updateStockQtySupabase(it.id, Math.max(0, it.qty-10)); }}>-10</UiButton>
+                <UiButton onClick={async () => { const n = items.map(x => x.id===it.id?{...x, qty: x.qty + 100}:x); setItems(n); await updateStockQtySupabase(it.id, it.qty+100); }}>+100</UiButton>
+                <UiButton onClick={async () => { const n = items.map(x => x.id===it.id?{...x, qty: Math.max(0, x.qty - 100)}:x); setItems(n); await updateStockQtySupabase(it.id, Math.max(0, it.qty-100)); }}>-100</UiButton>
               </div>
               <div style={{ textAlign:'right' }}>
-                <UiButton variant="ghost" onClick={() => {
+                <UiButton variant="ghost" onClick={async () => {
                   const next = items.filter(x => x.id !== it.id);
-                  setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next));
+                  setItems(next);
+                  await deleteStockItemSupabase(it.id);
                 }}>Eliminar</UiButton>
               </div>
             </div>

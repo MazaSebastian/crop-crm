@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { Card as UiCard, Button as UiButton, Input as UiInput, Select as UiSelect } from '../components/ui';
+import { supabase } from '../services/supabaseClient';
+import { CashMovement, createCashMovementSupabase, syncCashMovementsFromSupabase } from '../services/cropService';
 
 const Page = styled.div`
   padding: 1rem;
@@ -30,8 +32,8 @@ interface Movement {
 }
 
 const Expenses: React.FC = () => {
-  const [balance, setBalance] = useState<number>(() => Number(localStorage.getItem('chakra_balance') || 0));
-  const [list, setList] = useState<Movement[]>(() => JSON.parse(localStorage.getItem('chakra_movs') || '[]'));
+  const [balance, setBalance] = useState<number>(0);
+  const [list, setList] = useState<Movement[]>([]);
   const [type, setType] = useState<Movement['type']>('EGRESO');
   const [owner, setOwner] = useState<Movement['owner']>('Sebastian');
   const [concept, setConcept] = useState('');
@@ -43,7 +45,7 @@ const Expenses: React.FC = () => {
     Santiago: list.filter(m => m.owner === 'Santiago').reduce((a, m) => a + (m.type === 'INGRESO' ? m.amount : -m.amount), 0),
   }), [list]);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const val = Number(amount);
     if (!concept.trim() || !val) return;
@@ -52,10 +54,39 @@ const Expenses: React.FC = () => {
     setList(next);
     const newBalance = balance + (type === 'INGRESO' ? val : -val);
     setBalance(newBalance);
-    localStorage.setItem('chakra_movs', JSON.stringify(next));
-    localStorage.setItem('chakra_balance', String(newBalance));
+    await createCashMovementSupabase(mov as CashMovement);
     setConcept(''); setAmount(''); setType('EGRESO'); setOwner('Sebastian');
   };
+
+  React.useEffect(() => {
+    (async () => {
+      const server = await syncCashMovementsFromSupabase();
+      if (server) {
+        setList(server as Movement[]);
+        const bal = server.reduce((acc, m) => acc + (m.type === 'INGRESO' ? m.amount : -m.amount), 0);
+        setBalance(bal);
+      } else {
+        const local = JSON.parse(localStorage.getItem('chakra_movs') || '[]');
+        setList(local);
+        const bal = local.reduce((acc: number, m: Movement) => acc + (m.type === 'INGRESO' ? m.amount : -m.amount), 0);
+        setBalance(bal);
+      }
+    })();
+
+    if (supabase) {
+      const ch = supabase
+        .channel('realtime:cash')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'cash_movements' }, (payload: any) => {
+          const r = payload.new;
+          if (!r) return;
+          const mov: Movement = { id: r.id, type: r.type, concept: r.concept, amount: Number(r.amount||0), date: r.date, owner: r.owner };
+          setList(prev => (prev.some(x => x.id === mov.id) ? prev : [mov, ...prev]));
+          setBalance(prev => prev + (mov.type === 'INGRESO' ? mov.amount : -mov.amount));
+        })
+        .subscribe();
+      return () => { supabase.removeChannel(ch); };
+    }
+  }, []);
 
   return (
     <Page>

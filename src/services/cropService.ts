@@ -162,6 +162,94 @@ export async function createDailyRecordSupabase(rec: DailyRecord): Promise<boole
   return true;
 }
 
+// ==========================
+// Gastos (Saldo Chakra) - Supabase sync
+// Tabla sugerida: cash_movements(id text pk, type text, concept text, amount numeric, date text, owner text, created_at timestamptz)
+export interface CashMovement {
+  id: string;
+  type: 'INGRESO' | 'EGRESO';
+  concept: string;
+  amount: number;
+  date: string; // ISO
+  owner: string;
+}
+
+export async function syncCashMovementsFromSupabase(): Promise<CashMovement[] | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('cash_movements')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(1000);
+  if (error) { console.error('Supabase select error (cash_movements):', error); return null; }
+  return (data || []).map((r: any) => ({
+    id: r.id,
+    type: r.type,
+    concept: r.concept,
+    amount: Number(r.amount || 0),
+    date: r.date,
+    owner: r.owner
+  }));
+}
+
+export async function createCashMovementSupabase(m: CashMovement): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('cash_movements').insert({
+    id: m.id,
+    type: m.type,
+    concept: m.concept,
+    amount: m.amount,
+    date: m.date,
+    owner: m.owner
+  });
+  if (error) { console.error('Supabase insert error (cash_movements):', error); return false; }
+  return true;
+}
+
+// ==========================
+// Stock - Supabase sync
+// Tabla sugerida: stock_items(id text pk, name text, qty int, unit text, created_at timestamptz)
+export interface StockItem {
+  id: string;
+  name: string;
+  qty: number;
+  unit?: string;
+}
+
+export async function syncStockItemsFromSupabase(): Promise<StockItem[] | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('stock_items')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(2000);
+  if (error) { console.error('Supabase select error (stock_items):', error); return null; }
+  return (data || []).map((r: any) => ({ id: r.id, name: r.name, qty: r.qty, unit: r.unit || 'g' }));
+}
+
+export async function createStockItemSupabase(it: StockItem): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('stock_items').insert({
+    id: it.id, name: it.name, qty: it.qty, unit: it.unit || 'g'
+  });
+  if (error) { console.error('Supabase insert error (stock_items):', error); return false; }
+  return true;
+}
+
+export async function updateStockQtySupabase(id: string, qty: number): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('stock_items').update({ qty }).eq('id', id);
+  if (error) { console.error('Supabase update error (stock_items):', error); return false; }
+  return true;
+}
+
+export async function deleteStockItemSupabase(id: string): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('stock_items').delete().eq('id', id);
+  if (error) { console.error('Supabase delete error (stock_items):', error); return false; }
+  return true;
+}
+
 export function getTasks(cropId: string): CropTask[] {
   if (!inMemory.tasks) {
     inMemory.tasks = loadFromStorage<CropTask[]>(STORAGE_KEYS.tasks, [
