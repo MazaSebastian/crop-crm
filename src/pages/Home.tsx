@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { Card as UiCard, Button as UiButton, SectionHeader as UiSectionHeader } from '../components/ui';
-import { getCrops, getAnnouncements, addAnnouncement, getActivities, addActivity, mockCropPartners, getInboxCount, getPlannedEvents, getDailyRecords, syncAnnouncementsFromSupabase, createAnnouncementSupabase, clearAllLocalData, clearSupabaseDemoData, removeAnnouncementLocal, deleteAnnouncementSupabase } from '../services/cropService';
+import { getCrops, getAnnouncements, addAnnouncement, getActivities, addActivity, mockCropPartners, getInboxCount, getPlannedEvents, getDailyRecords, syncAnnouncementsFromSupabase, createAnnouncementSupabase, removeAnnouncementLocal, deleteAnnouncementSupabase } from '../services/cropService';
 import { supabase } from '../services/supabaseClient';
 import type { Announcement, Activity, Crop, ActivityType } from '../types';
 import { useNavigate } from 'react-router-dom';
@@ -76,7 +76,7 @@ const Badge = styled.span<{ variant?: 'green' | 'yellow' | 'gray' }>`
 const Home: React.FC = () => {
   const crops: Crop[] = useMemo(() => getCrops(), []);
   const [announcements, setAnnouncements] = useState<Announcement[]>(getAnnouncements());
-  const [lastSync, setLastSync] = useState<string | null>(null);
+  // const [lastSync, setLastSync] = useState<string | null>(null);
   const [activities, setActivities] = useState<Activity[]>(getActivities());
 
   const [newMsg, setNewMsg] = useState('');
@@ -214,22 +214,6 @@ const Home: React.FC = () => {
           <Card>
             <SectionHeader>
               <h3>🔔 Comunicaciones</h3>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                {lastSync && <span style={{ color: '#94a3b8', fontSize: 12 }}>Última sync: {lastSync}</span>}
-                <button onClick={forceSync} style={{ padding: '6px 10px', borderRadius: 8, background: '#e2e8f0' }}>Forzar sincronización</button>
-                <button
-                  onClick={async () => {
-                    const confirmReset = window.confirm('¿Resetear datos locales y remotos de demo?');
-                    if (!confirmReset) return;
-                    await clearAllLocalData();
-                    const res = await clearSupabaseDemoData();
-                    if (!res.ok) alert('Algunos datos remotos no pudieron eliminarse: ' + res.errors.join(', '));
-                    window.location.reload();
-                  }}
-                  style={{ padding: '6px 10px', borderRadius: 8, background: '#fee2e2', color: '#991b1b', border: '1px solid #fecaca' }}
-                  title="Borrar datos de prueba"
-                >Reset demo</button>
-              </div>
             </SectionHeader>
             <form onSubmit={addMsg} style={{ display: 'grid', gap: '0.5rem', marginBottom: '0.5rem' }}>
               <Input placeholder="Escribe un aviso para tu socio..." value={newMsg} onChange={e => setNewMsg(e.target.value)} />
