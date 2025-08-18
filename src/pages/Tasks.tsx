@@ -60,6 +60,7 @@ const Item = styled.div<{ status: CropTask['status'] }>`
   grid-template-columns: 1fr auto;
   gap: 0.5rem;
   ${p => p.status === 'done' ? 'text-decoration: line-through; color: #166534;' : ''}
+  transition: background-color .25s ease, color .25s ease, border-color .25s ease;
 `;
 
 const Tasks: React.FC = () => {
@@ -70,7 +71,11 @@ const Tasks: React.FC = () => {
   const [assignee, setAssignee] = useState<string>('');
   const [status, setStatus] = useState<CropTask['status']>('pending');
   const [dueDate, setDueDate] = useState('');
-  const tasks = cropId ? getTasks(cropId) : [];
+  const [tasks, setTasks] = useState<CropTask[]>(cropId ? getTasks(cropId) : []);
+
+  React.useEffect(() => {
+    setTasks(cropId ? getTasks(cropId) : []);
+  }, [cropId]);
 
   const addTask = (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,6 +92,7 @@ const Tasks: React.FC = () => {
       createdBy: mockCropPartners[0].id
     };
     upsertTask(task);
+    setTasks(prev => [task, ...prev]);
     setTitle(''); setAssignee(''); setDueDate(''); setStatus('pending'); setPriority('medium');
   };
 
@@ -97,6 +103,7 @@ const Tasks: React.FC = () => {
       completedAt: t.status === 'done' ? undefined : new Date().toISOString()
     };
     upsertTask(updated);
+    setTasks(prev => prev.map(x => x.id === updated.id ? updated : x));
   };
 
   return (
