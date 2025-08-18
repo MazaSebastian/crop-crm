@@ -79,6 +79,17 @@ const Home: React.FC = () => {
   // const [lastSync, setLastSync] = useState<string | null>(null);
   const [activities, setActivities] = useState<Activity[]>(getActivities());
   const [notifCount, setNotifCount] = useState<Record<string, number>>({});
+  // última vez que se revisó cada cultivo (local, por credencial)
+  const getLastSeen = React.useCallback((): Record<string, string> => {
+    try { return JSON.parse(localStorage.getItem('notif_last_seen') || '{}'); } catch { return {}; }
+  }, []);
+  const setLastSeen = React.useCallback((cropId: string, iso: string) => {
+    try {
+      const map = getLastSeen();
+      map[cropId] = iso;
+      localStorage.setItem('notif_last_seen', JSON.stringify(map));
+    } catch {}
+  }, [getLastSeen]);
 
   const [newMsg, setNewMsg] = useState('');
   const navigate = useNavigate();
@@ -141,12 +152,13 @@ const Home: React.FC = () => {
         })
         .subscribe();
 
-      // Inicializar contadores (últimos 2 días) por cultivo
+      // Inicializar contadores (eventos desde la última revisión) por cultivo
       (async () => {
         const since = new Date(Date.now() - 2*24*3600*1000).toISOString();
         const ids = crops.map(c => c.id);
         const counts: Record<string, number> = {};
         for (const id of ids) counts[id] = 0;
+        const lastSeen = getLastSeen();
         const { data: dr } = await supabase
           .from('daily_records')
           .select('id,crop_id,created_at')
@@ -157,8 +169,14 @@ const Home: React.FC = () => {
           .select('id,crop_id,created_at')
           .gte('created_at', since)
           .in('crop_id', ids as any);
-        (dr || []).forEach((r: any) => { counts[r.crop_id] = (counts[r.crop_id] || 0) + 1; });
-        (pe || []).forEach((r: any) => { counts[r.crop_id] = (counts[r.crop_id] || 0) + 1; });
+        (dr || []).forEach((r: any) => {
+          const seen = lastSeen[r.crop_id];
+          if (!seen || r.created_at > seen) counts[r.crop_id] = (counts[r.crop_id] || 0) + 1;
+        });
+        (pe || []).forEach((r: any) => {
+          const seen = lastSeen[r.crop_id];
+          if (!seen || r.created_at > seen) counts[r.crop_id] = (counts[r.crop_id] || 0) + 1;
+        });
         setNotifCount(counts);
       })();
 
@@ -167,11 +185,13 @@ const Home: React.FC = () => {
         .channel('realtime:home-notif')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'daily_records' }, (payload: any) => {
           const r = payload.new; if (!r) return;
-          setNotifCount(prev => ({ ...prev, [r.crop_id]: (prev[r.crop_id] || 0) + 1 }));
+          const seen = getLastSeen()[r.crop_id];
+          if (!seen || r.created_at > seen) setNotifCount(prev => ({ ...prev, [r.crop_id]: (prev[r.crop_id] || 0) + 1 }));
         })
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'planned_events' }, (payload: any) => {
           const r = payload.new; if (!r) return;
-          setNotifCount(prev => ({ ...prev, [r.crop_id]: (prev[r.crop_id] || 0) + 1 }));
+          const seen = getLastSeen()[r.crop_id];
+          if (!seen || r.created_at > seen) setNotifCount(prev => ({ ...prev, [r.crop_id]: (prev[r.crop_id] || 0) + 1 }));
         })
         .subscribe();
 
@@ -184,6 +204,7 @@ const Home: React.FC = () => {
         const ids = crops.map(c => c.id);
         const counts: Record<string, number> = {};
         for (const id of ids) counts[id] = 0;
+        const lastSeen = getLastSeen();
         const { data: dr } = await supabase
           .from('daily_records')
           .select('id,crop_id,created_at')
@@ -194,8 +215,8 @@ const Home: React.FC = () => {
           .select('id,crop_id,created_at')
           .gte('created_at', since)
           .in('crop_id', ids as any);
-        (dr || []).forEach((r: any) => { counts[r.crop_id] = (counts[r.crop_id] || 0) + 1; });
-        (pe || []).forEach((r: any) => { counts[r.crop_id] = (counts[r.crop_id] || 0) + 1; });
+        (dr || []).forEach((r: any) => { const seen = lastSeen[r.crop_id]; if (!seen || r.created_at > seen) counts[r.crop_id] = (counts[r.crop_id] || 0) + 1; });
+        (pe || []).forEach((r: any) => { const seen = lastSeen[r.crop_id]; if (!seen || r.created_at > seen) counts[r.crop_id] = (counts[r.crop_id] || 0) + 1; });
         setNotifCount(counts);
       };
       window.addEventListener('focus', onFocus);
@@ -398,7 +419,11 @@ const Home: React.FC = () => {
                       const latestDate = latestTs ? new Date(latestTs).toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
                       return (
                         <button
-                          onClick={() => navigate(`/daily-log?crop=${encodeURIComponent(c.id)}&date=${latestDate}`)}
+                          onClick={() => {
+                            setLastSeen(c.id, new Date().toISOString());
+                            setNotifCount(prev => ({ ...prev, [c.id]: 0 }));
+                            navigate(`/daily-log?crop=${encodeURIComponent(c.id)}&date=${latestDate}`);
+                          }}
                           title="NUEVAS NOTIFICACIONES"
                           style={{ color: '#1d4ed8', background: '#dbeafe', padding: '2px 8px', borderRadius: 9999, border: '1px solid #3b82f6', fontSize: 12, cursor: 'pointer' }}
                         >
