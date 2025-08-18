@@ -60,7 +60,6 @@ const Item = styled.div<{ status: CropTask['status'] }>`
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 0.5rem;
-  ${p => p.status === 'done' ? 'text-decoration: line-through; color: #166534;' : ''}
   transition: background-color .25s ease, color .25s ease, border-color .25s ease;
 `;
 
@@ -190,7 +189,7 @@ const Tasks: React.FC = () => {
           <Item key={t.id} status={t.status}>
             <div>
               <div style={{ fontWeight: 600, display:'flex', alignItems:'center', gap:8 }}>
-                <span>{t.title}</span>
+                <span style={{ textDecoration: t.status==='done' ? 'line-through' : 'none', color: t.status==='done' ? '#166534' : undefined }}>{t.title}</span>
                 <button
                   title="Editar"
                   onClick={() => {
