@@ -645,6 +645,42 @@ export function getInboxCount(cropId: string): number {
   return box[cropId] || 0;
 }
 
+// ============ Notificaciones revisadas por usuario (Supabase) ============
+export async function setLastSeenRemote(userId: string, cropId: string, iso: string): Promise<void> {
+  if (!supabase) {
+    try {
+      const map = JSON.parse(localStorage.getItem('notif_last_seen') || '{}');
+      map[`${userId}:${cropId}`] = iso;
+      localStorage.setItem('notif_last_seen', JSON.stringify(map));
+    } catch {}
+    return;
+  }
+  // Tabla sugerida: notif_last_seen(user_id text, crop_id text, last_seen timestamptz, pk(user_id,crop_id))
+  await supabase.from('notif_last_seen').upsert({ user_id: userId, crop_id: cropId, last_seen: iso });
+}
+
+export async function getLastSeenMapRemote(userId: string, cropIds: string[]): Promise<Record<string, string>> {
+  const result: Record<string, string> = {};
+  if (!supabase) {
+    try {
+      const map = JSON.parse(localStorage.getItem('notif_last_seen') || '{}');
+      for (const id of cropIds) {
+        const key = `${userId}:${id}`;
+        if (map[key]) result[id] = map[key];
+      }
+    } catch {}
+    return result;
+  }
+  const { data, error } = await supabase
+    .from('notif_last_seen')
+    .select('crop_id,last_seen')
+    .eq('user_id', userId)
+    .in('crop_id', cropIds as any);
+  if (error) return result;
+  (data || []).forEach((r: any) => { result[r.crop_id] = r.last_seen; });
+  return result;
+}
+
 // ============ Limpieza de datos de demo ============
 export async function clearAllLocalData(): Promise<void> {
   try {

@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { Card as UiCard, Button as UiButton, SectionHeader as UiSectionHeader } from '../components/ui';
-import { getCrops, getAnnouncements, addAnnouncement, getActivities, addActivity, mockCropPartners, getPlannedEvents, getDailyRecords, syncAnnouncementsFromSupabase, createAnnouncementSupabase, removeAnnouncementLocal, deleteAnnouncementSupabase, syncActivitiesFromSupabase, createActivitySupabase } from '../services/cropService';
+import { getCrops, getAnnouncements, addAnnouncement, getActivities, addActivity, mockCropPartners, getPlannedEvents, getDailyRecords, syncAnnouncementsFromSupabase, createAnnouncementSupabase, removeAnnouncementLocal, deleteAnnouncementSupabase, syncActivitiesFromSupabase, createActivitySupabase, getLastSeenMapRemote, setLastSeenRemote } from '../services/cropService';
 import { supabase } from '../services/supabaseClient';
 import type { Announcement, Activity, Crop, ActivityType } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
 // Iconos reemplazados por emojis para evitar incompatibilidades de tipos en algunos entornos
 
 const Page = styled.div`
@@ -93,6 +94,7 @@ const Home: React.FC = () => {
 
   const [newMsg, setNewMsg] = useState('');
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Quick add de actividad
   const [actCropId, setActCropId] = useState<string>(crops[0]?.id ?? '');
@@ -158,7 +160,7 @@ const Home: React.FC = () => {
         const ids = crops.map(c => c.id);
         const counts: Record<string, number> = {};
         for (const id of ids) counts[id] = 0;
-        const lastSeen = getLastSeen();
+        const lastSeen = user ? await getLastSeenMapRemote(user.id, ids) : getLastSeen();
         const { data: dr } = await supabase
           .from('daily_records')
           .select('id,crop_id,created_at')
@@ -185,12 +187,12 @@ const Home: React.FC = () => {
         .channel('realtime:home-notif')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'daily_records' }, (payload: any) => {
           const r = payload.new; if (!r) return;
-          const seen = getLastSeen()[r.crop_id];
+          const seen = (getLastSeen()[r.crop_id]);
           if (!seen || r.created_at > seen) setNotifCount(prev => ({ ...prev, [r.crop_id]: (prev[r.crop_id] || 0) + 1 }));
         })
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'planned_events' }, (payload: any) => {
           const r = payload.new; if (!r) return;
-          const seen = getLastSeen()[r.crop_id];
+          const seen = (getLastSeen()[r.crop_id]);
           if (!seen || r.created_at > seen) setNotifCount(prev => ({ ...prev, [r.crop_id]: (prev[r.crop_id] || 0) + 1 }));
         })
         .subscribe();
@@ -204,7 +206,7 @@ const Home: React.FC = () => {
         const ids = crops.map(c => c.id);
         const counts: Record<string, number> = {};
         for (const id of ids) counts[id] = 0;
-        const lastSeen = getLastSeen();
+        const lastSeen = user ? await getLastSeenMapRemote(user.id, ids) : getLastSeen();
         const { data: dr } = await supabase
           .from('daily_records')
           .select('id,crop_id,created_at')
@@ -419,8 +421,9 @@ const Home: React.FC = () => {
                       const latestDate = latestTs ? new Date(latestTs).toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
                       return (
                         <button
-                          onClick={() => {
-                            setLastSeen(c.id, new Date().toISOString());
+                          onClick={async () => {
+                            if (user) await setLastSeenRemote(user.id, c.id, new Date().toISOString());
+                            else setLastSeen(c.id, new Date().toISOString());
                             setNotifCount(prev => ({ ...prev, [c.id]: 0 }));
                             navigate(`/daily-log?crop=${encodeURIComponent(c.id)}&date=${latestDate}`);
                           }}
