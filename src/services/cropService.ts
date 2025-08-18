@@ -90,6 +90,28 @@ export function saveCrops(crops: Crop[]) {
   saveToStorage(STORAGE_KEYS.crops, crops);
 }
 
+// Supabase sync for Crops
+export async function syncCropsFromSupabase(): Promise<Crop[] | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('crops')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) { console.error('Supabase select error (crops):', error); return null; }
+  const mapped: Crop[] = (data || []).map((r: any) => ({
+    id: r.id,
+    name: r.name,
+    location: r.location || undefined,
+    startDate: r.start_date || new Date().toISOString().slice(0,10),
+    photoUrl: r.photo_url || undefined,
+    partners: Array.isArray(r.partners) ? r.partners : (r.partners ? r.partners : []),
+    status: (r.status || 'active') as Crop['status'],
+  }));
+  inMemory.crops = mapped;
+  saveToStorage(STORAGE_KEYS.crops, mapped);
+  return mapped;
+}
+
 export function getDailyRecords(cropId: string): DailyRecord[] {
   if (!inMemory.records) {
     const today = new Date();

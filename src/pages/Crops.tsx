@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import type { Crop } from '../types';
-import { getCrops } from '../services/cropService';
+import { getCrops, syncCropsFromSupabase } from '../services/cropService';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../services/supabaseClient';
 
 const Page = styled.div`
   padding: 1rem;
@@ -66,13 +67,31 @@ const Badge = styled.span<{ variant?: 'green' | 'yellow' | 'gray' }>`
 // (se quitaron botones de acciones para un diseño más limpio)
 
 const Crops: React.FC = () => {
-  const crops: Crop[] = useMemo(() => getCrops(), []);
+  const [crops, setCrops] = React.useState<Crop[]>(() => getCrops());
   const navigate = useNavigate();
   const statusVariant = (s: Crop['status']): 'green' | 'yellow' | 'gray' => {
     if (s === 'active') return 'green';
     if (s === 'paused') return 'yellow';
     return 'gray';
   };
+
+  React.useEffect(() => {
+    (async () => {
+      const server = await syncCropsFromSupabase();
+      if (server) setCrops(server);
+      else setCrops(getCrops());
+    })();
+
+    if (supabase) {
+      const ch = supabase.channel('realtime:crops')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'crops' }, async () => {
+          const server = await syncCropsFromSupabase();
+          if (server) setCrops(server);
+        })
+        .subscribe();
+      return () => { supabase.removeChannel(ch); };
+    }
+  }, []);
 
   return (
     <Page>
