@@ -9,16 +9,31 @@ export const Card = styled.div`
 `;
 
 export const Button = styled.button<{ variant?: 'primary' | 'ghost' | 'danger' }>`
-  padding: 0.5rem 0.9rem;
+  position: relative;
+  padding: 0.55rem 1rem;
   border-radius: ${({ theme }) => theme.radii.sm};
   border: 1px solid transparent;
   cursor: pointer;
   font-weight: 600;
-  background: ${({ theme, variant }) =>
-    variant === 'danger' ? theme.colors.danger : variant === 'ghost' ? 'transparent' : theme.colors.primary};
+  background: ${({ theme, variant }) => {
+    if (variant === 'danger') return `linear-gradient(135deg, ${theme.colors.danger}, #dc2626)`;
+    if (variant === 'ghost') return 'transparent';
+    return `linear-gradient(135deg, ${theme.colors.primary}, #0ea5a4)`;
+  }};
   color: ${({ variant }) => (variant === 'ghost' ? '#0f172a' : '#fff')};
+  box-shadow: ${({ variant }) => (variant === 'ghost' ? 'none' : '0 6px 16px rgba(16,185,129,.22)')};
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease, opacity .18s ease;
+
   &:hover {
-    opacity: 0.95;
+    transform: translateY(-1px);
+    box-shadow: ${({ variant }) => (variant === 'ghost' ? 'none' : '0 10px 22px rgba(16,185,129,.28)')};
+    filter: ${({ variant }) => (variant === 'ghost' ? 'none' : 'saturate(1.05)')};
+    opacity: 1;
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.99);
+    box-shadow: ${({ variant }) => (variant === 'ghost' ? 'none' : '0 4px 12px rgba(16,185,129,.22)')};
   }
 `;
 

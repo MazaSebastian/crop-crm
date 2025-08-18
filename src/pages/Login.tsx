@@ -80,19 +80,6 @@ const Button = styled.button`
     transform: translateY(0) scale(0.99);
     box-shadow: 0 4px 12px rgba(16,185,129,.25);
   }
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(120deg, rgba(255,255,255,.0) 0%, rgba(255,255,255,.22) 50%, rgba(255,255,255,.0) 100%);
-    transform: translateX(-120%);
-    transition: transform .35s ease;
-    pointer-events: none;
-  }
-
-  &:hover::before { transform: translateX(120%); }
 `;
 
 const Error = styled.div`
