@@ -35,8 +35,8 @@ const Subtitle = styled.p`
 const LogoWrap = styled.div`
   display: flex;
   justify-content: center;
-  margin-bottom: 1rem;
-  img { display:block; max-width: 220px; height: auto; }
+  margin: 0 0 0.5rem 0;
+  img { display:block; max-width: 180px; height: auto; }
 `;
 
 const Form = styled.form`

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { getCrops, getDailyRecords, getPlannedEvents, getTasks } from '../services/cropService';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid } from 'recharts';
+import { Button as UiButton } from '../components/ui';
 
 const Page = styled.div`
   padding: 1rem;
@@ -80,7 +81,9 @@ const CropSummary: React.FC = () => {
     <Page>
       <Card>
         <div>El cultivo no existe.</div>
-        <div><Link to="/crops">Volver a Cultivos</Link></div>
+        <div>
+          <UiButton as={Link} to="/crops" variant="ghost">← Volver a Cultivos</UiButton>
+        </div>
       </Card>
     </Page>
   );
@@ -196,7 +199,9 @@ const CropSummary: React.FC = () => {
           </Card>
         </div>
       </Grid>
-      <div><Link to="/crops">← Volver a Cultivos</Link></div>
+      <div>
+        <UiButton as={Link} to="/crops" variant="ghost">← Volver a Cultivos</UiButton>
+      </div>
     </Page>
   );
 };
