@@ -23,7 +23,7 @@ const Stock: React.FC = () => {
   const [name, setName] = useState('');
   const [qty, setQty] = useState('');
 
-  const add = (e: React.FormEvent) => {
+  const add = async (e: React.FormEvent) => {
     e.preventDefault();
     const q = Number(qty);
     if (!name.trim() || !q) return;
