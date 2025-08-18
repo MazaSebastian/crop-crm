@@ -21,7 +21,7 @@ const Row = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
-  @media (max-width: 640px) { grid-template-columns: 1fr; }
+  @media (max-width: 768px) { grid-template-columns: 1fr; }
 `;
 
 const Input = styled.input`

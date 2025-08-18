@@ -6,6 +6,7 @@ import { ThemeProvider } from 'styled-components';
 import { theme } from './styles/theme';
 import './index.css';
 import App from './App';
+import { GlobalStyles } from './styles/GlobalStyles';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(
@@ -17,6 +18,7 @@ root.render(
     <AuthProvider>
       <BrowserRouter>
         <ThemeProvider theme={theme}>
+          <GlobalStyles />
           <App />
         </ThemeProvider>
       </BrowserRouter>

@@ -27,6 +27,7 @@ const TopNav = styled.nav`
   color: white;
   z-index: 1000;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
 
   a { 
     color: white; 
@@ -39,6 +40,10 @@ const TopNav = styled.nav`
     &:hover {
       background: rgba(255, 255, 255, 0.1);
     }
+  }
+  @media (max-width: 640px) {
+    gap: 0.25rem;
+    a { padding: 0.35rem 0.6rem; font-size: 14px; white-space: nowrap; }
   }
 `;
 
