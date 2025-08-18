@@ -1,14 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+
+const bgShift = keyframes`
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+`;
 
 const Page = styled.div`
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1f3d29 0%, #254a31 100%);
+  background: linear-gradient(135deg, #153121, #1f3d29, #254a31, #1f3d29);
+  background-size: 200% 200%;
+  animation: ${bgShift} 18s ease infinite;
   padding: 1rem;
 `;
 
@@ -52,12 +60,39 @@ const Input = styled.input`
 `;
 
 const Button = styled.button`
+  position: relative;
   padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  background: #10b981;
+  border-radius: 0.6rem;
+  background: linear-gradient(135deg, #10b981, #0ea5a4);
   color: white;
   border: none;
   cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+  box-shadow: 0 6px 16px rgba(16,185,129,.25);
+
+  &:hover {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 10px 22px rgba(16,185,129,.32);
+    filter: saturate(1.05);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.99);
+    box-shadow: 0 4px 12px rgba(16,185,129,.25);
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(120deg, rgba(255,255,255,.0) 0%, rgba(255,255,255,.22) 50%, rgba(255,255,255,.0) 100%);
+    transform: translateX(-120%);
+    transition: transform .35s ease;
+    pointer-events: none;
+  }
+
+  &:hover::before { transform: translateX(120%); }
 `;
 
 const Error = styled.div`
