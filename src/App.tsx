@@ -13,7 +13,7 @@ import CropSummary from './pages/CropSummary';
 import Expenses from './pages/Expenses';
 import Stock from './pages/Stock';
 
-const TopNav = styled.nav`
+const TopNav = styled.nav<{ scrolled: boolean }>`
   position: fixed;
   top: 0;
   left: 0;
@@ -23,10 +23,15 @@ const TopNav = styled.nav`
   align-items: center;
   gap: 0.5rem;
   padding: 0 0.75rem;
-  background: linear-gradient(135deg, ${({ theme }) => theme.colors.primary} 0%, ${({ theme }) => theme.colors.primaryDark} 100%);
+  background: ${({ scrolled }) => scrolled
+    ? 'linear-gradient(135deg, rgba(16,185,129,.92), rgba(5,150,105,.92))'
+    : 'linear-gradient(135deg, rgba(16,185,129,.72), rgba(5,150,105,.72))'};
   color: white;
   z-index: 1000;
-  box-shadow: 0 10px 24px rgba(2,8,23,.12);
+  box-shadow: ${({ scrolled }) => scrolled ? '0 10px 24px rgba(2,8,23,.18)' : '0 6px 16px rgba(2,8,23,.10)'};
+  backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,.10);
+  transition: background .25s ease, box-shadow .25s ease, backdrop-filter .25s ease;
   overflow-x: auto;
 
   a { 
@@ -81,6 +86,13 @@ function App() {
   const isLogin = location.pathname === '/login';
   const navigate = useNavigate();
   const { logout, user } = useAuth();
+  const [scrolled, setScrolled] = React.useState(false);
+  React.useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
   const handleLogout = () => {
     logout();
     navigate('/login', { replace: true });
@@ -88,7 +100,7 @@ function App() {
   return (
     <AppContainer>
       {!isLogin && (
-        <TopNav>
+        <TopNav scrolled={scrolled}>
           <Link to="/">🏠 Home</Link>
           <Link to="/crops">🌱 Cultivos</Link>
           <Link to="/daily-log">📝 Registro Diario</Link>
