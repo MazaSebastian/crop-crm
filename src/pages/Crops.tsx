@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import type { Crop } from '../types';
-import { getCrops, syncCropsFromSupabase } from '../services/cropService';
+import { getCrops, syncCropsFromSupabase, createCropSupabase, deleteCropSupabase } from '../services/cropService';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 
@@ -68,6 +68,9 @@ const Badge = styled.span<{ variant?: 'green' | 'yellow' | 'gray' }>`
 
 const Crops: React.FC = () => {
   const [crops, setCrops] = React.useState<Crop[]>(() => getCrops());
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [name, setName] = React.useState('');
+  const [location, setLocation] = React.useState('');
   const navigate = useNavigate();
   const statusVariant = (s: Crop['status']): 'green' | 'yellow' | 'gray' => {
     if (s === 'active') return 'green';
@@ -97,11 +100,17 @@ const Crops: React.FC = () => {
     <Page>
       <Header>
         <h1>Mis Cultivos</h1>
+        <button onClick={() => setIsOpen(true)} style={{ padding:'8px 12px', borderRadius:8, background:'#10b981', color:'#fff', border:'none', cursor:'pointer' }}>Nuevo cultivo</button>
       </Header>
 
       <Grid>
         {crops.map(c => (
-          <Card key={c.id} onClick={() => navigate(`/crops/${c.id}`)}>
+          <Card key={c.id} onClick={(e) => {
+            // evitar que el click en eliminar navegue
+            const target = e.target as HTMLElement;
+            if (target.closest('[data-action="delete"]')) return;
+            navigate(`/crops/${c.id}`);
+          }}>
             <CardHeader>
               🌱 {c.name}
             </CardHeader>
@@ -112,10 +121,47 @@ const Crops: React.FC = () => {
               <div>
                 Estado: <Badge variant={statusVariant(c.status)}>{c.status}</Badge>
               </div>
+              <div style={{ display:'flex', justifyContent:'flex-end' }}>
+                <button
+                  data-action="delete"
+                  onClick={async () => {
+                    const ok = window.confirm(`¿Eliminar cultivo "${c.name}"?`);
+                    if (!ok) return;
+                    setCrops(prev => prev.filter(x => x.id !== c.id));
+                    await deleteCropSupabase(c.id);
+                  }}
+                  style={{ background:'#fee2e2', border:'1px solid #fecaca', color:'#991b1b', borderRadius:8, padding:'4px 10px' }}
+                >ELIMINAR CULTIVO</button>
+              </div>
             </CardBody>
           </Card>
         ))}
       </Grid>
+
+      {isOpen && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.2)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000 }} onClick={() => setIsOpen(false)}>
+          <div style={{ background:'#fff', border:'1px solid #e5e7eb', padding:16, borderRadius:12, width:360 }} onClick={e => e.stopPropagation()}>
+            <h3>Nuevo cultivo</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const nm = name.trim();
+              if (!nm) return;
+              const id = `crop-${Date.now()}`;
+              const newCrop: Crop = { id, name: nm, location: location.trim() || undefined, startDate: new Date().toISOString().slice(0,10), partners: [], status: 'active' };
+              setCrops(prev => [newCrop, ...prev]);
+              await createCropSupabase(newCrop);
+              setName(''); setLocation(''); setIsOpen(false);
+            }} style={{ display:'grid', gap:8 }}>
+              <input placeholder="Nombre" value={name} onChange={e => setName(e.target.value)} style={{ padding:'8px 10px', border:'1px solid #d1d5db', borderRadius:8 }} />
+              <input placeholder="Ubicación (opcional)" value={location} onChange={e => setLocation(e.target.value)} style={{ padding:'8px 10px', border:'1px solid #d1d5db', borderRadius:8 }} />
+              <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+                <button type="button" onClick={() => setIsOpen(false)} style={{ padding:'8px 12px', borderRadius:8, background:'#e5e7eb', border:'1px solid #d1d5db' }}>Cancelar</button>
+                <button type="submit" style={{ padding:'8px 12px', borderRadius:8, background:'#10b981', color:'#fff', border:'none' }}>Guardar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </Page>
   );
 };

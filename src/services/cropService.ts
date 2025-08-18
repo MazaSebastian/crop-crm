@@ -96,6 +96,28 @@ export async function syncCropsFromSupabase(): Promise<Crop[] | null> {
   return mapped;
 }
 
+export async function createCropSupabase(c: Crop): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('crops').insert({
+    id: c.id,
+    name: c.name,
+    location: c.location || null,
+    start_date: c.startDate,
+    photo_url: c.photoUrl || null,
+    partners: c.partners || [],
+    status: c.status || 'active'
+  });
+  if (error) { console.error('Supabase insert error (crops):', error); return false; }
+  return true;
+}
+
+export async function deleteCropSupabase(id: string): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('crops').delete().eq('id', id);
+  if (error) { console.error('Supabase delete error (crops):', error); return false; }
+  return true;
+}
+
 export function getDailyRecords(cropId: string): DailyRecord[] {
   if (!inMemory.records) {
     const today = new Date();
