@@ -432,10 +432,48 @@ export function getActivities(cropId?: string): Activity[] {
 
 export function addActivity(activity: Activity) {
   const list = inMemory.activities ?? getActivities();
-  const updated = [activity, ...list];
+  const updated = [activity, ...list].slice(0, 50);
   inMemory.activities = updated;
   saveToStorage(STORAGE_KEYS.activities, updated);
   bumpInbox(activity.cropId);
+}
+
+// Supabase sync for Activities (últimas acciones)
+export async function syncActivitiesFromSupabase(limit: number = 4): Promise<Activity[] | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('activities')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) { console.error('Supabase select error (activities):', error); return null; }
+  const mapped: Activity[] = (data || []).map((r: any) => ({
+    id: r.id,
+    cropId: r.crop_id,
+    type: r.type,
+    title: r.title,
+    details: r.details || undefined,
+    date: r.date,
+  }));
+  // merge simple: mantener solo las últimas en memoria
+  inMemory.activities = mapped;
+  saveToStorage(STORAGE_KEYS.activities, mapped);
+  return mapped;
+}
+
+export async function createActivitySupabase(a: Activity): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('activities').insert({
+    id: a.id,
+    crop_id: a.cropId,
+    type: a.type,
+    title: a.title,
+    details: a.details || null,
+    date: a.date,
+    created_at: new Date().toISOString(),
+  });
+  if (error) { console.error('Supabase insert error (activities):', error); return false; }
+  return true;
 }
 
 // Planned events (calendario)

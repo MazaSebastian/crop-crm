@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { Card as UiCard, Button as UiButton, SectionHeader as UiSectionHeader } from '../components/ui';
-import { getCrops, getAnnouncements, addAnnouncement, getActivities, addActivity, mockCropPartners, getInboxCount, getPlannedEvents, getDailyRecords, syncAnnouncementsFromSupabase, createAnnouncementSupabase, removeAnnouncementLocal, deleteAnnouncementSupabase } from '../services/cropService';
+import { getCrops, getAnnouncements, addAnnouncement, getActivities, addActivity, mockCropPartners, getInboxCount, getPlannedEvents, getDailyRecords, syncAnnouncementsFromSupabase, createAnnouncementSupabase, removeAnnouncementLocal, deleteAnnouncementSupabase, syncActivitiesFromSupabase, createActivitySupabase } from '../services/cropService';
 import { supabase } from '../services/supabaseClient';
 import type { Announcement, Activity, Crop, ActivityType } from '../types';
 import { useNavigate } from 'react-router-dom';
@@ -94,6 +94,8 @@ const Home: React.FC = () => {
     (async () => {
       const server = await syncAnnouncementsFromSupabase();
       if (server) setAnnouncements(server);
+      const acts = await syncActivitiesFromSupabase(4);
+      if (acts) setActivities(acts);
     })();
 
     // Realtime: escuchar inserts en announcements
@@ -130,6 +132,14 @@ const Home: React.FC = () => {
         )
         .subscribe();
 
+      const chActs = supabase
+        .channel('realtime:activities')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activities' }, async () => {
+          const acts = await syncActivitiesFromSupabase(4);
+          if (acts) setActivities(acts);
+        })
+        .subscribe();
+
       // Al volver el foco, refrescar lista completa (por si hubo desconexión)
       const onFocus = async () => {
         const server = await syncAnnouncementsFromSupabase();
@@ -143,6 +153,7 @@ const Home: React.FC = () => {
         window.removeEventListener('focus', onFocus);
         window.clearInterval(iv);
         supabase.removeChannel(channel);
+        supabase.removeChannel(chActs);
       };
     }
   }, []);
@@ -182,7 +193,8 @@ const Home: React.FC = () => {
       date: actDate
     };
     addActivity(activity);
-    setActivities(prev => [activity, ...prev]);
+    setActivities(prev => [activity, ...prev].slice(0, 4));
+    createActivitySupabase(activity);
     setActTitle('');
     setActDetails('');
   };
