@@ -97,22 +97,20 @@ const Login: React.FC = () => {
           {/* Coloca tu archivo en public/chakra-logo.png para usar este logo */}
           <img src="/chakra-logo.png" alt="Chakra" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
         </LogoWrap>
-        <Title>Ingreso</Title>
-        <Subtitle>CRM de Cultivos</Subtitle>
+        <Title>Bienvenido al Chakrodromo!</Title>
+        <Subtitle>Ingresa con tus credenciales</Subtitle>
         <Form onSubmit={submit}>
           {error && <Error>{error}</Error>}
           <div>
             <label>Correo</label>
-            <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="admin@crop.com" required />
+            <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seba@chakra.com / santi@chakra.com" required />
           </div>
           <div>
             <label>Contraseña</label>
-            <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required />
+            <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="chakra4794" required />
           </div>
           <Button type="submit" disabled={loading}>{loading ? 'Ingresando...' : 'Ingresar'}</Button>
-          <div style={{ fontSize: 12, color: '#64748b' }}>
-            Demo: admin@crop.com / 123456 ó socio@crop.com / 123456
-          </div>
+          <div style={{ fontSize: 12, color: '#64748b' }}>Demo: seba@chakra.com / santi@chakra.com — pass: chakra4794</div>
         </Form>
       </Card>
     </Page>

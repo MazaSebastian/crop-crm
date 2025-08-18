@@ -24,9 +24,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const mockUsers: AuthUser[] = [
-  { id: '1', email: 'admin@crop.com', name: 'Admin Cultivo', role: 'owner' },
-  { id: '2', email: 'socio@crop.com', name: 'Socio Cultivo', role: 'partner' },
-  { id: '3', email: 'socio2@crop.com', name: 'Socio 2', role: 'partner' }
+  { id: '1', email: 'seba@chakra.com', name: 'Sebastian', role: 'owner' },
+  { id: '2', email: 'santi@chakra.com', name: 'Santiago', role: 'partner' }
 ];
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -43,7 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     await new Promise(r => setTimeout(r, 500));
     const found = mockUsers.find(u => u.email === credentials.email);
-    if (found && credentials.password === '123456') {
+    if (found && credentials.password === 'chakra4794') {
       setUser(found);
       localStorage.setItem('cropcrm_user', JSON.stringify(found));
       setIsLoading(false);

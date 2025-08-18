@@ -71,7 +71,7 @@ function App() {
   const location = useLocation();
   const isLogin = location.pathname === '/login';
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const handleLogout = () => {
     logout();
     navigate('/login', { replace: true });
@@ -87,6 +87,7 @@ function App() {
           <Link to="/tasks">✅ Tareas</Link>
           <Link to="/expenses">💰 Gastos</Link>
           <Link to="/stock">📦 Stock</Link>
+          <div style={{ marginLeft: 'auto', marginRight: 8, fontWeight: 600 }}>Bienvenido {user?.name}</div>
           <LogoutBtn onClick={handleLogout}>Cerrar sesión</LogoutBtn>
         </TopNav>
       )}
