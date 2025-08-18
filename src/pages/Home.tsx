@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { Card as UiCard, Button as UiButton, SectionHeader as UiSectionHeader } from '../components/ui';
-import { getCrops, getAnnouncements, addAnnouncement, getActivities, addActivity, mockCropPartners, getInboxCount, getPlannedEvents, getDailyRecords, syncAnnouncementsFromSupabase, createAnnouncementSupabase, removeAnnouncementLocal, deleteAnnouncementSupabase, syncActivitiesFromSupabase, createActivitySupabase } from '../services/cropService';
+import { getCrops, getAnnouncements, addAnnouncement, getActivities, addActivity, mockCropPartners, getPlannedEvents, getDailyRecords, syncAnnouncementsFromSupabase, createAnnouncementSupabase, removeAnnouncementLocal, deleteAnnouncementSupabase, syncActivitiesFromSupabase, createActivitySupabase } from '../services/cropService';
 import { supabase } from '../services/supabaseClient';
 import type { Announcement, Activity, Crop, ActivityType } from '../types';
 import { useNavigate } from 'react-router-dom';
@@ -78,6 +78,7 @@ const Home: React.FC = () => {
   const [announcements, setAnnouncements] = useState<Announcement[]>(getAnnouncements());
   // const [lastSync, setLastSync] = useState<string | null>(null);
   const [activities, setActivities] = useState<Activity[]>(getActivities());
+  const [notifCount, setNotifCount] = useState<Record<string, number>>({});
 
   const [newMsg, setNewMsg] = useState('');
   const navigate = useNavigate();
@@ -140,10 +141,62 @@ const Home: React.FC = () => {
         })
         .subscribe();
 
+      // Inicializar contadores (últimos 2 días) por cultivo
+      (async () => {
+        const since = new Date(Date.now() - 2*24*3600*1000).toISOString();
+        const ids = crops.map(c => c.id);
+        const counts: Record<string, number> = {};
+        for (const id of ids) counts[id] = 0;
+        const { data: dr } = await supabase
+          .from('daily_records')
+          .select('id,crop_id,created_at')
+          .gte('created_at', since)
+          .in('crop_id', ids as any);
+        const { data: pe } = await supabase
+          .from('planned_events')
+          .select('id,crop_id,created_at')
+          .gte('created_at', since)
+          .in('crop_id', ids as any);
+        (dr || []).forEach((r: any) => { counts[r.crop_id] = (counts[r.crop_id] || 0) + 1; });
+        (pe || []).forEach((r: any) => { counts[r.crop_id] = (counts[r.crop_id] || 0) + 1; });
+        setNotifCount(counts);
+      })();
+
+      // Realtime: aumentar contador al insertar
+      const chNotif = supabase
+        .channel('realtime:home-notif')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'daily_records' }, (payload: any) => {
+          const r = payload.new; if (!r) return;
+          setNotifCount(prev => ({ ...prev, [r.crop_id]: (prev[r.crop_id] || 0) + 1 }));
+        })
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'planned_events' }, (payload: any) => {
+          const r = payload.new; if (!r) return;
+          setNotifCount(prev => ({ ...prev, [r.crop_id]: (prev[r.crop_id] || 0) + 1 }));
+        })
+        .subscribe();
+
       // Al volver el foco, refrescar lista completa (por si hubo desconexión)
       const onFocus = async () => {
         const server = await syncAnnouncementsFromSupabase();
         if (server) setAnnouncements(server);
+        // refrescar contadores
+        const since = new Date(Date.now() - 2*24*3600*1000).toISOString();
+        const ids = crops.map(c => c.id);
+        const counts: Record<string, number> = {};
+        for (const id of ids) counts[id] = 0;
+        const { data: dr } = await supabase
+          .from('daily_records')
+          .select('id,crop_id,created_at')
+          .gte('created_at', since)
+          .in('crop_id', ids as any);
+        const { data: pe } = await supabase
+          .from('planned_events')
+          .select('id,crop_id,created_at')
+          .gte('created_at', since)
+          .in('crop_id', ids as any);
+        (dr || []).forEach((r: any) => { counts[r.crop_id] = (counts[r.crop_id] || 0) + 1; });
+        (pe || []).forEach((r: any) => { counts[r.crop_id] = (counts[r.crop_id] || 0) + 1; });
+        setNotifCount(counts);
       };
       window.addEventListener('focus', onFocus);
       // Polling de respaldo cada 10s por si se pierde la suscripción
@@ -154,6 +207,7 @@ const Home: React.FC = () => {
         window.clearInterval(iv);
         supabase.removeChannel(channel);
         supabase.removeChannel(chActs);
+        supabase.removeChannel(chNotif);
       };
     }
   }, []);
@@ -333,7 +387,7 @@ const Home: React.FC = () => {
                     <span>Estado:</span>
                     <Badge variant={c.status === 'active' ? 'green' : c.status === 'paused' ? 'yellow' : 'gray'}>{c.status}</Badge>
                     {(() => {
-                      const unread = getInboxCount(c.id);
+                      const unread = notifCount[c.id] || 0;
                       if (!unread) return null;
                       // última fecha con cambio
                       const recs = getDailyRecords(c.id);

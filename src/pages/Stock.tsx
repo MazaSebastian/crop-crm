@@ -93,12 +93,48 @@ const Stock: React.FC = () => {
               <div style={{ fontWeight:600 }}>{it.name}</div>
               <div>{it.qty} g</div>
               <div style={{ display:'flex', gap:6 }}>
-                <UiButton onClick={async () => { const n = items.map(x => x.id===it.id?{...x, qty: x.qty + 1}:x); setItems(n); await updateStockQtySupabase(it.id, it.qty+1); }}>+1</UiButton>
-                <UiButton onClick={async () => { const n = items.map(x => x.id===it.id?{...x, qty: Math.max(0, x.qty - 1)}:x); setItems(n); await updateStockQtySupabase(it.id, Math.max(0, it.qty-1)); }}>-1</UiButton>
-                <UiButton onClick={async () => { const n = items.map(x => x.id===it.id?{...x, qty: x.qty + 10}:x); setItems(n); await updateStockQtySupabase(it.id, it.qty+10); }}>+10</UiButton>
-                <UiButton onClick={async () => { const n = items.map(x => x.id===it.id?{...x, qty: Math.max(0, x.qty - 10)}:x); setItems(n); await updateStockQtySupabase(it.id, Math.max(0, it.qty-10)); }}>-10</UiButton>
-                <UiButton onClick={async () => { const n = items.map(x => x.id===it.id?{...x, qty: x.qty + 100}:x); setItems(n); await updateStockQtySupabase(it.id, it.qty+100); }}>+100</UiButton>
-                <UiButton onClick={async () => { const n = items.map(x => x.id===it.id?{...x, qty: Math.max(0, x.qty - 100)}:x); setItems(n); await updateStockQtySupabase(it.id, Math.max(0, it.qty-100)); }}>-100</UiButton>
+                <UiButton onClick={async () => {
+                  const nextQty = it.qty + 1;
+                  const n = items.map(x => x.id===it.id?{...x, qty: nextQty}:x);
+                  setItems(n);
+                  localStorage.setItem('chakra_stock', JSON.stringify(n));
+                  await updateStockQtySupabase(it.id, nextQty);
+                }}>+1</UiButton>
+                <UiButton onClick={async () => {
+                  const nextQty = Math.max(0, it.qty-1);
+                  const n = items.map(x => x.id===it.id?{...x, qty: nextQty}:x);
+                  setItems(n);
+                  localStorage.setItem('chakra_stock', JSON.stringify(n));
+                  await updateStockQtySupabase(it.id, nextQty);
+                }}>-1</UiButton>
+                <UiButton onClick={async () => {
+                  const nextQty = it.qty + 10;
+                  const n = items.map(x => x.id===it.id?{...x, qty: nextQty}:x);
+                  setItems(n);
+                  localStorage.setItem('chakra_stock', JSON.stringify(n));
+                  await updateStockQtySupabase(it.id, nextQty);
+                }}>+10</UiButton>
+                <UiButton onClick={async () => {
+                  const nextQty = Math.max(0, it.qty-10);
+                  const n = items.map(x => x.id===it.id?{...x, qty: nextQty}:x);
+                  setItems(n);
+                  localStorage.setItem('chakra_stock', JSON.stringify(n));
+                  await updateStockQtySupabase(it.id, nextQty);
+                }}>-10</UiButton>
+                <UiButton onClick={async () => {
+                  const nextQty = it.qty + 100;
+                  const n = items.map(x => x.id===it.id?{...x, qty: nextQty}:x);
+                  setItems(n);
+                  localStorage.setItem('chakra_stock', JSON.stringify(n));
+                  await updateStockQtySupabase(it.id, nextQty);
+                }}>+100</UiButton>
+                <UiButton onClick={async () => {
+                  const nextQty = Math.max(0, it.qty-100);
+                  const n = items.map(x => x.id===it.id?{...x, qty: nextQty}:x);
+                  setItems(n);
+                  localStorage.setItem('chakra_stock', JSON.stringify(n));
+                  await updateStockQtySupabase(it.id, nextQty);
+                }}>-100</UiButton>
               </div>
               <div style={{ textAlign:'right' }}>
                 <UiButton variant="ghost" onClick={async () => {
