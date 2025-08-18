@@ -38,6 +38,7 @@ const Expenses: React.FC = () => {
   const [owner, setOwner] = useState<Movement['owner']>('Sebastian');
   const [concept, setConcept] = useState('');
   const [amount, setAmount] = useState('');
+  const [filter, setFilter] = useState<'Todos' | Movement['owner']>('Todos');
 
   const total = useMemo(() => list.reduce((acc, m) => acc + (m.type === 'INGRESO' ? m.amount : -m.amount), 0), [list]);
   const byOwner = useMemo(() => ({
@@ -124,8 +125,14 @@ const Expenses: React.FC = () => {
 
       <Card>
         <h3>Movimientos</h3>
+        <div style={{ display:'flex', gap:8, marginBottom:8, flexWrap:'wrap' }}>
+          <UiButton variant={filter==='Todos'?'primary':'ghost'} onClick={() => setFilter('Todos')}>Todos</UiButton>
+          <UiButton variant={filter==='Sebastian'?'primary':'ghost'} onClick={() => setFilter('Sebastian')}>Sebastian</UiButton>
+          <UiButton variant={filter==='Santiago'?'primary':'ghost'} onClick={() => setFilter('Santiago')}>Santiago</UiButton>
+          <UiButton variant={filter==='Chakra'?'primary':'ghost'} onClick={() => setFilter('Chakra')}>Saldo Chakra</UiButton>
+        </div>
         <div style={{ display:'grid', gap:8 }}>
-          {list.map(m => (
+          {(filter==='Todos' ? list : list.filter(m => m.owner === filter)).map(m => (
             <div key={m.id} style={{ display:'grid', gridTemplateColumns:'1fr 1fr 2fr 1fr 1fr', gap:8, padding:'6px 8px', background:'#f8fafc', border:'1px solid #e5e7eb', borderRadius:8 }}>
               <div style={{ color: m.type === 'INGRESO' ? '#16a34a' : '#ef4444', fontWeight:700 }}>{m.type}</div>
               <div style={{ color:'#374151' }}>{m.owner === 'Chakra' ? 'Saldo Chakra' : m.owner}</div>
