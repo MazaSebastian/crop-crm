@@ -354,6 +354,13 @@ export function addAnnouncement(a: Announcement) {
   saveToStorage(STORAGE_KEYS.announcements, updated);
 }
 
+export function removeAnnouncementLocal(id: string) {
+  const list = inMemory.announcements ?? [];
+  const updated = list.filter(a => a.id !== id);
+  inMemory.announcements = updated;
+  saveToStorage(STORAGE_KEYS.announcements, updated);
+}
+
 // ============ Supabase Sync (Announcements) ============
 export async function syncAnnouncementsFromSupabase(): Promise<Announcement[] | null> {
   if (!supabase) return null;
@@ -393,6 +400,17 @@ export async function createAnnouncementSupabase(a: Announcement): Promise<boole
   if (error) {
     // eslint-disable-next-line no-console
     console.error('Supabase insert error (announcements):', error);
+    return false;
+  }
+  return true;
+}
+
+export async function deleteAnnouncementSupabase(id: string): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('announcements').delete().eq('id', id);
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error('Supabase delete error (announcements):', error);
     return false;
   }
   return true;

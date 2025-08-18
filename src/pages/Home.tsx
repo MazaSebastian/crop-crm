@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { Card as UiCard, Button as UiButton, SectionHeader as UiSectionHeader } from '../components/ui';
-import { getCrops, getAnnouncements, addAnnouncement, getActivities, addActivity, mockCropPartners, getInboxCount, getPlannedEvents, getDailyRecords, syncAnnouncementsFromSupabase, createAnnouncementSupabase, clearAllLocalData, clearSupabaseDemoData } from '../services/cropService';
+import { getCrops, getAnnouncements, addAnnouncement, getActivities, addActivity, mockCropPartners, getInboxCount, getPlannedEvents, getDailyRecords, syncAnnouncementsFromSupabase, createAnnouncementSupabase, clearAllLocalData, clearSupabaseDemoData, removeAnnouncementLocal, deleteAnnouncementSupabase } from '../services/cropService';
 import { supabase } from '../services/supabaseClient';
 import type { Announcement, Activity, Crop, ActivityType } from '../types';
 import { useNavigate } from 'react-router-dom';
@@ -119,6 +119,15 @@ const Home: React.FC = () => {
             });
           }
         )
+        .on(
+          'postgres_changes',
+          { event: 'DELETE', schema: 'public', table: 'announcements' },
+          (payload: any) => {
+            const r = payload.old;
+            if (!r) return;
+            setAnnouncements(prev => prev.filter(x => x.id !== r.id));
+          }
+        )
         .subscribe();
 
       // Al volver el foco, refrescar lista completa (por si hubo desconexión)
@@ -230,9 +239,20 @@ const Home: React.FC = () => {
             </form>
             <List>
               {announcements.slice(0, 4).map(a => (
-                <Item key={a.id}>
-                  <div style={{ fontSize: '0.875rem' }}>{a.message}</div>
-                  <div style={{ color: '#64748b', fontSize: '0.75rem' }}>{new Date(a.createdAt).toLocaleString('es-AR')}</div>
+                <Item key={a.id} style={{ display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center', gap:8 }}>
+                  <div>
+                    <div style={{ fontSize: '0.875rem' }}>{a.message}</div>
+                    <div style={{ color: '#64748b', fontSize: '0.75rem' }}>{new Date(a.createdAt).toLocaleString('es-AR')}</div>
+                  </div>
+                  <button
+                    title="Marcar como leído"
+                    onClick={async () => {
+                      removeAnnouncementLocal(a.id);
+                      setAnnouncements(prev => prev.filter(x => x.id !== a.id));
+                      await deleteAnnouncementSupabase(a.id);
+                    }}
+                    style={{ background:'#dcfce7', border:'1px solid #86efac', color:'#166534', borderRadius:8, padding:'4px 10px', cursor:'pointer' }}
+                  >✔️ Leído</button>
                 </Item>
               ))}
             </List>
