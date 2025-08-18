@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { getCrops, getDailyRecords, getPlannedEvents, getTasks } from '../services/cropService';
+import { getCrops, getDailyRecords, getPlannedEvents, getTasks, deleteCropSupabase } from '../services/cropService';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid } from 'recharts';
 import { Button as UiButton } from '../components/ui';
 
@@ -53,6 +53,7 @@ const Stat = styled.div`
 
 const CropSummary: React.FC = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const crop = useMemo(() => getCrops().find(c => c.id === id), [id]);
   const records = useMemo(() => (id ? getDailyRecords(id) : []), [id]);
   const events = useMemo(() => (id ? getPlannedEvents(id) : []), [id]);
@@ -199,8 +200,18 @@ const CropSummary: React.FC = () => {
           </Card>
         </div>
       </Grid>
-      <div>
+      <div style={{ display:'flex', justifyContent:'flex-end', gap:8 }}>
         <UiButton as={Link} to="/crops" variant="ghost">← Volver a Cultivos</UiButton>
+        <UiButton
+          variant="danger"
+          onClick={async () => {
+            if (!id) return;
+            const ok = window.confirm('¿Eliminar este cultivo? Se removerá del listado.');
+            if (!ok) return;
+            await deleteCropSupabase(id);
+            navigate('/crops');
+          }}
+        >ELIMINAR CULTIVO</UiButton>
       </div>
     </Page>
   );
