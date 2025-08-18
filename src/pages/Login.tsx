@@ -8,7 +8,7 @@ const Page = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, #1f3d29 0%, #254a31 100%);
   padding: 1rem;
 `;
 
@@ -30,6 +30,13 @@ const Title = styled.h1`
 const Subtitle = styled.p`
   margin: 0 0 1.5rem 0;
   color: #64748b;
+`;
+
+const LogoWrap = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+  img { display:block; max-width: 220px; height: auto; }
 `;
 
 const Form = styled.form`
@@ -86,6 +93,10 @@ const Login: React.FC = () => {
   return (
     <Page>
       <Card>
+        <LogoWrap>
+          {/* Coloca tu archivo en public/chakra-logo.png para usar este logo */}
+          <img src="/chakra-logo.png" alt="Chakra" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+        </LogoWrap>
         <Title>Ingreso</Title>
         <Subtitle>CRM de Cultivos</Subtitle>
         <Form onSubmit={submit}>
