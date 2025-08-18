@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { Card as UiCard, Button as UiButton, Input as UiInput } from '../components/ui';
 
 const Page = styled.div`
   padding: 1rem;
@@ -10,12 +11,7 @@ const Page = styled.div`
   gap: 1rem;
 `;
 
-const Card = styled.div`
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
-  padding: 1rem;
-`;
+const Card = UiCard;
 
 interface Item { id: string; name: string; qty: number; unit?: string; }
 
@@ -40,18 +36,18 @@ const Stock: React.FC = () => {
       <Card>
         <h2>Stock</h2>
         <div style={{ display:'flex', justifyContent:'flex-end' }}>
-          <button onClick={() => setIsOpen(true)}>Agregar Stock</button>
+          <UiButton onClick={() => setIsOpen(true)}>Agregar Stock</UiButton>
         </div>
         {isOpen && (
           <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.2)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000 }} onClick={() => setIsOpen(false)}>
             <div style={{ background:'#fff', border:'1px solid #e5e7eb', padding:16, borderRadius:12, width:360 }} onClick={e => e.stopPropagation()}>
               <h3>Agregar Stock</h3>
               <form onSubmit={add} style={{ display:'grid', gap:8 }}>
-                <input placeholder="Variedad" value={name} onChange={e => setName(e.target.value)} />
-                <input placeholder="Stock (g)" type="number" value={qty} onChange={e => setQty(e.target.value)} />
+                <UiInput placeholder="Variedad" value={name} onChange={e => setName(e.target.value)} />
+                <UiInput placeholder="Stock (g)" type="number" value={qty} onChange={e => setQty(e.target.value)} />
                 <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
-                  <button type="button" onClick={() => setIsOpen(false)}>Cancelar</button>
-                  <button type="submit">Guardar</button>
+                  <UiButton variant="ghost" type="button" onClick={() => setIsOpen(false)}>Cancelar</UiButton>
+                  <UiButton type="submit">Guardar</UiButton>
                 </div>
               </form>
             </div>
@@ -66,16 +62,16 @@ const Stock: React.FC = () => {
               <div style={{ fontWeight:600 }}>{it.name}</div>
               <div>{it.qty} g</div>
               <div style={{ display:'flex', gap:8 }}>
-                <button onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: x.qty + 10}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>+10 g</button>
-                <button onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: Math.max(0, x.qty - 10)}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>-10 g</button>
-                <button onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: x.qty + 100}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>+100 g</button>
-                <button onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: Math.max(0, x.qty - 100)}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>-100 g</button>
+                <UiButton onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: x.qty + 10}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>+10 g</UiButton>
+                <UiButton onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: Math.max(0, x.qty - 10)}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>-10 g</UiButton>
+                <UiButton onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: x.qty + 100}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>+100 g</UiButton>
+                <UiButton onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: Math.max(0, x.qty - 100)}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>-100 g</UiButton>
               </div>
               <div style={{ textAlign:'right' }}>
-                <button onClick={() => {
+                <UiButton variant="ghost" onClick={() => {
                   const next = items.filter(x => x.id !== it.id);
                   setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next));
-                }}>Eliminar</button>
+                }}>Eliminar</UiButton>
               </div>
             </div>
           ))}

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
+import { Card as UiCard, Button as UiButton, Input as UiInput, Select as UiSelect } from '../components/ui';
 
 const Page = styled.div`
   padding: 1rem;
@@ -10,12 +11,7 @@ const Page = styled.div`
   gap: 1rem;
 `;
 
-const Card = styled.div`
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
-  padding: 1rem;
-`;
+const Card = UiCard;
 
 const Row = styled.div`
   display: grid;
@@ -77,17 +73,17 @@ const Expenses: React.FC = () => {
         <h3>Nuevo movimiento</h3>
         <form onSubmit={submit} style={{ display: 'grid', gap: 8 }}>
           <Row>
-            <select value={type} onChange={e => setType(e.target.value as any)}>
+            <UiSelect value={type} onChange={e => setType(e.target.value as any)}>
               <option>EGRESO</option>
               <option>INGRESO</option>
-            </select>
-            <select value={owner} onChange={e => setOwner(e.target.value as any)}>
+            </UiSelect>
+            <UiSelect value={owner} onChange={e => setOwner(e.target.value as any)}>
               <option>Sebastian</option>
               <option>Santiago</option>
-            </select>
-            <input placeholder="Concepto" value={concept} onChange={e => setConcept(e.target.value)} />
-            <input placeholder="Monto" type="number" value={amount} onChange={e => setAmount(e.target.value)} />
-            <button type="submit">Agregar</button>
+            </UiSelect>
+            <UiInput placeholder="Concepto" value={concept} onChange={e => setConcept(e.target.value)} />
+            <UiInput placeholder="Monto" type="number" value={amount} onChange={e => setAmount(e.target.value)} />
+            <UiButton type="submit">Agregar</UiButton>
           </Row>
         </form>
       </Card>

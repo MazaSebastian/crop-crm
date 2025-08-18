@@ -30,4 +30,22 @@ export const SectionHeader = styled.div`
   h3 { font-size: 1rem; margin: 0; }
 `;
 
+export const Input = styled.input`
+  width: 100%;
+  height: 40px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.sm};
+  &:focus { outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,.25); border-color: #60a5fa; }
+`;
+
+export const Select = styled.select`
+  width: 100%;
+  height: 40px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.sm};
+  background: ${({ theme }) => theme.colors.surface};
+  &:focus { outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,.25); border-color: #60a5fa; }
+`;
 
