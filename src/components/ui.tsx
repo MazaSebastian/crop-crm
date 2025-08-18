@@ -12,7 +12,7 @@ export const Button = styled.button<{ variant?: 'primary' | 'ghost' | 'danger' }
   position: relative;
   padding: 0.55rem 1rem;
   border-radius: ${({ theme }) => theme.radii.sm};
-  border: 1px solid transparent;
+  border: 1px solid ${({ variant, theme }) => (variant === 'ghost' ? theme.colors.border : 'transparent')};
   cursor: pointer;
   font-weight: 600;
   background: ${({ theme, variant }) => {
@@ -29,11 +29,27 @@ export const Button = styled.button<{ variant?: 'primary' | 'ghost' | 'danger' }
     box-shadow: ${({ variant }) => (variant === 'ghost' ? 'none' : '0 10px 22px rgba(16,185,129,.28)')};
     filter: ${({ variant }) => (variant === 'ghost' ? 'none' : 'saturate(1.05)')};
     opacity: 1;
+    ${({ variant }) => variant === 'ghost' ? `
+      background: rgba(16,185,129,.06);
+      border-color: rgba(16,185,129,.35);
+    ` : ''}
   }
 
   &:active {
     transform: translateY(0) scale(0.99);
     box-shadow: ${({ variant }) => (variant === 'ghost' ? 'none' : '0 4px 12px rgba(16,185,129,.22)')};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.info};
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
   }
 `;
 
