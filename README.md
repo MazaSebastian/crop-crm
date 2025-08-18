@@ -1,46 +1,55 @@
 # 🌱 Crop CRM - Gestión de Cultivos
 
-Sistema CRM simple para la administración de cultivos entre dos socios. Permite mantener comunicación y registros sin necesidad de contacto físico.
+Sistema multi-usuario para gestión de cultivos, con sincronización en tiempo real (Supabase) y despliegue en Vercel.
 
-## 🚀 Funcionalidades
+## ✅ Estado Estable (snapshot)
+- Tag: `v0.9.0-beta`
+- Rama backup: `backup/beta-2025-08-18`
 
-- **Dashboard de Cultivos**: Vista general de todos los cultivos activos
-- **Registro Diario**: Formulario para registrar temperatura, humedad, pH, EC y observaciones
-- **Parámetros**: Tabla con histórico de parámetros ambientales
-- **Tareas Compartidas**: Sistema de tareas asignables entre socios
+## 🔧 Requisitos
+- Variables de entorno (Vercel):
+  - `REACT_APP_SUPABASE_URL`
+  - `REACT_APP_SUPABASE_ANON_KEY`
 
-## 🛠️ Tecnologías
+## 🗄️ Migración (SQL v1)
+Ejecutá el archivo `sql/001_schema.sql` en el SQL Editor de Supabase (idempotente). Crea tablas, habilita RLS (modo demo) y activa Realtime.
 
-- React 18 + TypeScript
-- Styled Components
-- React Router DOM
-- React Icons
-- LocalStorage para persistencia
-
-## 📱 Características
-
-- **Responsive**: Optimizado para móviles y desktop
-- **Persistencia Local**: Datos guardados en localStorage
-- **Interfaz Intuitiva**: Diseño simple y fácil de usar
-- **Sin Backend**: Funciona completamente en el frontend
-
-## 🚀 Instalación
-
+## 🚀 Deploy
 ```bash
 npm install
-npm start
+npm run build
+# producir la build para Vercel
+```
+En Vercel, conectá el repo y desplegá. Si hay warnings de ESLint, hacé “Redeploy → Clear build cache”.
+
+## 🔐 Demo credenciales
+- seba@chakra.com / chakra4794
+- santi@chakra.com / chakra4794
+
+## 🧩 Funcionalidad principal
+- Login y rutas protegidas
+- Comunicaciones con “Leído” (borra en ambos dispositivos)
+- Registro diario y eventos con Realtime y borrado
+- Cultivos: crear/editar/eliminar con Realtime
+- Tareas: límite 4, edición modal, toggle completado con animación y sync
+- Gastos: “Saldo Chakra” + filtros por propietario
+- Stock: +/− con sync
+- Notificaciones por cultivo: contador basado en `notif_last_seen` por usuario (sincronizado)
+
+## 🆘 Rollback rápido
+```bash
+git fetch --all --tags
+git checkout v0.9.0-beta
+# o promover el deployment del tag en Vercel a Production
 ```
 
-## 📋 Uso
+## 📦 Backups (Sugerencias)
+- Plan Pro: habilitar Backups y PITR en Supabase
+- Free: `pg_dump` programado (GitHub Actions) hacia un bucket/artifacts
 
-1. **Cultivos**: Ver y gestionar cultivos activos
-2. **Registro Diario**: Ingresar parámetros del día
-3. **Parámetros**: Revisar histórico de datos
-4. **Tareas**: Crear y asignar tareas entre socios
+## 📂 Estructura
+- `src/` app React
+- `sql/001_schema.sql` migración idempotente
 
-## 🎯 Diseñado para
-
-- 2 personas trabajando en el mismo cultivo
-- Comunicación asíncrona
-- Registro de parámetros ambientales
-- Gestión de tareas compartidas
+## 📄 Licencia
+Uso interno.
