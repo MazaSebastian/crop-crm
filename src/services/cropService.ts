@@ -329,9 +329,76 @@ export function upsertTask(task: CropTask) {
     tasks[idx] = task;
   } else {
     tasks.unshift(task);
+    // limitar en memoria (defensivo)
+    if (tasks.length > 50) tasks.length = 50;
   }
   inMemory.tasks = tasks;
   saveToStorage(STORAGE_KEYS.tasks, tasks);
+}
+
+// Supabase sync for tasks (tareas compartidas)
+export async function syncTasksFromSupabase(cropId?: string, limit: number = 4): Promise<CropTask[] | null> {
+  if (!supabase) return null;
+  let query = supabase.from('tasks').select('*').order('created_at', { ascending: false }).limit(limit);
+  if (cropId) query = query.eq('crop_id', cropId);
+  const { data, error } = await query;
+  if (error) { console.error('Supabase select error (tasks):', error); return null; }
+  const mapped: CropTask[] = (data || []).map((r: any) => ({
+    id: r.id,
+    cropId: r.crop_id,
+    title: r.title,
+    description: r.description || undefined,
+    assignedTo: r.assigned_to || undefined,
+    status: (r.status || 'pending'),
+    priority: (r.priority || 'medium'),
+    dueDate: r.due_date || undefined,
+    createdAt: r.created_at,
+    createdBy: r.created_by || 'partner-1',
+    completedAt: r.completed_at || undefined,
+  }));
+  // guardar en memoria (por cultivo si corresponde)
+  if (cropId) {
+    const others = (inMemory.tasks || []).filter(t => t.cropId !== cropId);
+    inMemory.tasks = [...mapped, ...others];
+  } else {
+    inMemory.tasks = mapped;
+  }
+  saveToStorage(STORAGE_KEYS.tasks, inMemory.tasks);
+  return mapped;
+}
+
+export async function createTaskSupabase(t: CropTask): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('tasks').insert({
+    id: t.id,
+    crop_id: t.cropId,
+    title: t.title,
+    description: t.description || null,
+    assigned_to: t.assignedTo || null,
+    status: t.status,
+    priority: t.priority,
+    due_date: t.dueDate || null,
+    created_at: t.createdAt,
+    created_by: t.createdBy,
+    completed_at: t.completedAt || null,
+  });
+  if (error) { console.error('Supabase insert error (tasks):', error); return false; }
+  return true;
+}
+
+export async function updateTaskSupabase(t: CropTask): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('tasks').update({
+    title: t.title,
+    description: t.description || null,
+    assigned_to: t.assignedTo || null,
+    status: t.status,
+    priority: t.priority,
+    due_date: t.dueDate || null,
+    completed_at: t.completedAt || null,
+  }).eq('id', t.id);
+  if (error) { console.error('Supabase update error (tasks):', error); return false; }
+  return true;
 }
 
 // Announcements (comunicaciones/avisos)

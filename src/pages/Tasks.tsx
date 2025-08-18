@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
-import { getCrops, getTasks, upsertTask, mockCropPartners } from '../services/cropService';
+import { getCrops, getTasks, upsertTask, mockCropPartners, syncTasksFromSupabase, createTaskSupabase, updateTaskSupabase } from '../services/cropService';
+import { supabase } from '../services/supabaseClient';
 import type { Crop, CropTask } from '../types';
 
 const Page = styled.div`
@@ -74,10 +75,23 @@ const Tasks: React.FC = () => {
   const [tasks, setTasks] = useState<CropTask[]>(cropId ? getTasks(cropId) : []);
 
   React.useEffect(() => {
-    setTasks(cropId ? getTasks(cropId) : []);
+    (async () => {
+      const srv = await syncTasksFromSupabase(cropId, 4);
+      if (srv) setTasks(srv);
+      else setTasks(cropId ? getTasks(cropId) : []);
+    })();
+    if (supabase && cropId) {
+      const ch = supabase.channel('realtime:tasks')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks', filter: `crop_id=eq.${cropId}` }, async () => {
+          const srv = await syncTasksFromSupabase(cropId, 4);
+          if (srv) setTasks(srv);
+        })
+        .subscribe();
+      return () => { supabase.removeChannel(ch); };
+    }
   }, [cropId]);
 
-  const addTask = (e: React.FormEvent) => {
+  const addTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cropId || !title.trim()) return;
     const task: CropTask = {
@@ -92,11 +106,12 @@ const Tasks: React.FC = () => {
       createdBy: mockCropPartners[0].id
     };
     upsertTask(task);
-    setTasks(prev => [task, ...prev]);
+    setTasks(prev => [task, ...prev].slice(0, 4));
+    await createTaskSupabase(task);
     setTitle(''); setAssignee(''); setDueDate(''); setStatus('pending'); setPriority('medium');
   };
 
-  const toggleDone = (t: CropTask) => {
+  const toggleDone = async (t: CropTask) => {
     const updated: CropTask = {
       ...t,
       status: t.status === 'done' ? 'pending' : 'done',
@@ -104,6 +119,7 @@ const Tasks: React.FC = () => {
     };
     upsertTask(updated);
     setTasks(prev => prev.map(x => x.id === updated.id ? updated : x));
+    await updateTaskSupabase(updated);
   };
 
   return (
@@ -154,18 +170,60 @@ const Tasks: React.FC = () => {
               <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
             </div>
           </Row>
-          <div style={{ marginTop: '0.5rem' }}>
-            <Button type="submit">Agregar</Button>
+          <div style={{ marginTop: '0.5rem', display:'flex', gap:8 }}>
+            <Button type="submit" onClick={async (e) => {
+              // si hay _editingId, hacer update y limpiar bandera
+              const id = (addTask as any)._editingId as string | undefined;
+              if (id) {
+                e.preventDefault();
+                if (!cropId || !title.trim()) return;
+                const updated: CropTask = {
+                  id,
+                  cropId,
+                  title: title.trim(),
+                  priority,
+                  status,
+                  assignedTo: assignee || undefined,
+                  dueDate: dueDate || undefined,
+                  createdAt: new Date().toISOString(),
+                  createdBy: mockCropPartners[0].id
+                };
+                upsertTask(updated);
+                setTasks(prev => prev.map(x => x.id === id ? updated : x).slice(0,4));
+                await updateTaskSupabase(updated);
+                (addTask as any)._editingId = undefined;
+                setTitle(''); setAssignee(''); setDueDate(''); setStatus('pending'); setPriority('medium');
+                return;
+              }
+            }}>Guardar</Button>
+            {(addTask as any)._editingId && (
+              <Button type="button" onClick={() => { (addTask as any)._editingId = undefined; setTitle(''); setAssignee(''); setDueDate(''); setStatus('pending'); setPriority('medium'); }} style={{ background:'#e5e7eb', color:'#111827' }}>Cancelar</Button>
+            )}
           </div>
         </form>
       </Card>
 
       <h2 style={{ margin: '1rem 0 0.5rem' }}>Tareas</h2>
       <List>
-        {tasks.map(t => (
+        {tasks.slice(0,4).map(t => (
           <Item key={t.id} status={t.status}>
             <div>
-              <div style={{ fontWeight: 600 }}>{t.title}</div>
+              <div style={{ fontWeight: 600, display:'flex', alignItems:'center', gap:8 }}>
+                <span>{t.title}</span>
+                <button
+                  title="Editar"
+                  onClick={() => {
+                    setTitle(t.title);
+                    setPriority(t.priority);
+                    setAssignee(t.assignedTo || '');
+                    setStatus(t.status);
+                    setDueDate(t.dueDate || '');
+                    // reutilizamos el formulario para editar: guardamos el id en un atributo temporal
+                    (addTask as any)._editingId = t.id;
+                  }}
+                  style={{ background:'transparent', border:'1px solid #e5e7eb', borderRadius:6, padding:'2px 6px', cursor:'pointer' }}
+                >✏️</button>
+              </div>
               <div style={{ color: '#64748b', fontSize: '0.875rem' }}>
                 {t.priority.toUpperCase()} {t.dueDate ? `• Vence: ${t.dueDate}` : ''}
               </div>
