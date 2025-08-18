@@ -151,16 +151,7 @@ const DailyLog: React.FC = () => {
             </select>
           </div>
           {/* Eliminamos el botón de Agregar Evento para usar el menú del día */}
-          <div>
-            <Label>&nbsp;</Label>
-            <Button type="button" onClick={async () => {
-              if (!cropId) return;
-              const srvRec = await syncDailyRecordsFromSupabase(cropId);
-              if (srvRec) setRecords(srvRec);
-              const srvPlan = await syncPlannedEventsFromSupabase(cropId);
-              if (srvPlan) setPlanned(srvPlan);
-            }}>🔄 Forzar sync</Button>
-          </div>
+          <div />
         </Row>
         <div style={{ marginTop: '0.5rem' }}>
           <YearCalendar
