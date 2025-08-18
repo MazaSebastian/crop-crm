@@ -26,19 +26,21 @@ const TopNav = styled.nav`
   background: linear-gradient(135deg, ${({ theme }) => theme.colors.primary} 0%, ${({ theme }) => theme.colors.primaryDark} 100%);
   color: white;
   z-index: 1000;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 24px rgba(2,8,23,.12);
   overflow-x: auto;
 
   a { 
     color: white; 
     font-weight: 600; 
     text-decoration: none;
-    padding: 0.4rem 0.8rem;
-    border-radius: 8px;
-    transition: background-color 0.2s;
+    padding: 0.4rem 0.85rem;
+    border-radius: 10px;
+    transition: transform .18s ease, background-color .18s ease, box-shadow .18s ease;
     
     &:hover {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(255,255,255,.12);
     }
   }
   @media (max-width: 640px) {
@@ -49,15 +51,17 @@ const TopNav = styled.nav`
 
 const LogoutBtn = styled.button`
   margin-left: auto;
-  background: ${({ theme }) => theme.colors.danger};
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 0.45rem 0.75rem;
-  font-weight: 600;
+  padding: 0.45rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  color: #fff;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.2s;
-  &:hover { background: #dc2626; }
+  box-shadow: 0 6px 16px rgba(239,68,68,.22);
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+  &:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(239,68,68,.28); filter: saturate(1.05); }
+  &:active { transform: translateY(0) scale(.99); box-shadow: 0 4px 12px rgba(239,68,68,.22); }
 `;
 
 const AppContainer = styled.div`
