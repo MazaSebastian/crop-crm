@@ -9,7 +9,8 @@ export const theme = {
     mutedText: '#64748b',
     success: '#10b981',
     warning: '#f59e0b',
-    danger: '#ef4444'
+    danger: '#ef4444',
+    info: '#2563eb'
   },
   radii: {
     sm: '6px',
