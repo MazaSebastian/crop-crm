@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { Card as UiCard, Button as UiButton, SectionHeader as UiSectionHeader } from '../components/ui';
-import { getCrops, getAnnouncements, addAnnouncement, getActivities, addActivity, mockCropPartners, getInboxCount, getPlannedEvents, getDailyRecords, syncAnnouncementsFromSupabase, createAnnouncementSupabase } from '../services/cropService';
+import { getCrops, getAnnouncements, addAnnouncement, getActivities, addActivity, mockCropPartners, getInboxCount, getPlannedEvents, getDailyRecords, syncAnnouncementsFromSupabase, createAnnouncementSupabase, clearAllLocalData, clearSupabaseDemoData } from '../services/cropService';
 import { supabase } from '../services/supabaseClient';
 import type { Announcement, Activity, Crop, ActivityType } from '../types';
 import { useNavigate } from 'react-router-dom';
@@ -208,6 +208,18 @@ const Home: React.FC = () => {
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 {lastSync && <span style={{ color: '#94a3b8', fontSize: 12 }}>Última sync: {lastSync}</span>}
                 <button onClick={forceSync} style={{ padding: '6px 10px', borderRadius: 8, background: '#e2e8f0' }}>Forzar sincronización</button>
+                <button
+                  onClick={async () => {
+                    const confirmReset = window.confirm('¿Resetear datos locales y remotos de demo?');
+                    if (!confirmReset) return;
+                    await clearAllLocalData();
+                    const res = await clearSupabaseDemoData();
+                    if (!res.ok) alert('Algunos datos remotos no pudieron eliminarse: ' + res.errors.join(', '));
+                    window.location.reload();
+                  }}
+                  style={{ padding: '6px 10px', borderRadius: 8, background: '#fee2e2', color: '#991b1b', border: '1px solid #fecaca' }}
+                  title="Borrar datos de prueba"
+                >Reset demo</button>
               </div>
             </SectionHeader>
             <form onSubmit={addMsg} style={{ display: 'grid', gap: '0.5rem', marginBottom: '0.5rem' }}>

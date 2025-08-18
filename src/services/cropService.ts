@@ -499,3 +499,51 @@ export function getInboxCount(cropId: string): number {
   const box = loadInbox();
   return box[cropId] || 0;
 }
+
+// ============ Limpieza de datos de demo ============
+export async function clearAllLocalData(): Promise<void> {
+  try {
+    const keys = [
+      STORAGE_KEYS.crops,
+      STORAGE_KEYS.records,
+      STORAGE_KEYS.tasks,
+      STORAGE_KEYS.announcements,
+      STORAGE_KEYS.activities,
+      STORAGE_KEYS.planned,
+      STORAGE_KEYS.inbox,
+      'chakra_movs',
+      'chakra_balance',
+      'chakra_stock'
+    ];
+    for (const k of keys) localStorage.removeItem(k);
+    inMemory.crops = [];
+    inMemory.records = [];
+    inMemory.tasks = [];
+    inMemory.announcements = [];
+    inMemory.activities = [];
+    inMemory.planned = [];
+    inMemory.inbox = {};
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('Error limpiando datos locales:', e);
+  }
+}
+
+export async function clearSupabaseDemoData(): Promise<{ ok: boolean; errors: string[] }>{
+  const errors: string[] = [];
+  if (!supabase) return { ok: false, errors: ['Supabase no configurado'] };
+
+  async function tryDelete(table: string) {
+    const { error } = await supabase.from(table).delete().neq('id', '');
+    if (error) errors.push(`${table}: ${error.message}`);
+  }
+
+  // No borrar crops por defecto; solo datos transaccionales
+  await tryDelete('announcements');
+  await tryDelete('daily_records');
+  await tryDelete('planned_events');
+  await tryDelete('cash_movements');
+  await tryDelete('stock_items');
+
+  return { ok: errors.length === 0, errors };
+}
