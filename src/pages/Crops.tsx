@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import type { Crop } from '../types';
-import { getCrops, syncCropsFromSupabase, createCropSupabase, deleteCropSupabase } from '../services/cropService';
+import { getCrops, syncCropsFromSupabase, createCropSupabase, updateCropSupabase } from '../services/cropService';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 
@@ -108,11 +108,24 @@ const Crops: React.FC = () => {
           <Card key={c.id} onClick={(e) => {
             // evitar que el click en eliminar navegue
             const target = e.target as HTMLElement;
-            if (target.closest('[data-action="delete"]')) return;
+            if (target.closest('[data-action="edit"]')) return;
             navigate(`/crops/${c.id}`);
           }}>
             <CardHeader>
-              🌱 {c.name}
+              <span>🌱 {c.name}</span>
+              <button
+                data-action="edit"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsOpen(true); setName(c.name); setLocation(c.location || '');
+                  // guardamos id temporal en dataset del botón para usar en submit
+                  (e.currentTarget as any).dataset.editingId = c.id;
+                  // usamos atributo en el estado del componente en lugar de dataset
+                  (setIsOpen as any)._editingId = c.id;
+                }}
+                title="Editar cultivo"
+                style={{ marginLeft:'auto', background:'transparent', border:'none', cursor:'pointer' }}
+              >✏️</button>
             </CardHeader>
             <CardBody>
               <div>Ubicación: {c.location ?? '—'}</div>
@@ -120,18 +133,6 @@ const Crops: React.FC = () => {
               <div>Socios: {c.partners.map(p => p.name).join(' & ')}</div>
               <div>
                 Estado: <Badge variant={statusVariant(c.status)}>{c.status}</Badge>
-              </div>
-              <div style={{ display:'flex', justifyContent:'flex-end' }}>
-                <button
-                  data-action="delete"
-                  onClick={async () => {
-                    const ok = window.confirm(`¿Eliminar cultivo "${c.name}"?`);
-                    if (!ok) return;
-                    setCrops(prev => prev.filter(x => x.id !== c.id));
-                    await deleteCropSupabase(c.id);
-                  }}
-                  style={{ background:'#fee2e2', border:'1px solid #fecaca', color:'#991b1b', borderRadius:8, padding:'4px 10px' }}
-                >ELIMINAR CULTIVO</button>
               </div>
             </CardBody>
           </Card>
@@ -146,10 +147,18 @@ const Crops: React.FC = () => {
               e.preventDefault();
               const nm = name.trim();
               if (!nm) return;
-              const id = `crop-${Date.now()}`;
-              const newCrop: Crop = { id, name: nm, location: location.trim() || undefined, startDate: new Date().toISOString().slice(0,10), partners: [], status: 'active' };
-              setCrops(prev => [newCrop, ...prev]);
-              await createCropSupabase(newCrop);
+              const editingId = (setIsOpen as any)._editingId as string | undefined;
+              if (editingId) {
+                const updated: Crop = { id: editingId, name: nm, location: location.trim() || undefined, startDate: new Date().toISOString().slice(0,10), partners: [], status: 'active' };
+                setCrops(prev => prev.map(x => x.id === editingId ? { ...x, name: updated.name, location: updated.location } : x));
+                await updateCropSupabase(updated);
+                (setIsOpen as any)._editingId = undefined;
+              } else {
+                const id = `crop-${Date.now()}`;
+                const newCrop: Crop = { id, name: nm, location: location.trim() || undefined, startDate: new Date().toISOString().slice(0,10), partners: [], status: 'active' };
+                setCrops(prev => [newCrop, ...prev]);
+                await createCropSupabase(newCrop);
+              }
               setName(''); setLocation(''); setIsOpen(false);
             }} style={{ display:'grid', gap:8 }}>
               <input placeholder="Nombre" value={name} onChange={e => setName(e.target.value)} style={{ padding:'8px 10px', border:'1px solid #d1d5db', borderRadius:8 }} />

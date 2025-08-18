@@ -118,6 +118,23 @@ export async function deleteCropSupabase(id: string): Promise<boolean> {
   return true;
 }
 
+export async function updateCropSupabase(c: Crop): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase
+    .from('crops')
+    .update({
+      name: c.name,
+      location: c.location || null,
+      start_date: c.startDate,
+      photo_url: c.photoUrl || null,
+      partners: c.partners || [],
+      status: c.status || 'active'
+    })
+    .eq('id', c.id);
+  if (error) { console.error('Supabase update error (crops):', error); return false; }
+  return true;
+}
+
 export function getDailyRecords(cropId: string): DailyRecord[] {
   if (!inMemory.records) {
     const today = new Date();
