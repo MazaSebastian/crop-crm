@@ -62,10 +62,17 @@ const CropSummary: React.FC = () => {
   const chartData = useMemo(() => {
     const cutoff = new Date(Date.now() - rangeDays * 24 * 3600 * 1000);
     const within = records.filter(r => new Date(r.date) >= cutoff).slice().reverse();
+    const calcVpd = (tC: number, rh: number) => {
+      // Saturation vapor pressure (kPa)
+      const svp = 0.6108 * Math.exp((17.27 * tC) / (tC + 237.3));
+      // VPD (kPa)
+      return +(svp * (1 - (rh || 0) / 100)).toFixed(2);
+    };
     return within.map(r => ({
       date: r.date,
       temperatureC: r.params.temperatureC,
-      humidityPct: r.params.humidityPct
+      humidityPct: r.params.humidityPct,
+      vpdKPa: calcVpd(r.params.temperatureC, r.params.humidityPct)
     }));
   }, [records, rangeDays]);
 
@@ -140,6 +147,7 @@ const CropSummary: React.FC = () => {
                   <Tooltip />
                   <Legend />
                   <Line yAxisId="left" type="monotone" dataKey="temperatureC" name="Temp (°C)" stroke="#ef4444" dot={false} />
+                  <Line yAxisId="left" type="monotone" dataKey="vpdKPa" name="VPD (kPa)" stroke="#8b5cf6" dot={false} />
                   <Line yAxisId="right" type="monotone" dataKey="humidityPct" name="Hum (%)" stroke="#3b82f6" dot={false} />
                 </LineChart>
               </ResponsiveContainer>
