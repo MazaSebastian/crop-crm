@@ -73,6 +73,14 @@ const Tasks: React.FC = () => {
   const [status, setStatus] = useState<CropTask['status']>('pending');
   const [dueDate, setDueDate] = useState('');
   const [tasks, setTasks] = useState<CropTask[]>(cropId ? getTasks(cropId) : []);
+  // Estado para edición en modal
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<CropTask | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editPriority, setEditPriority] = useState<CropTask['priority']>('medium');
+  const [editAssignee, setEditAssignee] = useState('');
+  const [editStatus, setEditStatus] = useState<CropTask['status']>('pending');
+  const [editDueDate, setEditDueDate] = useState('');
 
   React.useEffect(() => {
     (async () => {
@@ -170,35 +178,8 @@ const Tasks: React.FC = () => {
               <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
             </div>
           </Row>
-          <div style={{ marginTop: '0.5rem', display:'flex', gap:8 }}>
-            <Button type="submit" onClick={async (e) => {
-              // si hay _editingId, hacer update y limpiar bandera
-              const id = (addTask as any)._editingId as string | undefined;
-              if (id) {
-                e.preventDefault();
-                if (!cropId || !title.trim()) return;
-                const updated: CropTask = {
-                  id,
-                  cropId,
-                  title: title.trim(),
-                  priority,
-                  status,
-                  assignedTo: assignee || undefined,
-                  dueDate: dueDate || undefined,
-                  createdAt: new Date().toISOString(),
-                  createdBy: mockCropPartners[0].id
-                };
-                upsertTask(updated);
-                setTasks(prev => prev.map(x => x.id === id ? updated : x).slice(0,4));
-                await updateTaskSupabase(updated);
-                (addTask as any)._editingId = undefined;
-                setTitle(''); setAssignee(''); setDueDate(''); setStatus('pending'); setPriority('medium');
-                return;
-              }
-            }}>Guardar</Button>
-            {(addTask as any)._editingId && (
-              <Button type="button" onClick={() => { (addTask as any)._editingId = undefined; setTitle(''); setAssignee(''); setDueDate(''); setStatus('pending'); setPriority('medium'); }} style={{ background:'#e5e7eb', color:'#111827' }}>Cancelar</Button>
-            )}
+          <div style={{ marginTop: '0.5rem' }}>
+            <Button type="submit">Agregar</Button>
           </div>
         </form>
       </Card>
@@ -213,13 +194,13 @@ const Tasks: React.FC = () => {
                 <button
                   title="Editar"
                   onClick={() => {
-                    setTitle(t.title);
-                    setPriority(t.priority);
-                    setAssignee(t.assignedTo || '');
-                    setStatus(t.status);
-                    setDueDate(t.dueDate || '');
-                    // reutilizamos el formulario para editar: guardamos el id en un atributo temporal
-                    (addTask as any)._editingId = t.id;
+                    setEditingTask(t);
+                    setEditTitle(t.title);
+                    setEditPriority(t.priority);
+                    setEditAssignee(t.assignedTo || '');
+                    setEditStatus(t.status);
+                    setEditDueDate(t.dueDate || '');
+                    setIsEditOpen(true);
                   }}
                   style={{ background:'transparent', border:'1px solid #e5e7eb', borderRadius:6, padding:'2px 6px', cursor:'pointer' }}
                 >✏️</button>
@@ -236,6 +217,69 @@ const Tasks: React.FC = () => {
           </Item>
         ))}
       </List>
+      {isEditOpen && editingTask && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.2)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000 }} onClick={() => setIsEditOpen(false)}>
+          <div style={{ background:'#fff', border:'1px solid #e5e7eb', padding:16, borderRadius:12, width:420 }} onClick={e => e.stopPropagation()}>
+            <h3>Editar tarea</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const updated: CropTask = {
+                ...editingTask,
+                title: editTitle.trim() || editingTask.title,
+                priority: editPriority,
+                status: editStatus,
+                assignedTo: editAssignee || undefined,
+                dueDate: editDueDate || undefined,
+              };
+              upsertTask(updated);
+              setTasks(prev => prev.map(x => x.id === updated.id ? updated : x).slice(0,4));
+              await updateTaskSupabase(updated);
+              setIsEditOpen(false);
+              setEditingTask(null);
+            }} style={{ display:'grid', gap:8 }}>
+              <div>
+                <label>Título</label>
+                <Input value={editTitle} onChange={e => setEditTitle(e.target.value)} />
+              </div>
+              <Row>
+                <div>
+                  <label>Prioridad</label>
+                  <Select value={editPriority} onChange={e => setEditPriority(e.target.value as CropTask['priority'])}>
+                    <option value="low">Baja</option>
+                    <option value="medium">Media</option>
+                    <option value="high">Alta</option>
+                  </Select>
+                </div>
+                <div>
+                  <label>Asignado a</label>
+                  <Select value={editAssignee} onChange={e => setEditAssignee(e.target.value)}>
+                    <option value="">—</option>
+                    {mockCropPartners.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </Select>
+                </div>
+              </Row>
+              <Row>
+                <div>
+                  <label>Estado</label>
+                  <Select value={editStatus} onChange={e => setEditStatus(e.target.value as CropTask['status'])}>
+                    <option value="pending">Pendiente</option>
+                    <option value="in-progress">En Progreso</option>
+                    <option value="done">Hecha</option>
+                  </Select>
+                </div>
+                <div>
+                  <label>Vence</label>
+                  <Input type="date" value={editDueDate} onChange={e => setEditDueDate(e.target.value)} />
+                </div>
+              </Row>
+              <div style={{ display:'flex', justifyContent:'flex-end', gap:8 }}>
+                <Button type="button" onClick={() => { setIsEditOpen(false); setEditingTask(null); }} style={{ background:'#e5e7eb', color:'#111827' }}>Cancelar</Button>
+                <Button type="submit">Guardar</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </Page>
   );
 };
