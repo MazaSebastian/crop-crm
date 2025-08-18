@@ -73,7 +73,7 @@ interface RecordModalProps {
   isOpen: boolean;
   initialDate: string; // ISO
   onClose: () => void;
-  onSave: (data: { date: string; humidity: number; temperature: number; notes?: string; status?: 'green' | 'yellow' | 'red' }) => void;
+  onSave: (data: { date: string; humidity: number; temperature: number; ec?: number; ph?: number; notes?: string; status?: 'green' | 'yellow' | 'red' }) => void;
 }
 
 const RecordModal: React.FC<RecordModalProps> = ({ isOpen, initialDate, onClose, onSave }) => {
@@ -81,6 +81,8 @@ const RecordModal: React.FC<RecordModalProps> = ({ isOpen, initialDate, onClose,
   const [stage, setStage] = React.useState<'vegetative' | 'flowering'>('vegetative');
   const [humidity, setHumidity] = React.useState('');
   const [temperature, setTemperature] = React.useState('');
+  const [ec, setEc] = React.useState('');
+  const [ph, setPh] = React.useState('');
   const [notes, setNotes] = React.useState('');
   const [status, setStatus] = React.useState<'green' | 'yellow' | 'red'>('green');
 
@@ -89,7 +91,7 @@ const RecordModal: React.FC<RecordModalProps> = ({ isOpen, initialDate, onClose,
     setStage('vegetative');
     setHumidity('');
     setTemperature('');
-    setNotes('');
+    setEc(''); setPh(''); setNotes('');
     setStatus('green');
   }, [initialDate, isOpen]);
 
@@ -146,6 +148,16 @@ const RecordModal: React.FC<RecordModalProps> = ({ isOpen, initialDate, onClose,
             )}
           </div>
         </Row>
+        <Row>
+          <div>
+            <Label>EC (mS/cm)</Label>
+            <Input type="number" step="0.1" value={ec} onChange={e => setEc(e.target.value)} placeholder="Ej: 1.8" />
+          </div>
+          <div>
+            <Label>pH</Label>
+            <Input type="number" step="0.1" value={ph} onChange={e => setPh(e.target.value)} placeholder="Ej: 6.3" />
+          </div>
+        </Row>
         <div>
           <Label>Observaciones (opcional)</Label>
           <Textarea rows={3} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas" />
@@ -177,7 +189,7 @@ const RecordModal: React.FC<RecordModalProps> = ({ isOpen, initialDate, onClose,
                 alert('OBLIGATORIO: Humedad y Temperatura para registrar');
                 return;
               }
-              onSave({ date, humidity: Number(humidity || 0), temperature: Number(temperature || 0), notes: notes.trim() || undefined, status });
+              onSave({ date, humidity: Number(humidity || 0), temperature: Number(temperature || 0), ec: ec ? Number(ec) : undefined, ph: ph ? Number(ph) : undefined, notes: notes.trim() || undefined, status });
             }}
           >
             Guardar

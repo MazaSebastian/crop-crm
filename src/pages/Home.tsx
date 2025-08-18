@@ -227,6 +227,53 @@ const Home: React.FC = () => {
           </Card>
           </motion.div>
 
+          {/* Registrar acción se mueve aquí para ocupar el espacio entre Comunicaciones y Últimas acciones */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.03, duration: 0.25 }}>
+          <Card>
+            <SectionHeader>
+              <h3>Registrar acción</h3>
+            </SectionHeader>
+            <form onSubmit={addQuickActivity} style={{ display: 'grid', gap: '0.5rem' }}>
+              <Row>
+                <div>
+                  <label>Cultivo</label>
+                  <Select value={actCropId} onChange={e => setActCropId(e.target.value)}>
+                    {crops.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </Select>
+                </div>
+                <div>
+                  <label>Tipo</label>
+                  <Select value={actType} onChange={e => setActType(e.target.value as ActivityType)}>
+                    <option value="fertilization">Fertilización</option>
+                    <option value="compost_tea">Té de compost</option>
+                    <option value="watering">Riego</option>
+                    <option value="pruning">Poda</option>
+                    <option value="harvest">Cosecha</option>
+                    <option value="other">Otra</option>
+                  </Select>
+                </div>
+              </Row>
+              <Row>
+                <div>
+                  <label>Fecha</label>
+                  <Input type="date" value={actDate} onChange={e => setActDate(e.target.value)} />
+                </div>
+                <div>
+                  <label>Título</label>
+                  <Input value={actTitle} onChange={e => setActTitle(e.target.value)} placeholder="Ej: NPK 10-10-10" />
+                </div>
+              </Row>
+              <div>
+                <label>Detalles</label>
+                <Input value={actDetails} onChange={e => setActDetails(e.target.value)} placeholder="Notas (opcional)" />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Button type="submit">💾&nbsp;Guardar</Button>
+              </div>
+            </form>
+          </Card>
+          </motion.div>
+
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.25 }}>
           <Card>
             <SectionHeader>
@@ -308,50 +355,6 @@ const Home: React.FC = () => {
             </List>
           </Card>
           </motion.div>
-
-          <Card>
-            <SectionHeader>
-              <h3>Registrar acción</h3>
-            </SectionHeader>
-            <form onSubmit={addQuickActivity} style={{ display: 'grid', gap: '0.5rem' }}>
-              <Row>
-                <div>
-                  <label>Cultivo</label>
-                  <Select value={actCropId} onChange={e => setActCropId(e.target.value)}>
-                    {crops.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </Select>
-                </div>
-                <div>
-                  <label>Tipo</label>
-                  <Select value={actType} onChange={e => setActType(e.target.value as ActivityType)}>
-                    <option value="fertilization">Fertilización</option>
-                    <option value="compost_tea">Té de compost</option>
-                    <option value="watering">Riego</option>
-                    <option value="pruning">Poda</option>
-                    <option value="harvest">Cosecha</option>
-                    <option value="other">Otra</option>
-                  </Select>
-                </div>
-              </Row>
-              <Row>
-                <div>
-                  <label>Fecha</label>
-                  <Input type="date" value={actDate} onChange={e => setActDate(e.target.value)} />
-                </div>
-                <div>
-                  <label>Título</label>
-                  <Input value={actTitle} onChange={e => setActTitle(e.target.value)} placeholder="Ej: NPK 10-10-10" />
-                </div>
-              </Row>
-              <div>
-                <label>Detalles</label>
-                <Input value={actDetails} onChange={e => setActDetails(e.target.value)} placeholder="Notas (opcional)" />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Button type="submit">💾&nbsp;Guardar</Button>
-              </div>
-            </form>
-          </Card>
         </div>
       </Grid>
     </Page>

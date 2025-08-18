@@ -42,12 +42,7 @@ const Input = styled.input`
   border-radius: 0.5rem;
 `;
 
-const Textarea = styled.textarea`
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-`;
+// const Textarea eliminado junto con el formulario inferior
 
 const Button = styled.button`
   background: #10b981;
@@ -78,12 +73,7 @@ const DailyLog: React.FC = () => {
   const [isEventOpen, setIsEventOpen] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isRecordOpen, setIsRecordOpen] = useState(false);
-  const [temp, setTemp] = useState('');
-  const [hum, setHum] = useState('');
-  const [soil, setSoil] = useState('');
-  const [ph, setPh] = useState('');
-  const [ec, setEc] = useState('');
-  const [notes, setNotes] = useState('');
+  // Campos del formulario inferior removidos
   const [records, setRecords] = useState<DailyRecord[]>(cropId ? getDailyRecords(cropId) : []);
 
   // actualizar eventos planificados al cambiar cultivo
@@ -141,30 +131,7 @@ const DailyLog: React.FC = () => {
     }
   }, [cropId]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!cropId) return;
-    const rec: DailyRecord = {
-      id: `rec-${Date.now()}`,
-      cropId,
-      date: new Date().toISOString().slice(0, 10),
-      params: {
-        temperatureC: Number(temp || 0),
-        humidityPct: Number(hum || 0),
-        soilMoisturePct: soil ? Number(soil) : undefined,
-        ph: ph ? Number(ph) : undefined,
-        ecMs: ec ? Number(ec) : undefined
-      },
-      notes: notes || undefined,
-      photos: [],
-      createdBy: mockCropPartners[0].id,
-      createdAt: new Date().toISOString()
-    };
-    addDailyRecord(rec);
-    setRecords(prev => [rec, ...prev]);
-    await createDailyRecordSupabase(rec);
-    setTemp(''); setHum(''); setSoil(''); setPh(''); setEc(''); setNotes('');
-  };
+  // handleSubmit eliminado con el formulario inferior
 
   // quickRecordForDate removido (no se usa)
 
@@ -223,12 +190,12 @@ const DailyLog: React.FC = () => {
         isOpen={isRecordOpen}
         initialDate={selectedDate}
         onClose={() => setIsRecordOpen(false)}
-        onSave={async ({ date, humidity, temperature, notes, status }) => {
+        onSave={async ({ date, humidity, temperature, ec, ph, notes, status }) => {
           const rec: DailyRecord = {
             id: `rec-${Date.now()}`,
             cropId,
             date,
-            params: { temperatureC: temperature, humidityPct: humidity },
+            params: { temperatureC: temperature, humidityPct: humidity, ecMs: ec, ph },
             notes,
             createdBy: mockCropPartners[0].id,
             createdAt: new Date().toISOString()
