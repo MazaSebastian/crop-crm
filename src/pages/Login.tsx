@@ -18,7 +18,7 @@ const Card = styled.div`
   border-radius: 1rem;
   width: 100%;
   max-width: 420px;
-  padding: 2rem;
+  padding: 1.25rem 2rem 1.5rem;
   box-shadow: 0 20px 40px rgba(0,0,0,0.1);
 `;
 
@@ -28,15 +28,15 @@ const Title = styled.h1`
 `;
 
 const Subtitle = styled.p`
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 1rem 0;
   color: #64748b;
 `;
 
 const LogoWrap = styled.div`
   display: flex;
   justify-content: center;
-  margin: 0 0 0.5rem 0;
-  img { display:block; max-width: 180px; height: auto; }
+  margin: 0;
+  img { display:block; max-width: 220px; height: auto; }
 `;
 
 const Form = styled.form`
