@@ -25,6 +25,15 @@ const inMemory: {
   inbox?: Record<string, number>; // cropId -> unread count
 } = {};
 
+function shouldSeedDemo(): boolean {
+  try {
+    if (supabase) return false; // si hay backend, no sembrar demo
+    const flag = localStorage.getItem('demo_seed');
+    if (flag === 'off') return false;
+  } catch {}
+  return true;
+}
+
 function loadFromStorage<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
@@ -47,40 +56,15 @@ export const mockCropPartners = [
 export function getCrops(): Crop[] {
   if (!inMemory.crops) {
     const today = new Date().toISOString().slice(0, 10);
-    inMemory.crops = loadFromStorage<Crop[]>(STORAGE_KEYS.crops, [
-      {
-        id: 'crop-richard',
-        name: 'Carpa Richard',
-        location: 'Sector A',
-        startDate: today,
-        partners: mockCropPartners,
-        status: 'active'
-      },
-      {
-        id: 'crop-robert',
-        name: 'Carpa Robert',
-        location: 'Sector B',
-        startDate: today,
-        partners: mockCropPartners,
-        status: 'active'
-      },
-      {
-        id: 'crop-chad',
-        name: 'Carpa Chad',
-        location: 'Sector C',
-        startDate: today,
-        partners: mockCropPartners,
-        status: 'active'
-      },
-      {
-        id: 'crop-sala-superior',
-        name: 'Sala Superior',
-        location: 'Edificio Principal - Piso 2',
-        startDate: today,
-        partners: mockCropPartners,
-        status: 'active'
-      }
-    ]);
+    const demoFallback: Crop[] = shouldSeedDemo()
+      ? [
+          { id: 'crop-richard', name: 'Carpa Richard', location: 'Sector A', startDate: today, partners: mockCropPartners, status: 'active' },
+          { id: 'crop-robert', name: 'Carpa Robert', location: 'Sector B', startDate: today, partners: mockCropPartners, status: 'active' },
+          { id: 'crop-chad', name: 'Carpa Chad', location: 'Sector C', startDate: today, partners: mockCropPartners, status: 'active' },
+          { id: 'crop-sala-superior', name: 'Sala Superior', location: 'Edificio Principal - Piso 2', startDate: today, partners: mockCropPartners, status: 'active' }
+        ]
+      : [];
+    inMemory.crops = loadFromStorage<Crop[]>(STORAGE_KEYS.crops, demoFallback);
   }
   return inMemory.crops;
 }
@@ -116,18 +100,12 @@ export function getDailyRecords(cropId: string): DailyRecord[] {
   if (!inMemory.records) {
     const today = new Date();
     const isoDate = today.toISOString().slice(0, 10);
-    inMemory.records = loadFromStorage<DailyRecord[]>(STORAGE_KEYS.records, [
-      {
-        id: 'rec-1',
-        cropId: 'crop-1',
-        date: isoDate,
-        params: { temperatureC: 24, humidityPct: 65, soilMoisturePct: 45, ph: 6.3, ecMs: 1.8 },
-        notes: 'Riego ligero por la mañana. Plantas vigorosas.',
-        photos: [],
-        createdBy: 'partner-1',
-        createdAt: new Date().toISOString()
-      }
-    ]);
+    const demoFallback: DailyRecord[] = shouldSeedDemo()
+      ? [
+          { id: 'rec-1', cropId: 'crop-1', date: isoDate, params: { temperatureC: 24, humidityPct: 65, soilMoisturePct: 45, ph: 6.3, ecMs: 1.8 }, notes: 'Riego ligero por la mañana. Plantas vigorosas.', photos: [], createdBy: 'partner-1', createdAt: new Date().toISOString() }
+        ]
+      : [];
+    inMemory.records = loadFromStorage<DailyRecord[]>(STORAGE_KEYS.records, demoFallback);
   }
   return inMemory.records.filter(r => r.cropId === cropId);
 }
@@ -306,15 +284,10 @@ export function upsertTask(task: CropTask) {
 // Announcements (comunicaciones/avisos)
 export function getAnnouncements(): Announcement[] {
   if (!inMemory.announcements) {
-    inMemory.announcements = loadFromStorage<Announcement[]>(STORAGE_KEYS.announcements, [
-      {
-        id: 'ann-1',
-        message: 'Recordatorio: revisar humedad mañana 8:00',
-        type: 'info',
-        createdBy: 'partner-1',
-        createdAt: new Date().toISOString()
-      }
-    ]);
+    const demoFallback: Announcement[] = shouldSeedDemo()
+      ? [ { id: 'ann-1', message: 'Recordatorio: revisar humedad mañana 8:00', type: 'info', createdBy: 'partner-1', createdAt: new Date().toISOString() } ]
+      : [];
+    inMemory.announcements = loadFromStorage<Announcement[]>(STORAGE_KEYS.announcements, demoFallback);
   }
   // Limitar a 4 últimos en memoria
   inMemory.announcements = (inMemory.announcements || []).sort((a, b) => (a.createdAt > b.createdAt ? -1 : 1)).slice(0, 4);
@@ -375,24 +348,13 @@ export async function createAnnouncementSupabase(a: Announcement): Promise<boole
 // Activities (acciones realizadas: fertilización, té de compost, etc.)
 export function getActivities(cropId?: string): Activity[] {
   if (!inMemory.activities) {
-    inMemory.activities = loadFromStorage<Activity[]>(STORAGE_KEYS.activities, [
-      {
-        id: 'act-1',
-        cropId: 'crop-1',
-        type: 'fertilization',
-        title: 'Fertilización NPK 10-10-10',
-        details: 'Aplicación ligera en raíces',
-        date: new Date().toISOString().slice(0, 10)
-      },
-      {
-        id: 'act-2',
-        cropId: 'crop-1',
-        type: 'compost_tea',
-        title: 'Té de compost aireado',
-        details: 'Dilución 1:10',
-        date: new Date(Date.now() - 86400000).toISOString().slice(0, 10)
-      }
-    ]);
+    const demoFallback: Activity[] = shouldSeedDemo()
+      ? [
+          { id: 'act-1', cropId: 'crop-1', type: 'fertilization', title: 'Fertilización NPK 10-10-10', details: 'Aplicación ligera en raíces', date: new Date().toISOString().slice(0, 10) },
+          { id: 'act-2', cropId: 'crop-1', type: 'compost_tea', title: 'Té de compost aireado', details: 'Dilución 1:10', date: new Date(Date.now() - 86400000).toISOString().slice(0, 10) }
+        ]
+      : [];
+    inMemory.activities = loadFromStorage<Activity[]>(STORAGE_KEYS.activities, demoFallback);
   }
   return cropId ? inMemory.activities.filter(a => a.cropId === cropId) : inMemory.activities;
 }
@@ -523,6 +485,8 @@ export async function clearAllLocalData(): Promise<void> {
     inMemory.activities = [];
     inMemory.planned = [];
     inMemory.inbox = {};
+    // bandera para no re-sembrar demo
+    localStorage.setItem('demo_seed', 'off');
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error('Error limpiando datos locales:', e);
