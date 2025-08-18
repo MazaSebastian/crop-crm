@@ -18,17 +18,17 @@ const Card = styled.div`
   border-radius: 1rem;
   width: 100%;
   max-width: 420px;
-  padding: 1.25rem 2rem 1.5rem;
+  padding: 0.5rem 1.25rem 0.75rem;
   box-shadow: 0 20px 40px rgba(0,0,0,0.1);
 `;
 
 const Title = styled.h1`
-  margin: 0 0 0.25rem 0;
+  margin: 0.25rem 0 0.25rem 0;
   font-size: 1.5rem;
 `;
 
 const Subtitle = styled.p`
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.5rem 0;
   color: #64748b;
 `;
 

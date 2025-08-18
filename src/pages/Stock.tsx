@@ -61,11 +61,13 @@ const Stock: React.FC = () => {
             <div key={it.id} style={{ display:'grid', gridTemplateColumns:'2fr 2fr 2fr 1fr', gap:8, padding:'6px 8px', background:'#f8fafc', border:'1px solid #e5e7eb', borderRadius:8 }}>
               <div style={{ fontWeight:600 }}>{it.name}</div>
               <div>{it.qty} g</div>
-              <div style={{ display:'flex', gap:8 }}>
-                <UiButton onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: x.qty + 10}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>+10 g</UiButton>
-                <UiButton onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: Math.max(0, x.qty - 10)}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>-10 g</UiButton>
-                <UiButton onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: x.qty + 100}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>+100 g</UiButton>
-                <UiButton onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: Math.max(0, x.qty - 100)}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>-100 g</UiButton>
+              <div style={{ display:'flex', gap:6 }}>
+                <UiButton onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: x.qty + 1}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>+1</UiButton>
+                <UiButton onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: Math.max(0, x.qty - 1)}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>-1</UiButton>
+                <UiButton onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: x.qty + 10}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>+10</UiButton>
+                <UiButton onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: Math.max(0, x.qty - 10)}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>-10</UiButton>
+                <UiButton onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: x.qty + 100}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>+100</UiButton>
+                <UiButton onClick={() => { const next = items.map(x => x.id===it.id?{...x, qty: Math.max(0, x.qty - 100)}:x); setItems(next); localStorage.setItem('chakra_stock', JSON.stringify(next)); }}>-100</UiButton>
               </div>
               <div style={{ textAlign:'right' }}>
                 <UiButton variant="ghost" onClick={() => {
