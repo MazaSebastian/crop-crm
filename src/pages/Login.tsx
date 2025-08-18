@@ -36,7 +36,7 @@ const LogoWrap = styled.div`
   display: flex;
   justify-content: center;
   margin: 0;
-  img { display:block; max-width: 220px; height: auto; }
+  img { display:block; max-width: 165px; height: auto; }
 `;
 
 const Form = styled.form`
