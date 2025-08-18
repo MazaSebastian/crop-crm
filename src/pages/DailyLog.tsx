@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
-import { addDailyRecord, getCrops, getDailyRecords, mockCropPartners, getPlannedEvents, addPlannedEvent, readInbox, syncDailyRecordsFromSupabase, createDailyRecordSupabase, syncPlannedEventsFromSupabase, createPlannedEventSupabase } from '../services/cropService';
+import { addDailyRecord, getCrops, getDailyRecords, mockCropPartners, getPlannedEvents, addPlannedEvent, readInbox, syncDailyRecordsFromSupabase, createDailyRecordSupabase, syncPlannedEventsFromSupabase, createPlannedEventSupabase, removePlannedEvent, deletePlannedEventSupabase, removeDailyRecordLocal, deleteDailyRecordSupabase } from '../services/cropService';
 import { supabase } from '../services/supabaseClient';
 import type { Crop, DailyRecord, PlannedEvent } from '../types';
 import YearCalendar from '../components/YearCalendar';
@@ -180,11 +180,25 @@ const DailyLog: React.FC = () => {
       <DayPopover
         isOpen={isPopoverOpen}
         date={selectedDate}
-        events={planned.filter(p => p.date === selectedDate).map(p => ({ title: p.title }))}
-        records={records.filter(r => r.date === selectedDate).map(r => ({ humidityPct: r.params.humidityPct, temperatureC: r.params.temperatureC }))}
+        events={planned.filter(p => p.date === selectedDate).map(p => ({ id: p.id, title: p.title }))}
+        records={records.filter(r => r.date === selectedDate).map(r => ({ id: r.id, humidityPct: r.params.humidityPct, temperatureC: r.params.temperatureC }))}
         onClose={() => setIsPopoverOpen(false)}
         onAddRecord={() => { setIsPopoverOpen(false); setIsRecordOpen(true); }}
         onAddEvent={() => { setIsPopoverOpen(false); setIsEventOpen(true); }}
+        onDeleteEvent={async (id) => {
+          const ok = window.confirm('¿Eliminar este evento?');
+          if (!ok) return;
+          removePlannedEvent(id);
+          setPlanned(prev => prev.filter(p => p.id !== id));
+          await deletePlannedEventSupabase(id);
+        }}
+        onDeleteRecord={async (id) => {
+          const ok = window.confirm('¿Eliminar este registro de parámetros?');
+          if (!ok) return;
+          removeDailyRecordLocal(id);
+          setRecords(prev => prev.filter(r => r.id !== id));
+          await deleteDailyRecordSupabase(id);
+        }}
       />
       <RecordModal
         isOpen={isRecordOpen}
@@ -238,6 +252,18 @@ const DailyLog: React.FC = () => {
             <div style={{ fontWeight: 600 }}>{new Date(r.createdAt).toLocaleString('es-AR')}</div>
             <div>Temp: {r.params.temperatureC} °C • Hum: {r.params.humidityPct}% {r.params.soilMoisturePct != null ? `• Suelo: ${r.params.soilMoisturePct}%` : ''}</div>
             {r.notes && <div style={{ color: '#64748b' }}>{r.notes}</div>}
+            <div style={{ display:'flex', justifyContent:'flex-end', marginTop:6 }}>
+              <button
+                onClick={async () => {
+                  const ok = window.confirm('¿Eliminar este registro?');
+                  if (!ok) return;
+                  removeDailyRecordLocal(r.id);
+                  setRecords(prev => prev.filter(x => x.id !== r.id));
+                  await deleteDailyRecordSupabase(r.id);
+                }}
+                style={{ background:'#fee2e2', border:'1px solid #fecaca', color:'#991b1b', borderRadius:8, padding:'4px 10px' }}
+              >Eliminar</button>
+            </div>
           </Item>
         ))}
       </List>

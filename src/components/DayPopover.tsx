@@ -56,14 +56,16 @@ const Button = styled.button<{ variant?: 'primary' | 'secondary' }>`
 export interface DayPopoverProps {
   isOpen: boolean;
   date: string; // ISO
-  events: { title: string }[];
-  records: { humidityPct: number; temperatureC: number }[];
+  events: { id: string; title: string }[];
+  records: { id: string; humidityPct: number; temperatureC: number }[];
   onClose: () => void;
   onAddRecord: () => void;
   onAddEvent: () => void;
+  onDeleteEvent?: (id: string) => void;
+  onDeleteRecord?: (id: string) => void;
 }
 
-const DayPopover: React.FC<DayPopoverProps> = ({ isOpen, date, events, records, onClose, onAddRecord, onAddEvent }) => {
+const DayPopover: React.FC<DayPopoverProps> = ({ isOpen, date, events, records, onClose, onAddRecord, onAddEvent, onDeleteEvent, onDeleteRecord }) => {
   if (!isOpen) return null;
   return (
     <Overlay onClick={onClose}>
@@ -82,9 +84,14 @@ const DayPopover: React.FC<DayPopoverProps> = ({ isOpen, date, events, records, 
             {events.length === 0 ? (
               <div style={{ color: '#64748b' }}>Sin eventos para esta fecha.</div>
             ) : (
-              <ul style={{ margin: 0, paddingLeft: 18 }}>
-                {events.map((ev, i) => (
-                  <li key={i}>{ev.title}</li>
+              <ul style={{ margin: 0, paddingLeft: 18, display:'grid', gap:6 }}>
+                {events.map((ev) => (
+                  <li key={ev.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                    <span>{ev.title}</span>
+                    {onDeleteEvent && (
+                      <button onClick={() => onDeleteEvent(ev.id)} style={{ background:'#fee2e2', border:'1px solid #fecaca', color:'#991b1b', borderRadius:8, padding:'2px 8px' }}>Eliminar</button>
+                    )}
+                  </li>
                 ))}
               </ul>
             )}
@@ -94,9 +101,14 @@ const DayPopover: React.FC<DayPopoverProps> = ({ isOpen, date, events, records, 
             {records.length === 0 ? (
               <div style={{ color: '#64748b' }}>Sin registros para esta fecha.</div>
             ) : (
-              <ul style={{ margin: 0, paddingLeft: 18 }}>
-                {records.map((r, i) => (
-                  <li key={i}>Hum: {r.humidityPct}% • Temp: {r.temperatureC} °C</li>
+              <ul style={{ margin: 0, paddingLeft: 18, display:'grid', gap:6 }}>
+                {records.map((r) => (
+                  <li key={r.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                    <span>Hum: {r.humidityPct}% • Temp: {r.temperatureC} °C</span>
+                    {onDeleteRecord && (
+                      <button onClick={() => onDeleteRecord(r.id)} style={{ background:'#fee2e2', border:'1px solid #fecaca', color:'#991b1b', borderRadius:8, padding:'2px 8px' }}>Eliminar</button>
+                    )}
+                  </li>
                 ))}
               </ul>
             )}

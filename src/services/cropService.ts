@@ -119,6 +119,13 @@ export function addDailyRecord(record: DailyRecord) {
   bumpInbox(record.cropId);
 }
 
+export function removeDailyRecordLocal(id: string) {
+  const all = inMemory.records ?? [];
+  const updated = all.filter(r => r.id !== id);
+  inMemory.records = updated;
+  saveToStorage(STORAGE_KEYS.records, updated);
+}
+
 // Supabase sync for Daily Records
 export async function syncDailyRecordsFromSupabase(cropId: string): Promise<DailyRecord[] | null> {
   if (!supabase) return null;
@@ -159,6 +166,13 @@ export async function createDailyRecordSupabase(rec: DailyRecord): Promise<boole
     created_at: rec.createdAt,
   });
   if (error) { console.error('Supabase insert error (daily_records):', error); return false; }
+  return true;
+}
+
+export async function deleteDailyRecordSupabase(id: string): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('daily_records').delete().eq('id', id);
+  if (error) { console.error('Supabase delete error (daily_records):', error); return false; }
   return true;
 }
 
@@ -428,6 +442,13 @@ export function removePlannedEvent(id: string) {
   const updated = list.filter(p => p.id !== id);
   inMemory.planned = updated;
   saveToStorage(STORAGE_KEYS.planned, updated);
+}
+
+export async function deletePlannedEventSupabase(id: string): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('planned_events').delete().eq('id', id);
+  if (error) { console.error('Supabase delete error (planned_events):', error); return false; }
+  return true;
 }
 
 // Inbox (notificaciones por cultivo)
