@@ -167,11 +167,7 @@ const Home: React.FC = () => {
     setNewMsg('');
   };
 
-  const forceSync = async () => {
-    const server = await syncAnnouncementsFromSupabase();
-    if (server) setAnnouncements(server);
-    setLastSync(new Date().toLocaleTimeString('es-AR'));
-  };
+  // función de sync manual eliminada
 
   const addQuickActivity = (e: React.FormEvent) => {
     e.preventDefault();
