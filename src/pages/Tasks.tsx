@@ -55,10 +55,11 @@ const Item = styled.div<{ status: CropTask['status'] }>`
   border-left: 4px solid ${p => p.status === 'done' ? '#10b981' : p.status === 'in-progress' ? '#f59e0b' : '#94a3b8'};
   border-radius: 0.5rem;
   padding: 0.5rem 0.75rem;
-  background: #f8fafc;
+  background: ${p => p.status === 'done' ? '#dcfce7' : '#f8fafc'};
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 0.5rem;
+  ${p => p.status === 'done' ? 'text-decoration: line-through; color: #166534;' : ''}
 `;
 
 const Tasks: React.FC = () => {
@@ -163,8 +164,8 @@ const Tasks: React.FC = () => {
               </div>
             </div>
             <div>
-              <button onClick={() => toggleDone(t)} style={{ padding: '0.375rem 0.75rem', borderRadius: 6, background: '#e5e7eb' }}>
-                {t.status === 'done' ? 'Deshacer' : 'Marcar'}
+              <button onClick={() => toggleDone(t)} style={{ padding: '0.375rem 0.75rem', borderRadius: 6, background: t.status==='done' ? '#10b981' : '#e5e7eb', color: t.status==='done' ? '#fff' : '#111827' }}>
+                {t.status === 'done' ? 'Completado' : 'Marcar como completado'}
               </button>
             </div>
           </Item>

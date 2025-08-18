@@ -335,7 +335,7 @@ const Home: React.FC = () => {
           </Card>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.25 }}>
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.25 }}>
           <Card>
             <SectionHeader>
               <h3>Próximos recordatorios</h3>

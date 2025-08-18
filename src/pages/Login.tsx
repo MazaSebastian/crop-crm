@@ -77,7 +77,7 @@ const Login: React.FC = () => {
   const { user, login } = useAuth();
 
   useEffect(() => {
-    if (user) navigate('/crops', { replace: true });
+    if (user) navigate('/', { replace: true });
   }, [user, navigate]);
 
   const submit = async (e: React.FormEvent) => {
@@ -86,7 +86,7 @@ const Login: React.FC = () => {
     setLoading(true);
     const ok = await login({ email, password });
     setLoading(false);
-    if (ok) navigate('/crops', { replace: true });
+    if (ok) navigate('/', { replace: true });
     else setError('Credenciales inválidas. (Tip: 123456)');
   };
 
