@@ -97,8 +97,8 @@ const Login: React.FC = () => {
           {/* Coloca tu archivo en public/chakra-logo.png para usar este logo */}
           <img src="/chakra-logo.png" alt="Chakra" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
         </LogoWrap>
-        <Title>Bienvenido al Chakrodromo!</Title>
-        <Subtitle>Ingresa con tus credenciales</Subtitle>
+        <Title>Bienvenido a Chakra!</Title>
+        <Subtitle>Sistema de Gestion de Cultivos</Subtitle>
         <Form onSubmit={submit}>
           {error && <Error>{error}</Error>}
           <div>
