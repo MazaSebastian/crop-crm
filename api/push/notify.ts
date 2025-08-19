@@ -1,6 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import webpush from 'web-push';
-import fetch from 'node-fetch';
 
 // Espera env vars en Vercel
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY as string;
