@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { Card as UiCard, Button as UiButton, Input as UiInput } from '../components/ui';
 import { supabase } from '../services/supabaseClient';
 import { StockItem, syncStockItemsFromSupabase, createStockItemSupabase, updateStockQtySupabase, deleteStockItemSupabase } from '../services/cropService';
+import { useToast } from '../components/feedback';
 
 const Page = styled.div`
   padding: 1rem;
@@ -22,6 +23,7 @@ const Stock: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState('');
   const [qty, setQty] = useState('');
+  const toast = useToast();
 
   const add = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +32,9 @@ const Stock: React.FC = () => {
     const nextItem = { id: `it-${Date.now()}`, name: name.trim(), qty: q, unit: 'g' };
     const next = [nextItem, ...items];
     setItems(next);
-    await createStockItemSupabase(nextItem as StockItem);
+    const ok = await createStockItemSupabase(nextItem as StockItem);
+    if (!ok) toast.push('No se pudo sincronizar el item', 'error');
+    else toast.push('Item agregado', 'success');
     setName(''); setQty(''); setIsOpen(false);
   };
 
@@ -67,7 +71,17 @@ const Stock: React.FC = () => {
       <Card>
         <h2>Stock</h2>
         <div style={{ display:'flex', justifyContent:'flex-end' }}>
-          <UiButton onClick={() => setIsOpen(true)}>Agregar Stock</UiButton>
+          <div style={{ display:'flex', gap:8 }}>
+            <UiButton onClick={() => setIsOpen(true)}>Agregar Stock</UiButton>
+            <UiButton variant='ghost' onClick={() => {
+              const csv = ['Nombre,Cantidad,Unidad']
+                .concat(items.map(i => `${i.name},${i.qty},${i.unit||'g'}`))
+                .join('\n');
+              const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a'); a.href = url; a.download = 'stock.csv'; a.click(); URL.revokeObjectURL(url);
+            }}>Exportar CSV</UiButton>
+          </div>
         </div>
         {isOpen && (
           <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.2)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000 }} onClick={() => setIsOpen(false)}>
@@ -98,49 +112,56 @@ const Stock: React.FC = () => {
                   const n = items.map(x => x.id===it.id?{...x, qty: nextQty}:x);
                   setItems(n);
                   localStorage.setItem('chakra_stock', JSON.stringify(n));
-                  await updateStockQtySupabase(it.id, nextQty);
+                  const ok = await updateStockQtySupabase(it.id, nextQty);
+                  if (!ok) toast.push('No se pudo actualizar el stock', 'error');
                 }}>+1</UiButton>
                 <UiButton onClick={async () => {
                   const nextQty = Math.max(0, it.qty-1);
                   const n = items.map(x => x.id===it.id?{...x, qty: nextQty}:x);
                   setItems(n);
                   localStorage.setItem('chakra_stock', JSON.stringify(n));
-                  await updateStockQtySupabase(it.id, nextQty);
+                  const ok = await updateStockQtySupabase(it.id, nextQty);
+                  if (!ok) toast.push('No se pudo actualizar el stock', 'error');
                 }}>-1</UiButton>
                 <UiButton onClick={async () => {
                   const nextQty = it.qty + 10;
                   const n = items.map(x => x.id===it.id?{...x, qty: nextQty}:x);
                   setItems(n);
                   localStorage.setItem('chakra_stock', JSON.stringify(n));
-                  await updateStockQtySupabase(it.id, nextQty);
+                  const ok = await updateStockQtySupabase(it.id, nextQty);
+                  if (!ok) toast.push('No se pudo actualizar el stock', 'error');
                 }}>+10</UiButton>
                 <UiButton onClick={async () => {
                   const nextQty = Math.max(0, it.qty-10);
                   const n = items.map(x => x.id===it.id?{...x, qty: nextQty}:x);
                   setItems(n);
                   localStorage.setItem('chakra_stock', JSON.stringify(n));
-                  await updateStockQtySupabase(it.id, nextQty);
+                  const ok = await updateStockQtySupabase(it.id, nextQty);
+                  if (!ok) toast.push('No se pudo actualizar el stock', 'error');
                 }}>-10</UiButton>
                 <UiButton onClick={async () => {
                   const nextQty = it.qty + 100;
                   const n = items.map(x => x.id===it.id?{...x, qty: nextQty}:x);
                   setItems(n);
                   localStorage.setItem('chakra_stock', JSON.stringify(n));
-                  await updateStockQtySupabase(it.id, nextQty);
+                  const ok = await updateStockQtySupabase(it.id, nextQty);
+                  if (!ok) toast.push('No se pudo actualizar el stock', 'error');
                 }}>+100</UiButton>
                 <UiButton onClick={async () => {
                   const nextQty = Math.max(0, it.qty-100);
                   const n = items.map(x => x.id===it.id?{...x, qty: nextQty}:x);
                   setItems(n);
                   localStorage.setItem('chakra_stock', JSON.stringify(n));
-                  await updateStockQtySupabase(it.id, nextQty);
+                  const ok = await updateStockQtySupabase(it.id, nextQty);
+                  if (!ok) toast.push('No se pudo actualizar el stock', 'error');
                 }}>-100</UiButton>
               </div>
               <div style={{ textAlign:'right' }}>
                 <UiButton variant="ghost" onClick={async () => {
                   const next = items.filter(x => x.id !== it.id);
                   setItems(next);
-                  await deleteStockItemSupabase(it.id);
+                  const ok = await deleteStockItemSupabase(it.id);
+                  if (!ok) toast.push('No se pudo eliminar', 'error');
                 }}>Eliminar</UiButton>
               </div>
             </div>

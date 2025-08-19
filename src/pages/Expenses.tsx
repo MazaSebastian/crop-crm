@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { Card as UiCard, Button as UiButton, Input as UiInput, Select as UiSelect } from '../components/ui';
 import { supabase } from '../services/supabaseClient';
 import { CashMovement, createCashMovementSupabase, syncCashMovementsFromSupabase } from '../services/cropService';
+import { useToast } from '../components/feedback';
 
 const Page = styled.div`
   padding: 1rem;
@@ -39,6 +40,7 @@ const Expenses: React.FC = () => {
   const [concept, setConcept] = useState('');
   const [amount, setAmount] = useState('');
   const [filter, setFilter] = useState<'Todos' | Movement['owner']>('Todos');
+  const toast = useToast();
 
   const total = useMemo(() => list.reduce((acc, m) => acc + (m.type === 'INGRESO' ? m.amount : -m.amount), 0), [list]);
   const byOwner = useMemo(() => ({
@@ -56,7 +58,9 @@ const Expenses: React.FC = () => {
     setList(next);
     const newBalance = balance + (type === 'INGRESO' ? val : -val);
     setBalance(newBalance);
-    await createCashMovementSupabase(mov as CashMovement);
+    const ok = await createCashMovementSupabase(mov as CashMovement);
+    if (!ok) toast.push('No se pudo sincronizar el movimiento', 'error');
+    else toast.push('Movimiento guardado', 'success');
     setConcept(''); setAmount(''); setType('EGRESO'); setOwner('Sebastian');
   };
 
@@ -130,6 +134,16 @@ const Expenses: React.FC = () => {
           <UiButton variant={filter==='Sebastian'?'primary':'ghost'} onClick={() => setFilter('Sebastian')}>Sebastian</UiButton>
           <UiButton variant={filter==='Santiago'?'primary':'ghost'} onClick={() => setFilter('Santiago')}>Santiago</UiButton>
           <UiButton variant={filter==='Chakra'?'primary':'ghost'} onClick={() => setFilter('Chakra')}>Saldo Chakra</UiButton>
+          <UiButton variant='ghost' onClick={() => {
+            const rows = (filter==='Todos'? list : list.filter(m => m.owner === filter));
+            const csv = ['Tipo,Propietario,Concepto,Monto,Fecha']
+              .concat(rows.map(m => `${m.type},${m.owner},"${m.concept.replace(/"/g,'""')}",${m.amount},${m.date}`))
+              .join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'gastos.csv'; a.click(); URL.revokeObjectURL(url);
+          }}>Exportar CSV</UiButton>
         </div>
         <div style={{ display:'grid', gap:8 }}>
           {(filter==='Todos' ? list : list.filter(m => m.owner === filter)).map(m => (

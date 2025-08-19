@@ -6,6 +6,7 @@ import { supabase } from '../services/supabaseClient';
 import type { Announcement, Activity, Crop, ActivityType } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Skeleton } from '../components/feedback';
 import { useAuth } from '../context/AuthContext';
 // Iconos reemplazados por emojis para evitar incompatibilidades de tipos en algunos entornos
 
@@ -79,6 +80,7 @@ const Home: React.FC = () => {
   const [announcements, setAnnouncements] = useState<Announcement[]>(getAnnouncements());
   // const [lastSync, setLastSync] = useState<string | null>(null);
   const [activities, setActivities] = useState<Activity[]>(getActivities());
+  const [loadingHome, setLoadingHome] = useState(true);
   const [notifCount, setNotifCount] = useState<Record<string, number>>({});
   // última vez que se revisó cada cultivo (local, por credencial)
   const getLastSeen = React.useCallback((): Record<string, string> => {
@@ -106,10 +108,12 @@ const Home: React.FC = () => {
   React.useEffect(() => {
     // Carga inicial desde Supabase (si está configurado)
     (async () => {
+      setLoadingHome(true);
       const server = await syncAnnouncementsFromSupabase();
       if (server) setAnnouncements(server);
       const acts = await syncActivitiesFromSupabase(4);
       if (acts) setActivities(acts);
+      setLoadingHome(false);
     })();
 
     // Realtime: escuchar inserts en announcements
@@ -307,6 +311,10 @@ const Home: React.FC = () => {
               </div>
             </form>
             <List>
+              {loadingHome && (<>
+                <Skeleton style={{ height: 14 }} />
+                <Skeleton style={{ height: 14 }} />
+              </>)}
               {announcements.slice(0, 4).map(a => (
                 <Item key={a.id} style={{ display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center', gap:8 }}>
                   <div>

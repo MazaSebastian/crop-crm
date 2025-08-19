@@ -6,6 +6,7 @@ import { ThemeProvider } from 'styled-components';
 import { theme } from './styles/theme';
 import './index.css';
 import App from './App';
+import { ToastProvider } from './components/feedback';
 import { GlobalStyles } from './styles/GlobalStyles';
 import reportWebVitals from './reportWebVitals';
 
@@ -19,7 +20,9 @@ root.render(
       <BrowserRouter>
         <ThemeProvider theme={theme}>
           <GlobalStyles />
-          <App />
+          <ToastProvider>
+            <App />
+          </ToastProvider>
         </ThemeProvider>
       </BrowserRouter>
     </AuthProvider>
