@@ -1,0 +1,51 @@
+name: Database Backup (pg_dump)
+
+on:
+  schedule:
+    - cron: "0 3 * * *" # diario 03:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: backup-db
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Generate timestamp
+        id: ts
+        run: echo "STAMP=$(date -u +'%Y%m%d_%H%M%S')" >> $GITHUB_OUTPUT
+
+      - name: pg_dump (custom format)
+        env:
+          PGURI: ${{ secrets.PGURI }}
+        run: |
+          mkdir -p backups
+          pg_dump --clean --if-exists --no-owner \
+            --format=custom \
+            --file="backups/backup_${{ steps.ts.outputs.STAMP }}.dump" \
+            "$PGURI"
+
+      - name: Create SHA256 checksum
+        run: |
+          cd backups
+          sha256sum *.dump > SHA256SUMS.txt
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ steps.ts.outputs.STAMP }}
+          path: backups/*
+          retention-days: 14
+
+
