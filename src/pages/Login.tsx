@@ -130,18 +130,40 @@ const Login: React.FC = () => {
           {error && <Error>{error}</Error>}
           <div>
             <label>Correo</label>
-            <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seba@chakra.com / santi@chakra.com" required autoComplete="new-email" />
+            <Input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder=""
+              required
+              autoComplete="off"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false as any}
+              name="login_email"
+            />
           </div>
           <div>
             <label>Contraseña</label>
-            <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="chakra4794" required autoComplete="new-password" />
+            <Input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder=""
+              required
+              autoComplete="off"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false as any}
+              name="login_password"
+            />
           </div>
           <label style={{ display:'flex', alignItems:'center', gap:8, fontSize: 14, color:'#334155' }}>
             <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} style={{ width:16, height:16 }} />
             Recuerdame
           </label>
           <Button type="submit" disabled={loading}>{loading ? 'Ingresando...' : 'Ingresar'}</Button>
-          <div style={{ fontSize: 12, color: '#64748b' }}>Demo: seba@chakra.com / santi@chakra.com — pass: chakra4794</div>
+          {/* texto demo removido para evitar confusión y autofill visual */}
         </Form>
       </Card>
     </Page>
