@@ -308,7 +308,7 @@ const Home: React.FC = () => {
     <Page>
       <Grid>
         <div style={{ display: 'grid', gap: '0.5rem' }}>
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}> 
+          <div>
           <Card>
             <SectionHeader>
               <h3>🔔 Comunicaciones</h3>
@@ -352,34 +352,30 @@ const Home: React.FC = () => {
                 <Button type="submit">➕&nbsp;Agregar</Button>
               </div>
             </form>
-            {loadingHome && announcements.length === 0 ? (
-              <List>
-                <Skeleton style={{ height: 14 }} />
-                <Skeleton style={{ height: 14 }} />
-              </List>
-            ) : (
-              <List>
-                {announcements.slice(0, 4).map(a => (
-                  <Item key={a.id} style={{ display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center', gap:8 }}>
-                    <div>
-                      <div style={{ fontSize: '0.875rem' }}>{a.message}</div>
-                      <div style={{ color: '#64748b', fontSize: '0.75rem' }}>{new Date(a.createdAt).toLocaleString('es-AR')}</div>
-                    </div>
-                    <button
-                      title="Marcar como leído"
-                      onClick={async () => {
-                        removeAnnouncementLocal(a.id);
-                        setAnnouncements(prev => prev.filter(x => x.id !== a.id));
-                        await deleteAnnouncementSupabase(a.id);
-                      }}
-                      style={{ background:'#dcfce7', border:'1px solid #86efac', color:'#166534', borderRadius:8, padding:'4px 10px', cursor:'pointer' }}
-                    >✔️ Leído</button>
-                  </Item>
-                ))}
-              </List>
-            )}
+            <List>
+              {announcements.length === 0 && (
+                <div style={{ color: '#64748b', fontSize: '0.875rem' }}>Sin comunicaciones.</div>
+              )}
+              {announcements.slice(0, 4).map(a => (
+                <Item key={a.id} style={{ display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center', gap:8 }}>
+                  <div>
+                    <div style={{ fontSize: '0.875rem' }}>{a.message}</div>
+                    <div style={{ color: '#64748b', fontSize: '0.75rem' }}>{new Date(a.createdAt).toLocaleString('es-AR')}</div>
+                  </div>
+                  <button
+                    title="Marcar como leído"
+                    onClick={async () => {
+                      removeAnnouncementLocal(a.id);
+                      setAnnouncements(prev => prev.filter(x => x.id !== a.id));
+                      await deleteAnnouncementSupabase(a.id);
+                    }}
+                    style={{ background:'#dcfce7', border:'1px solid #86efac', color:'#166534', borderRadius:8, padding:'4px 10px', cursor:'pointer' }}
+                  >✔️ Leído</button>
+                </Item>
+              ))}
+            </List>
           </Card>
-          </motion.div>
+          </div>
 
           {/* Registrar acción se mueve aquí para ocupar el espacio entre Comunicaciones y Últimas acciones */}
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.03, duration: 0.25 }}>
