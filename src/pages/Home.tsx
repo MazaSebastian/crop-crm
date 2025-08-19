@@ -163,7 +163,9 @@ const Home: React.FC = () => {
       // Inicializar contadores (eventos desde la última revisión) por cultivo
       (async () => {
         const since = new Date(Date.now() - 2*24*3600*1000).toISOString();
-        const ids = (serverCrops && serverCrops.length ? serverCrops : crops).map(c => c.id);
+        const nextCropsInit = getCrops();
+        setCrops(nextCropsInit);
+        const ids = nextCropsInit.map(c => c.id);
         const counts: Record<string, number> = {};
         for (const id of ids) counts[id] = 0;
         const lastSeen = user ? await getLastSeenMapRemote(user.id, ids) : getLastSeen();
