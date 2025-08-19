@@ -44,12 +44,7 @@ const Input = styled.input`
 
 // const Textarea eliminado junto con el formulario inferior
 
-const Button = styled.button`
-  background: #10b981;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-`;
+/* Botón eliminado (no se usa) */
 
 const List = styled.div`
   display: grid;

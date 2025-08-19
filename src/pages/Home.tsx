@@ -233,7 +233,7 @@ const Home: React.FC = () => {
         supabase.removeChannel(chNotif);
       };
     }
-  }, []);
+  }, [crops, getLastSeen, user]);
 
   const addMsg = async (e: React.FormEvent) => {
     e.preventDefault();
