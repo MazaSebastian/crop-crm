@@ -1,5 +1,5 @@
 // Minimal SW: cache estático básico y fallback de navegación
-const CACHE = 'chakra-cache-v1';
+const CACHE = 'chakra-cache-v2';
 const ASSETS = [
   '/',
   '/index.html',
@@ -10,12 +10,18 @@ self.addEventListener('install', (event: any) => {
   event.waitUntil(
     caches.open(CACHE).then(cache => cache.addAll(ASSETS))
   );
+  // Activa inmediatamente la nueva versión
+  // @ts-ignore
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event: any) => {
   event.waitUntil(
     caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
   );
+  // Toma control de las páginas abiertas
+  // @ts-ignore
+  self.clients?.claim();
 });
 
 self.addEventListener('fetch', (event: any) => {
