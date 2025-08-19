@@ -329,20 +329,17 @@ const Home: React.FC = () => {
                   if (!pub) return alert('No se pudo obtener la clave pública.');
                   const sub = await subscribeToPush(pub);
                   if (!sub) return alert('No se pudo suscribir.');
-                  // Guardar en Supabase (tabla push_subscriptions)
-                  try {
-                    const { supabase } = await import('../services/supabaseClient');
-                    await supabase?.from('push_subscriptions').upsert({
-                      user_id: (window as any).__chakra_user?.id || 'local',
-                      endpoint: sub.endpoint,
-                      p256dh: sub.keys.p256dh,
-                      auth: sub.keys.auth,
-                    });
-                    alert('Notificaciones activadas.');
-                  } catch (e) {
-                    console.error(e);
-                    alert('Error guardando la suscripción.');
+                  // Registrar en backend (service role) para evitar problemas de RLS
+                  const res = await fetch('/api/push/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...sub, userId: (window as any).__chakra_user?.id || null })
+                  });
+                  if (!res.ok) {
+                    const j = await res.json().catch(() => ({}));
+                    return alert('Error registrando suscripción: ' + (j.error || res.statusText));
                   }
+                  alert('Notificaciones activadas.');
                 }}>Activar notificaciones</Button>
               </div>
             </SectionHeader>
