@@ -94,6 +94,9 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [remember, setRemember] = useState<boolean>(() => {
+    try { return localStorage.getItem('cropcrm_remember') === '1'; } catch { return false; }
+  });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { user, login } = useAuth();
@@ -106,6 +109,8 @@ const Login: React.FC = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
+    try { localStorage.setItem('cropcrm_remember', remember ? '1' : '0'); } catch {}
+    try { (window as any).__setRememberMe?.(remember); } catch {}
     const ok = await login({ email: email.trim().toLowerCase(), password: password.trim() });
     setLoading(false);
     if (ok) navigate('/', { replace: true });
@@ -121,16 +126,20 @@ const Login: React.FC = () => {
         </LogoWrap>
         <Title>Bienvenido a Chakra!</Title>
         <Subtitle>Sistema de Gestion de Cultivos</Subtitle>
-        <Form onSubmit={submit}>
+        <Form onSubmit={submit} autoComplete="off">
           {error && <Error>{error}</Error>}
           <div>
             <label>Correo</label>
-            <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seba@chakra.com / santi@chakra.com" required />
+            <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seba@chakra.com / santi@chakra.com" required autoComplete="new-email" />
           </div>
           <div>
             <label>Contraseña</label>
-            <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="chakra4794" required />
+            <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="chakra4794" required autoComplete="new-password" />
           </div>
+          <label style={{ display:'flex', alignItems:'center', gap:8, fontSize: 14, color:'#334155' }}>
+            <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} style={{ width:16, height:16 }} />
+            Recuerdame
+          </label>
           <Button type="submit" disabled={loading}>{loading ? 'Ingresando...' : 'Ingresar'}</Button>
           <div style={{ fontSize: 12, color: '#64748b' }}>Demo: seba@chakra.com / santi@chakra.com — pass: chakra4794</div>
         </Form>

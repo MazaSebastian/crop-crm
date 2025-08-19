@@ -27,6 +27,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [remember, setRemember] = useState<boolean>(() => {
+    try { return localStorage.getItem('cropcrm_remember') === '1'; } catch { return false; }
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -81,7 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const found = demo.find(u => u.email === credentials.email && credentials.password === 'chakra4794');
       if (found) {
         setUser(found);
-        localStorage.setItem('cropcrm_user', JSON.stringify(found));
+        if (remember) localStorage.setItem('cropcrm_user', JSON.stringify(found));
         setIsLoading(false);
         return true;
       }
@@ -101,6 +104,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     localStorage.removeItem('cropcrm_user');
   };
+
+  // Exponer setter de remember via contexto mediante side-channel en window (rápido y acotado)
+  useEffect(() => {
+    (window as any).__setRememberMe = (val: boolean) => {
+      setRemember(val);
+      try { localStorage.setItem('cropcrm_remember', val ? '1' : '0'); } catch {}
+    };
+  }, []);
+
+  // Auto-logout por inactividad: 60min sin interacción
+  useEffect(() => {
+    if (!user) return;
+    let last = Date.now();
+    let timer: any;
+    const update = () => { last = Date.now(); };
+    const check = () => {
+      if (Date.now() - last >= 60 * 60 * 1000) {
+        logout();
+      } else {
+        timer = setTimeout(check, 60 * 1000);
+      }
+    };
+    ['click','keydown','mousemove','touchstart','scroll'].forEach(evt => window.addEventListener(evt, update, { passive: true } as any));
+    timer = setTimeout(check, 60 * 1000);
+    return () => {
+      ['click','keydown','mousemove','touchstart','scroll'].forEach(evt => window.removeEventListener(evt, update as any));
+      clearTimeout(timer);
+    };
+  }, [user]);
 
   return (
     <AuthContext.Provider value={{ user, isLoading, login, logout }}>

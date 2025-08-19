@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { Card as UiCard, Button as UiButton, SectionHeader as UiSectionHeader } from '../components/ui';
-import { getCrops, getAnnouncements, addAnnouncement, getActivities, addActivity, mockCropPartners, getPlannedEvents, getDailyRecords, syncAnnouncementsFromSupabase, createAnnouncementSupabase, removeAnnouncementLocal, deleteAnnouncementSupabase, syncActivitiesFromSupabase, createActivitySupabase, getLastSeenMapRemote, setLastSeenRemote } from '../services/cropService';
+import { getCrops, getAnnouncements, addAnnouncement, getActivities, addActivity, mockCropPartners, getPlannedEvents, getDailyRecords, syncAnnouncementsFromSupabase, createAnnouncementSupabase, removeAnnouncementLocal, deleteAnnouncementSupabase, syncActivitiesFromSupabase, createActivitySupabase, getLastSeenMapRemote, setLastSeenRemote, syncCropsFromSupabase } from '../services/cropService';
 import { supabase } from '../services/supabaseClient';
 import type { Announcement, Activity, Crop, ActivityType } from '../types';
 import { useNavigate } from 'react-router-dom';
@@ -76,7 +76,7 @@ const Badge = styled.span<{ variant?: 'green' | 'yellow' | 'gray' }>`
 `;
 
 const Home: React.FC = () => {
-  const crops: Crop[] = useMemo(() => getCrops(), []);
+  const [crops, setCrops] = useState<Crop[]>(getCrops());
   const [announcements, setAnnouncements] = useState<Announcement[]>(getAnnouncements());
   // const [lastSync, setLastSync] = useState<string | null>(null);
   const [activities, setActivities] = useState<Activity[]>(getActivities());
@@ -109,6 +109,8 @@ const Home: React.FC = () => {
     // Carga inicial desde Supabase (si está configurado)
     (async () => {
       setLoadingHome(true);
+      const serverCrops = await syncCropsFromSupabase();
+      if (serverCrops && serverCrops.length) setCrops(serverCrops);
       const server = await syncAnnouncementsFromSupabase();
       if (server) setAnnouncements(server);
       const acts = await syncActivitiesFromSupabase(4);
@@ -161,7 +163,7 @@ const Home: React.FC = () => {
       // Inicializar contadores (eventos desde la última revisión) por cultivo
       (async () => {
         const since = new Date(Date.now() - 2*24*3600*1000).toISOString();
-        const ids = crops.map(c => c.id);
+        const ids = (serverCrops && serverCrops.length ? serverCrops : crops).map(c => c.id);
         const counts: Record<string, number> = {};
         for (const id of ids) counts[id] = 0;
         const lastSeen = user ? await getLastSeenMapRemote(user.id, ids) : getLastSeen();
@@ -207,7 +209,9 @@ const Home: React.FC = () => {
         if (server) setAnnouncements(server);
         // refrescar contadores
         const since = new Date(Date.now() - 2*24*3600*1000).toISOString();
-        const ids = crops.map(c => c.id);
+        const nextCrops = getCrops();
+        setCrops(nextCrops);
+        const ids = nextCrops.map(c => c.id);
         const counts: Record<string, number> = {};
         for (const id of ids) counts[id] = 0;
         const lastSeen = user ? await getLastSeenMapRemote(user.id, ids) : getLastSeen();
@@ -238,6 +242,11 @@ const Home: React.FC = () => {
       };
     }
   }, [crops, getLastSeen, user]);
+
+  // Si los cultivos llegan asincrónicamente, fijar cultivo por defecto del selector
+  React.useEffect(() => {
+    if (!actCropId && crops.length) setActCropId(crops[0].id);
+  }, [crops, actCropId]);
 
   const addMsg = async (e: React.FormEvent) => {
     e.preventDefault();
