@@ -106,10 +106,10 @@ const Login: React.FC = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const ok = await login({ email, password });
+    const ok = await login({ email: email.trim().toLowerCase(), password: password.trim() });
     setLoading(false);
     if (ok) navigate('/', { replace: true });
-    else setError('Credenciales inválidas. (Tip: 123456)');
+    else setError('Credenciales inválidas. Verifica email y contraseña.');
   };
 
   return (
