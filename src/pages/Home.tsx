@@ -233,12 +233,9 @@ const Home: React.FC = () => {
         setNotifCount(counts);
       };
       window.addEventListener('focus', onFocus);
-      // Polling de respaldo cada 10s por si se pierde la suscripción
-      const iv = window.setInterval(onFocus, 10000);
 
       return () => {
         window.removeEventListener('focus', onFocus);
-        window.clearInterval(iv);
         supabase.removeChannel(channel);
         supabase.removeChannel(chActs);
         supabase.removeChannel(chNotif);
@@ -317,6 +314,12 @@ const Home: React.FC = () => {
               <h3>🔔 Comunicaciones</h3>
               <div style={{ marginLeft: 'auto' }}>
                 <Button type="button" onClick={async () => {
+                  // iOS requiere PWA instalada (standalone)
+                  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+                  const isStandalone = (window.navigator as any).standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+                  if (isIOS && !isStandalone) {
+                    return alert('En iPhone, primero instala la app: Compartir → "Añadir a pantalla de inicio". Luego abre desde el ícono y activa notificaciones.');
+                  }
                   const perm = await ensurePushPermission();
                   if (perm !== 'granted') return alert('Permiso denegado para notificaciones.');
                   // Obtener la publicKey desde el endpoint (seguro en server)
