@@ -1,4 +1,6 @@
 // Minimal SW: cache estático básico y fallback de navegación
+// Tipado laxo para el contexto de Service Worker
+declare const self: any;
 const CACHE = 'chakra-cache-v3';
 const ASSETS = [
   '/',
