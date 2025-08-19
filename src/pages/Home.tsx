@@ -319,8 +319,11 @@ const Home: React.FC = () => {
                 <Button type="button" onClick={async () => {
                   const perm = await ensurePushPermission();
                   if (perm !== 'granted') return alert('Permiso denegado para notificaciones.');
-                  const pub = (window as any).env?.VAPID_PUBLIC_KEY || (process.env.REACT_APP_VAPID_PUBLIC_KEY as any);
-                  if (!pub) return alert('Falta VAPID_PUBLIC_KEY.');
+                  // Obtener la publicKey desde el endpoint (seguro en server)
+                  const r = await fetch('/api/push/public-key');
+                  const data = await r.json();
+                  const pub = data.publicKey;
+                  if (!pub) return alert('No se pudo obtener la clave pública.');
                   const sub = await subscribeToPush(pub);
                   if (!sub) return alert('No se pudo suscribir.');
                   // Guardar en Supabase (tabla push_subscriptions)
