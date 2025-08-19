@@ -1,5 +1,9 @@
 // Minimal SW: cache estático básico y fallback de navegación
-const CACHE = 'chakra-cache-v1';
+// Placeholder para Workbox InjectManifest (evita error __WB_MANIFEST)
+// @ts-ignore
+const __WB_MANIFEST_PLACEHOLDER = (self as any).__WB_MANIFEST || [];
+
+const CACHE = 'chakra-cache-v3';
 const ASSETS = [
   '/',
   '/index.html',
@@ -10,12 +14,16 @@ self.addEventListener('install', (event: any) => {
   event.waitUntil(
     caches.open(CACHE).then(cache => cache.addAll(ASSETS))
   );
+  // @ts-ignore
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event: any) => {
   event.waitUntil(
     caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
   );
+  // @ts-ignore
+  self.clients?.claim();
 });
 
 self.addEventListener('fetch', (event: any) => {
