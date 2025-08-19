@@ -1,5 +1,5 @@
 // Minimal SW: cache estático básico y fallback de navegación
-const CACHE = 'chakra-cache-v2';
+const CACHE = 'chakra-cache-v3';
 const ASSETS = [
   '/',
   '/index.html',
@@ -40,3 +40,5 @@ self.addEventListener('fetch', (event: any) => {
 });
 
 
+// Marcar como módulo para TS (--isolatedModules); será eliminado en el build del SW
+export {};
