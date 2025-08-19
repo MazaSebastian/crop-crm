@@ -7,6 +7,7 @@ import type { Announcement, Activity, Crop, ActivityType } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Skeleton } from '../components/feedback';
+import { ensurePushPermission, subscribeToPush } from '../services/pushService';
 import { useAuth } from '../context/AuthContext';
 // Iconos reemplazados por emojis para evitar incompatibilidades de tipos en algunos entornos
 
@@ -314,6 +315,30 @@ const Home: React.FC = () => {
           <Card>
             <SectionHeader>
               <h3>🔔 Comunicaciones</h3>
+              <div style={{ marginLeft: 'auto' }}>
+                <Button type="button" onClick={async () => {
+                  const perm = await ensurePushPermission();
+                  if (perm !== 'granted') return alert('Permiso denegado para notificaciones.');
+                  const pub = (window as any).env?.VAPID_PUBLIC_KEY || (process.env.REACT_APP_VAPID_PUBLIC_KEY as any);
+                  if (!pub) return alert('Falta VAPID_PUBLIC_KEY.');
+                  const sub = await subscribeToPush(pub);
+                  if (!sub) return alert('No se pudo suscribir.');
+                  // Guardar en Supabase (tabla push_subscriptions)
+                  try {
+                    const { supabase } = await import('../services/supabaseClient');
+                    await supabase?.from('push_subscriptions').upsert({
+                      user_id: (window as any).__chakra_user?.id || 'local',
+                      endpoint: sub.endpoint,
+                      p256dh: sub.keys.p256dh,
+                      auth: sub.keys.auth,
+                    });
+                    alert('Notificaciones activadas.');
+                  } catch (e) {
+                    console.error(e);
+                    alert('Error guardando la suscripción.');
+                  }
+                }}>Activar notificaciones</Button>
+              </div>
             </SectionHeader>
             <form onSubmit={addMsg} style={{ display: 'grid', gap: '0.5rem', marginBottom: '0.5rem' }}>
               <Input placeholder="Escribe un aviso para tu socio..." value={newMsg} onChange={e => setNewMsg(e.target.value)} />

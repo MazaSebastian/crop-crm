@@ -40,5 +40,39 @@ self.addEventListener('fetch', (event: any) => {
 });
 
 
+// Push notifications: mostrar y manejar clicks
+self.addEventListener('push', (event: any) => {
+  try {
+    const data = event.data ? event.data.json() : {};
+    const title = data.title || 'Chakra';
+    const options: any = {
+      body: data.body || '',
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      data: { url: data.url || '/' }
+    };
+    event.waitUntil(self.registration.showNotification(title, options));
+  } catch {}
+});
+
+self.addEventListener('notificationclick', (event: any) => {
+  event.notification.close();
+  const url = event.notification?.data?.url || '/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientsArr: any[]) => {
+      for (const client of clientsArr) {
+        try {
+          if ('focus' in client) {
+            client.focus();
+            if (client.navigate) client.navigate(url);
+            return;
+          }
+        } catch {}
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(url);
+    })
+  );
+});
+
 // Marcar como módulo para TS (--isolatedModules); será eliminado en el build del SW
 export {};

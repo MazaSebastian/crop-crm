@@ -51,6 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           role: 'owner'
         };
         setUser(u);
+        try { (window as any).__chakra_user = u; } catch {}
       }
       setIsLoading(false);
       // Suscribirse a cambios de sesión
@@ -64,8 +65,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             role: 'owner'
           };
           setUser(u);
+          try { (window as any).__chakra_user = u; } catch {}
         } else {
           setUser(null);
+          try { delete (window as any).__chakra_user; } catch {}
         }
       });
       return () => { sub?.subscription?.unsubscribe(); };
