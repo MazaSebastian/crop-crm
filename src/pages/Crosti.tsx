@@ -56,8 +56,6 @@ const Crosti: React.FC = () => {
     const mov: Movement = { id: `mov-${Date.now()}`, type, concept: decoratedConcept, amount: val, date: new Date().toISOString().slice(0,10), owner: 'CROSTI' };
     const next = [mov, ...list];
     setList(next);
-    const newBalance = balance + (type === 'INGRESO' ? val : -val);
-    setBalance(newBalance);
     const ok = await createCashMovementSupabase(mov as unknown as CashMovement);
     if (!ok) toast.push('No se pudo sincronizar el movimiento', 'error');
     else toast.push('Movimiento guardado', 'success');
@@ -88,8 +86,12 @@ const Crosti: React.FC = () => {
           const r = payload.new;
           if (!r || r.owner !== 'CROSTI') return;
           const mov: Movement = { id: r.id, type: r.type, concept: r.concept, amount: Number(r.amount||0), date: r.date, owner: r.owner } as Movement;
-          setList(prev => (prev.some(x => x.id === mov.id) ? prev : [mov, ...prev]));
-          setBalance(prev => prev + (mov.type === 'INGRESO' ? mov.amount : -mov.amount));
+          setList(prev => {
+            if (prev.some(x => x.id === mov.id)) return prev;
+            // Solo ajustar saldo cuando realmente agregamos el item
+            setBalance(p => p + (mov.type === 'INGRESO' ? mov.amount : -mov.amount));
+            return [mov, ...prev];
+          });
         })
         .subscribe();
       return () => { supabase.removeChannel(ch); };

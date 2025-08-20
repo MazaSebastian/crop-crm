@@ -56,8 +56,6 @@ const Expenses: React.FC = () => {
     const mov: Movement = { id: `mov-${Date.now()}`, type, concept: concept.trim(), amount: val, date: new Date().toISOString().slice(0,10), owner };
     const next = [mov, ...list];
     setList(next);
-    const newBalance = balance + (type === 'INGRESO' ? val : -val);
-    setBalance(newBalance);
     const ok = await createCashMovementSupabase(mov as CashMovement);
     if (!ok) toast.push('No se pudo sincronizar el movimiento', 'error');
     else toast.push('Movimiento guardado', 'success');
