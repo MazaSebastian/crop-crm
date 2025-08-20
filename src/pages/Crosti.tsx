@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { Card as UiCard, Button as UiButton, Input as UiInput, Select as UiSelect } from '../components/ui';
 import { CrostiStockItem, syncCrostiStockItemsFromSupabase, createCrostiStockItemSupabase, updateCrostiStockQtySupabase, deleteCrostiStockItemSupabase } from '../services/cropService';
 import { supabase } from '../services/supabaseClient';
-import { CashMovement, createCashMovementSupabase, syncCashMovementsFromSupabase } from '../services/cropService';
+import { CrostiCashMovement, createCrostiCashMovementSupabase, syncCrostiCashMovementsFromSupabase } from '../services/cropService';
 import { useToast } from '../components/feedback';
 
 const Page = styled.div`
@@ -56,7 +56,7 @@ const Crosti: React.FC = () => {
     const mov: Movement = { id: `mov-${Date.now()}`, type, concept: decoratedConcept, amount: val, date: new Date().toISOString().slice(0,10), owner: 'CROSTI' };
     const next = [mov, ...list];
     setList(next);
-    const ok = await createCashMovementSupabase(mov as unknown as CashMovement);
+    const ok = await createCrostiCashMovementSupabase({ id: mov.id, type: mov.type, concept: mov.concept, amount: mov.amount, date: mov.date } as CrostiCashMovement);
     if (!ok) toast.push('No se pudo sincronizar el movimiento', 'error');
     else toast.push('Movimiento guardado', 'success');
     setConcept(''); setAmount(''); setType('EGRESO'); setActor('Sebastian');
@@ -64,17 +64,17 @@ const Crosti: React.FC = () => {
 
   React.useEffect(() => {
     (async () => {
-      const server = await syncCashMovementsFromSupabase();
+      const server = await syncCrostiCashMovementsFromSupabase();
       if (server) {
-        const filtered = (server as any as Movement[]).filter(m => (m.owner as any) === 'CROSTI');
-        setList(filtered);
-        const bal = filtered.reduce((acc, m) => acc + (m.type === 'INGRESO' ? m.amount : -m.amount), 0);
+        const mapped = (server as any as Movement[]);
+        setList(mapped);
+        const bal = mapped.reduce((acc, m) => acc + (m.type === 'INGRESO' ? m.amount : -m.amount), 0);
         setBalance(bal);
       } else {
         const local = JSON.parse(localStorage.getItem('chakra_movs') || '[]');
-        const filtered = (local as Movement[]).filter(m => m.owner === 'CROSTI');
-        setList(filtered);
-        const bal = filtered.reduce((acc: number, m: Movement) => acc + (m.type === 'INGRESO' ? m.amount : -m.amount), 0);
+        const mapped = (local as Movement[]).filter(m => m.owner === 'CROSTI');
+        setList(mapped);
+        const bal = mapped.reduce((acc: number, m: Movement) => acc + (m.type === 'INGRESO' ? m.amount : -m.amount), 0);
         setBalance(bal);
       }
     })();
@@ -82,10 +82,10 @@ const Crosti: React.FC = () => {
     if (supabase) {
       const ch = supabase
         .channel('realtime:cash-crosti')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'cash_movements' }, (payload: any) => {
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'crosti_cash_movements' }, (payload: any) => {
           const r = payload.new;
-          if (!r || r.owner !== 'CROSTI') return;
-          const mov: Movement = { id: r.id, type: r.type, concept: r.concept, amount: Number(r.amount||0), date: r.date, owner: r.owner } as Movement;
+          if (!r) return;
+          const mov: Movement = { id: r.id, type: r.type, concept: r.concept, amount: Number(r.amount||0), date: r.date, owner: 'CROSTI' } as Movement;
           setList(prev => {
             if (prev.some(x => x.id === mov.id)) return prev;
             // Solo ajustar saldo cuando realmente agregamos el item

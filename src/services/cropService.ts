@@ -304,6 +304,47 @@ export async function deleteStockItemSupabase(id: string): Promise<boolean> {
 }
 
 // ==========================
+// Crosti Cash Movements - tabla separada (NO compartir con Gastos)
+// Tabla: crosti_cash_movements(id text pk, type text, concept text, amount numeric, date text, actor text, created_at timestamptz)
+export interface CrostiCashMovement {
+  id: string;
+  type: 'INGRESO' | 'EGRESO';
+  concept: string;
+  amount: number;
+  date: string; // ISO
+}
+
+export async function syncCrostiCashMovementsFromSupabase(): Promise<CrostiCashMovement[] | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('crosti_cash_movements')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(1000);
+  if (error) { console.error('Supabase select error (crosti_cash_movements):', error); return null; }
+  return (data || []).map((r: any) => ({
+    id: r.id,
+    type: r.type,
+    concept: r.concept,
+    amount: Number(r.amount || 0),
+    date: r.date,
+  }));
+}
+
+export async function createCrostiCashMovementSupabase(m: CrostiCashMovement): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('crosti_cash_movements').insert({
+    id: m.id,
+    type: m.type,
+    concept: m.concept,
+    amount: m.amount,
+    date: m.date
+  });
+  if (error) { console.error('Supabase insert error (crosti_cash_movements):', error); return false; }
+  return true;
+}
+
+// ==========================
 // Crosti Stock - Supabase sync (tabla separada)
 // Tabla: crosti_stock_items(id text pk, name text, qty int, unit text, created_at timestamptz)
 export interface CrostiStockItem {
