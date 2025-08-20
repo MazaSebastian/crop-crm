@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { Card as UiCard, Button as UiButton, Input as UiInput, Select as UiSelect } from '../components/ui';
+import Stock from './Stock';
 import { supabase } from '../services/supabaseClient';
 import { CashMovement, createCashMovementSupabase, syncCashMovementsFromSupabase } from '../services/cropService';
 import { useToast } from '../components/feedback';
@@ -35,9 +36,11 @@ interface Movement {
 }
 
 const Crosti: React.FC = () => {
+  const [tab, setTab] = useState<'saldo'|'stock'>('saldo');
   const [balance, setBalance] = useState<number>(0);
   const [list, setList] = useState<Movement[]>([]);
   const [type, setType] = useState<Movement['type']>('EGRESO');
+  const [actor, setActor] = useState<'Sebastian'|'Santiago'>('Sebastian');
   const [concept, setConcept] = useState('');
   const [amount, setAmount] = useState('');
   const toast = useToast();
@@ -48,7 +51,9 @@ const Crosti: React.FC = () => {
     e.preventDefault();
     const val = Number(amount);
     if (!concept.trim() || !val) return;
-    const mov: Movement = { id: `mov-${Date.now()}`, type, concept: concept.trim(), amount: val, date: new Date().toISOString().slice(0,10), owner: 'CROSTI' };
+    // Persistimos actor dentro del concepto para no cambiar el esquema (ej: "[Sebastian] Compra de insumos")
+    const decoratedConcept = `[${actor}] ${concept.trim()}`;
+    const mov: Movement = { id: `mov-${Date.now()}`, type, concept: decoratedConcept, amount: val, date: new Date().toISOString().slice(0,10), owner: 'CROSTI' };
     const next = [mov, ...list];
     setList(next);
     const newBalance = balance + (type === 'INGRESO' ? val : -val);
@@ -56,7 +61,7 @@ const Crosti: React.FC = () => {
     const ok = await createCashMovementSupabase(mov as unknown as CashMovement);
     if (!ok) toast.push('No se pudo sincronizar el movimiento', 'error');
     else toast.push('Movimiento guardado', 'success');
-    setConcept(''); setAmount(''); setType('EGRESO');
+    setConcept(''); setAmount(''); setType('EGRESO'); setActor('Sebastian');
   };
 
   React.useEffect(() => {
@@ -93,41 +98,69 @@ const Crosti: React.FC = () => {
 
   return (
     <Page>
-      <Card>
-        <h2>Saldo Crosti</h2>
-        <div style={{ fontSize: 28, fontWeight: 800 }}>${balance.toLocaleString('es-AR')}</div>
-        <div style={{ color: '#64748b' }}>Resultado (histórico): ${total.toLocaleString('es-AR')}</div>
-      </Card>
+      <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+        <UiButton variant={tab==='saldo'?'primary':'ghost'} onClick={() => setTab('saldo')}>Saldo Crosti</UiButton>
+        <UiButton variant={tab==='stock'?'primary':'ghost'} onClick={() => setTab('stock')}>Control de Stock</UiButton>
+      </div>
 
-      <Card>
-        <h3>Nuevo movimiento</h3>
-        <form onSubmit={submit} style={{ display: 'grid', gap: 8 }}>
-          <Row>
-            <UiSelect value={type} onChange={e => setType(e.target.value as any)}>
-              <option>EGRESO</option>
-              <option>INGRESO</option>
-            </UiSelect>
-            <UiInput placeholder="Concepto" value={concept} onChange={e => setConcept(e.target.value)} />
-            <UiInput placeholder="Monto" type="number" value={amount} onChange={e => setAmount(e.target.value)} />
-            <UiButton type="submit">Agregar</UiButton>
-          </Row>
-        </form>
-      </Card>
+      {tab === 'saldo' && (
+        <>
+          <Card>
+            <h2>Saldo Crosti</h2>
+            <div style={{ fontSize: 28, fontWeight: 800 }}>${balance.toLocaleString('es-AR')}</div>
+            <div style={{ color: '#64748b' }}>Resultado (histórico): ${total.toLocaleString('es-AR')}</div>
+          </Card>
 
-      <Card>
-        <h3>Movimientos (Crosti)</h3>
-        <div style={{ display:'grid', gap:8 }}>
-          {list.map(m => (
-            <div key={m.id} style={{ display:'grid', gridTemplateColumns:'1fr 2fr 1fr 1fr', gap:8, padding:'6px 8px', background:'#f8fafc', border:'1px solid #e5e7eb', borderRadius:8 }}>
-              <div style={{ color: m.type === 'INGRESO' ? '#16a34a' : '#ef4444', fontWeight:700 }}>{m.type}</div>
-              <div>{m.concept}</div>
-              <div style={{ textAlign:'right' }}>${m.amount.toLocaleString('es-AR')}</div>
-              <div style={{ textAlign:'right', color:'#64748b' }}>{m.date}</div>
+          <Card>
+            <h3>Nuevo movimiento</h3>
+            <form onSubmit={submit} style={{ display: 'grid', gap: 8 }}>
+              <Row>
+                <UiSelect value={type} onChange={e => setType(e.target.value as any)}>
+                  <option>EGRESO</option>
+                  <option>INGRESO</option>
+                </UiSelect>
+                <UiSelect value={actor} onChange={e => setActor(e.target.value as any)}>
+                  <option>Sebastian</option>
+                  <option>Santiago</option>
+                </UiSelect>
+                <UiInput placeholder="Concepto" value={concept} onChange={e => setConcept(e.target.value)} />
+                <UiInput placeholder="Monto" type="number" value={amount} onChange={e => setAmount(e.target.value)} />
+                <UiButton type="submit">Agregar</UiButton>
+              </Row>
+            </form>
+          </Card>
+
+          <Card>
+            <h3>Movimientos (Crosti)</h3>
+            <div style={{ display:'grid', gap:8 }}>
+              {list.map(m => {
+                const match = m.concept.match(/^\[(Sebastian|Santiago)\]\s*/);
+                const who = match ? match[1] : undefined;
+                const cleanConcept = match ? m.concept.replace(match[0], '') : m.concept;
+                return (
+                  <div key={m.id} style={{ display:'grid', gridTemplateColumns:'1fr 1fr 2fr 1fr 1fr', gap:8, padding:'6px 8px', background:'#f8fafc', border:'1px solid #e5e7eb', borderRadius:8 }}>
+                    <div style={{ color: m.type === 'INGRESO' ? '#16a34a' : '#ef4444', fontWeight:700 }}>{m.type}</div>
+                    <div style={{ color:'#374151' }}>{who || '-'}</div>
+                    <div>{cleanConcept}</div>
+                    <div style={{ textAlign:'right' }}>${m.amount.toLocaleString('es-AR')}</div>
+                    <div style={{ textAlign:'right', color:'#64748b' }}>{m.date}</div>
+                  </div>
+                );
+              })}
+              {list.length === 0 && <div style={{ color:'#64748b' }}>Sin movimientos aún.</div>}
             </div>
-          ))}
-          {list.length === 0 && <div style={{ color:'#64748b' }}>Sin movimientos aún.</div>}
-        </div>
-      </Card>
+          </Card>
+        </>
+      )}
+
+      {tab === 'stock' && (
+        <Card>
+          <h2>Control de Stock</h2>
+          <div style={{ marginTop: 8 }}>
+            <Stock />
+          </div>
+        </Card>
+      )}
     </Page>
   );
 };
