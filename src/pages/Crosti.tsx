@@ -56,6 +56,8 @@ const Crosti: React.FC = () => {
     const mov: Movement = { id: `mov-${Date.now()}`, type, concept: decoratedConcept, amount: val, date: new Date().toISOString().slice(0,10), owner: 'CROSTI' };
     const next = [mov, ...list];
     setList(next);
+    // Refrescar saldo inmediatamente como fallback (si Realtime aún no está activo)
+    setBalance(next.reduce((acc, m) => acc + (m.type === 'INGRESO' ? m.amount : -m.amount), 0));
     const ok = await createCrostiCashMovementSupabase({ id: mov.id, type: mov.type, concept: mov.concept, amount: mov.amount, date: mov.date } as CrostiCashMovement);
     if (!ok) toast.push('No se pudo sincronizar el movimiento', 'error');
     else toast.push('Movimiento guardado', 'success');
@@ -92,6 +94,11 @@ const Crosti: React.FC = () => {
             setBalance(p => p + (mov.type === 'INGRESO' ? mov.amount : -mov.amount));
             return [mov, ...prev];
           });
+        })
+        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'crosti_cash_movements' }, (payload: any) => {
+          const r = payload.old; if (!r) return;
+          setList(prev => prev.filter(x => x.id !== r.id));
+          setBalance(p => p - (r.type === 'INGRESO' ? Number(r.amount||0) : -Number(r.amount||0)));
         })
         .subscribe();
       return () => { supabase.removeChannel(ch); };
