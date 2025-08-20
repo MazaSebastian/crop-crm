@@ -12,6 +12,7 @@ import { useAuth } from './context/AuthContext';
 import CropSummary from './pages/CropSummary';
 import Expenses from './pages/Expenses';
 import Stock from './pages/Stock';
+import Crosti from './pages/Crosti';
 
 const TopNav = styled.nav<{ scrolled: boolean }>`
   position: fixed;
@@ -107,6 +108,7 @@ function App() {
           <Link to="/parameters">📊 Parámetros</Link>
           <Link to="/tasks">✅ Tareas</Link>
           <Link to="/expenses">💰 Gastos</Link>
+          <Link to="/crosti">🍽️ Crosti</Link>
           <Link to="/stock">📦 Stock</Link>
           <div style={{ marginLeft: 'auto', marginRight: 8, fontWeight: 600 }}>Bienvenido {user?.name}</div>
           <LogoutBtn onClick={handleLogout}>Cerrar sesión</LogoutBtn>
@@ -122,6 +124,7 @@ function App() {
           <Route path="/parameters" element={<RequireAuth><Page><Parameters /></Page></RequireAuth>} />
           <Route path="/tasks" element={<RequireAuth><Page><Tasks /></Page></RequireAuth>} />
           <Route path="/expenses" element={<RequireAuth><Page><Expenses /></Page></RequireAuth>} />
+          <Route path="/crosti" element={<RequireAuth><Page><Crosti /></Page></RequireAuth>} />
           <Route path="/stock" element={<RequireAuth><Page><Stock /></Page></RequireAuth>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
