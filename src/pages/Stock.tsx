@@ -178,3 +178,4 @@ const Stock: React.FC = () => {
 export default Stock;
 
 
+// Stock component
