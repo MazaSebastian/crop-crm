@@ -303,6 +303,50 @@ export async function deleteStockItemSupabase(id: string): Promise<boolean> {
   return true;
 }
 
+// ==========================
+// Crosti Stock - Supabase sync (tabla separada)
+// Tabla: crosti_stock_items(id text pk, name text, qty int, unit text, created_at timestamptz)
+export interface CrostiStockItem {
+  id: string;
+  name: string;
+  qty: number;
+  unit?: string;
+}
+
+export async function syncCrostiStockItemsFromSupabase(): Promise<CrostiStockItem[] | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('crosti_stock_items')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(2000);
+  if (error) { console.error('Supabase select error (crosti_stock_items):', error); return null; }
+  return (data || []).map((r: any) => ({ id: r.id, name: r.name, qty: r.qty, unit: r.unit || 'g' }));
+}
+
+export async function createCrostiStockItemSupabase(it: CrostiStockItem): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('crosti_stock_items').insert({
+    id: it.id, name: it.name, qty: it.qty, unit: it.unit || 'g'
+  });
+  if (error) { console.error('Supabase insert error (crosti_stock_items):', error); return false; }
+  return true;
+}
+
+export async function updateCrostiStockQtySupabase(id: string, qty: number): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('crosti_stock_items').update({ qty }).eq('id', id);
+  if (error) { console.error('Supabase update error (crosti_stock_items):', error); return false; }
+  return true;
+}
+
+export async function deleteCrostiStockItemSupabase(id: string): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('crosti_stock_items').delete().eq('id', id);
+  if (error) { console.error('Supabase delete error (crosti_stock_items):', error); return false; }
+  return true;
+}
+
 export function getTasks(cropId: string): CropTask[] {
   if (!inMemory.tasks) {
     inMemory.tasks = loadFromStorage<CropTask[]>(STORAGE_KEYS.tasks, [

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { Card as UiCard, Button as UiButton, Input as UiInput, Select as UiSelect } from '../components/ui';
-import Stock from './Stock';
+import { CrostiStockItem, syncCrostiStockItemsFromSupabase, createCrostiStockItemSupabase, updateCrostiStockQtySupabase, deleteCrostiStockItemSupabase } from '../services/cropService';
 import { supabase } from '../services/supabaseClient';
 import { CashMovement, createCashMovementSupabase, syncCashMovementsFromSupabase } from '../services/cropService';
 import { useToast } from '../components/feedback';
@@ -155,10 +155,8 @@ const Crosti: React.FC = () => {
 
       {tab === 'stock' && (
         <Card>
-          <h2>Control de Stock</h2>
-          <div style={{ marginTop: 8 }}>
-            <Stock />
-          </div>
+          <h2>Control de Stock (Crosti)</h2>
+          <CrostiStock />
         </Card>
       )}
     </Page>
@@ -166,5 +164,85 @@ const Crosti: React.FC = () => {
 };
 
 export default Crosti;
+
+// ==================== Sub-sección: Stock Crosti ====================
+const CrostiStock: React.FC = () => {
+  const [items, setItems] = useState<CrostiStockItem[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [qty, setQty] = useState('');
+  const toast = useToast();
+
+  const add = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = Number(qty);
+    if (!name.trim() || !q) return;
+    const nextItem: CrostiStockItem = { id: `cst-${Date.now()}`, name: name.trim(), qty: q, unit: 'u' };
+    const next = [nextItem, ...items];
+    setItems(next);
+    const ok = await createCrostiStockItemSupabase(nextItem);
+    if (!ok) toast.push('No se pudo sincronizar el item', 'error'); else toast.push('Item agregado', 'success');
+    setName(''); setQty(''); setIsOpen(false);
+  };
+
+  React.useEffect(() => {
+    (async () => {
+      const server = await syncCrostiStockItemsFromSupabase();
+      if (server) setItems(server);
+      else setItems(JSON.parse(localStorage.getItem('crosti_stock') || '[]'));
+    })();
+  }, []);
+
+  return (
+    <div>
+      <div style={{ display:'flex', justifyContent:'flex-end' }}>
+        <div style={{ display:'flex', gap:8 }}>
+          <UiButton onClick={() => setIsOpen(true)}>Agregar Ítem</UiButton>
+          <UiButton variant='ghost' onClick={() => {
+            const csv = ['Nombre,Cantidad,Unidad']
+              .concat(items.map(i => `${i.name},${i.qty},${i.unit||'u'}`))
+              .join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'crosti_stock.csv'; a.click(); URL.revokeObjectURL(url);
+          }}>Exportar CSV</UiButton>
+        </div>
+      </div>
+      {isOpen && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.2)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000 }} onClick={() => setIsOpen(false)}>
+          <div style={{ background:'#fff', border:'1px solid #e5e7eb', padding:16, borderRadius:12, width:360 }} onClick={e => e.stopPropagation()}>
+            <h3>Agregar Ítem</h3>
+            <form onSubmit={add} style={{ display:'grid', gap:8 }}>
+              <UiInput placeholder="Producto" value={name} onChange={e => setName(e.target.value)} />
+              <UiInput placeholder="Cantidad" type="number" value={qty} onChange={e => setQty(e.target.value)} />
+              <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+                <UiButton variant="ghost" type="button" onClick={() => setIsOpen(false)}>Cancelar</UiButton>
+                <UiButton type="submit">Guardar</UiButton>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      <div style={{ display:'grid', gap:8, marginTop:8 }}>
+        {items.map(it => (
+          <div key={it.id} style={{ display:'grid', gridTemplateColumns:'2fr 2fr 2fr 1fr', gap:8, padding:'6px 8px', background:'#f8fafc', border:'1px solid #e5e7eb', borderRadius:8 }}>
+            <div style={{ fontWeight:600 }}>{it.name}</div>
+            <div>{it.qty} {it.unit || 'u'}</div>
+            <div style={{ display:'flex', gap:6 }}>
+              <UiButton onClick={async () => { const nextQty = it.qty + 1; setItems(prev => prev.map(x => x.id===it.id?{...x, qty: nextQty}:x)); await updateCrostiStockQtySupabase(it.id, nextQty); }}>+1</UiButton>
+              <UiButton onClick={async () => { const nextQty = Math.max(0, it.qty-1); setItems(prev => prev.map(x => x.id===it.id?{...x, qty: nextQty}:x)); await updateCrostiStockQtySupabase(it.id, nextQty); }}>-1</UiButton>
+              <UiButton onClick={async () => { const nextQty = it.qty + 10; setItems(prev => prev.map(x => x.id===it.id?{...x, qty: nextQty}:x)); await updateCrostiStockQtySupabase(it.id, nextQty); }}>+10</UiButton>
+              <UiButton onClick={async () => { const nextQty = Math.max(0, it.qty-10); setItems(prev => prev.map(x => x.id===it.id?{...x, qty: nextQty}:x)); await updateCrostiStockQtySupabase(it.id, nextQty); }}>-10</UiButton>
+            </div>
+            <div style={{ textAlign:'right' }}>
+              <UiButton variant="ghost" onClick={async () => { setItems(prev => prev.filter(x => x.id !== it.id)); await deleteCrostiStockItemSupabase(it.id); }}>Eliminar</UiButton>
+            </div>
+          </div>
+        ))}
+        {items.length === 0 && <div style={{ color:'#64748b' }}>Sin ítems aún. Usa “Agregar Ítem”.</div>}
+      </div>
+    </div>
+  );
+};
 
 
