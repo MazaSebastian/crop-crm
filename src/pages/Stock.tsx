@@ -158,6 +158,8 @@ const Stock: React.FC = () => {
               </div>
               <div style={{ textAlign:'right' }}>
                 <UiButton variant="ghost" onClick={async () => {
+                  const okConfirm = window.confirm('¿Eliminar este ítem de stock?');
+                  if (!okConfirm) return;
                   const next = items.filter(x => x.id !== it.id);
                   setItems(next);
                   const ok = await deleteStockItemSupabase(it.id);

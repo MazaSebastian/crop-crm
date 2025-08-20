@@ -268,7 +268,12 @@ const CrostiStock: React.FC = () => {
               <UiButton onClick={async () => { const nextQty = Math.max(0, it.qty-10); setItems(prev => prev.map(x => x.id===it.id?{...x, qty: nextQty}:x)); await updateCrostiStockQtySupabase(it.id, nextQty); }}>-10</UiButton>
             </div>
             <div style={{ textAlign:'right' }}>
-              <UiButton variant="ghost" onClick={async () => { setItems(prev => prev.filter(x => x.id !== it.id)); await deleteCrostiStockItemSupabase(it.id); }}>Eliminar</UiButton>
+              <UiButton variant="ghost" onClick={async () => {
+                const okConfirm = window.confirm('¿Eliminar este ítem de stock (Crosti)?');
+                if (!okConfirm) return;
+                setItems(prev => prev.filter(x => x.id !== it.id));
+                await deleteCrostiStockItemSupabase(it.id);
+              }}>Eliminar</UiButton>
             </div>
           </div>
         ))}
