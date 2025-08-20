@@ -109,7 +109,9 @@ const Crosti: React.FC = () => {
         <>
           <Card>
             <h2>Saldo Crosti</h2>
-            <div style={{ fontSize: 28, fontWeight: 800 }}>${balance.toLocaleString('es-AR')}</div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: balance >= 0 ? '#16a34a' : '#ef4444' }}>
+              ${balance.toLocaleString('es-AR')}
+            </div>
             <div style={{ color: '#64748b' }}>Resultado (histórico): ${total.toLocaleString('es-AR')}</div>
           </Card>
 
@@ -134,6 +136,28 @@ const Crosti: React.FC = () => {
 
           <Card>
             <h3>Movimientos (Crosti)</h3>
+            <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:8 }}>
+              <UiButton variant='ghost' onClick={() => {
+                const rows = list.map(m => {
+                  const match = m.concept.match(/^\[(Sebastian|Santiago)\]\s*/);
+                  const who = match ? match[1] : '';
+                  const cleanConcept = match ? m.concept.replace(match[0], '') : m.concept;
+                  return {
+                    type: m.type,
+                    actor: who,
+                    concept: cleanConcept,
+                    amount: m.amount,
+                    date: m.date
+                  };
+                });
+                const csv = ['Tipo,Actor,Concepto,Monto,Fecha']
+                  .concat(rows.map(r => `${r.type},${r.actor},"${r.concept.replace(/"/g,'""')}",${r.amount},${r.date}`))
+                  .join('\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = 'crosti_movimientos.csv'; a.click(); URL.revokeObjectURL(url);
+              }}>Exportar CSV</UiButton>
+            </div>
             <div style={{ display:'grid', gap:8 }}>
               {list.map(m => {
                 const match = m.concept.match(/^\[(Sebastian|Santiago)\]\s*/);
