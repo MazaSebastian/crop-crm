@@ -451,7 +451,7 @@ const Home: React.FC = () => {
               {crops.map(c => (
                 <Item key={c.id}>
                   <div style={{ fontWeight: 600 }}>{c.name}</div>
-                  <div style={{ color: '#64748b', fontSize: '0.875rem' }}>Socios: {c.partners.map(p => p.name).join(' & ')}</div>
+
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span>Estado:</span>
                     <Badge variant={c.status === 'active' ? 'green' : c.status === 'paused' ? 'yellow' : 'gray'}>{c.status}</Badge>
