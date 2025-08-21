@@ -314,33 +314,56 @@ const Home: React.FC = () => {
               <h3>🔔 Comunicaciones</h3>
               <div style={{ marginLeft: 'auto' }}>
                 <Button type="button" onClick={async () => {
-                  // iOS requiere PWA instalada (standalone)
-                  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-                  const isStandalone = (window.navigator as any).standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-                  if (isIOS && !isStandalone) {
-                    return alert('En iPhone, primero instala la app: Compartir → "Añadir a pantalla de inicio". Luego abre desde el ícono y activa notificaciones.');
+                  try {
+                    // Verificar si es iOS y mostrar instrucciones especiales
+                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                    if (isIOS) {
+                      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+                      if (!isStandalone) {
+                        alert('📱 Para recibir notificaciones en iOS:\n\n1️⃣ Toca el botón compartir en Safari\n2️⃣ Selecciona "Agregar a pantalla de inicio"\n3️⃣ Abre la app desde el ícono\n4️⃣ Vuelve a intentar activar notificaciones');
+                        return;
+                      }
+                    }
+
+                    const perm = await ensurePushPermission();
+                    if (perm === 'granted') {
+                      // Obtener la publicKey desde el endpoint
+                      const r = await fetch('/api/push/public-key');
+                      if (!r.ok) throw new Error('No se pudo obtener la clave pública');
+                      
+                      const data = await r.json();
+                      const pub = data.publicKey;
+                      if (!pub) throw new Error('Clave pública no válida');
+                      
+                      const sub = await subscribeToPush(pub);
+                      if (!sub) throw new Error('No se pudo crear la suscripción');
+                      
+                      // Registrar en backend
+                      const res = await fetch('/api/push/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                          ...sub, 
+                          userId: user?.id || null 
+                        })
+                      });
+                      
+                      if (!res.ok) {
+                        const j = await res.json().catch(() => ({}));
+                        throw new Error(j.error || res.statusText);
+                      }
+                      
+                      alert('✅ Notificaciones activadas correctamente\n\n🔔 Recibirás notificaciones cuando:\n• Se agreguen nuevos avisos\n• Se registren actividades\n• Se creen eventos planificados\n• Se agreguen registros diarios\n• Se creen nuevas tareas');
+                    } else if (perm === 'denied') {
+                      alert('❌ Permisos de notificación denegados\n\nPara activar las notificaciones:\n1️⃣ Ve a Configuración > Safari > Notificaciones\n2️⃣ Permite notificaciones para este sitio\n3️⃣ Vuelve a intentar');
+                    } else {
+                      alert('⚠️ Se requieren permisos de notificación para recibir avisos importantes');
+                    }
+                  } catch (error) {
+                    console.error('Error activating notifications:', error);
+                    alert('❌ Error al activar notificaciones\n\nVerifica que:\n• Tengas conexión a internet\n• El navegador soporte notificaciones push\n• No estés en modo incógnito\n\nError: ' + (error as Error).message);
                   }
-                  const perm = await ensurePushPermission();
-                  if (perm !== 'granted') return alert('Permiso denegado para notificaciones.');
-                  // Obtener la publicKey desde el endpoint (seguro en server)
-                  const r = await fetch('/api/push/public-key');
-                  const data = await r.json();
-                  const pub = data.publicKey;
-                  if (!pub) return alert('No se pudo obtener la clave pública.');
-                  const sub = await subscribeToPush(pub);
-                  if (!sub) return alert('No se pudo suscribir.');
-                  // Registrar en backend (service role) para evitar problemas de RLS
-                  const res = await fetch('/api/push/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ...sub, userId: (window as any).__chakra_user?.id || null })
-                  });
-                  if (!res.ok) {
-                    const j = await res.json().catch(() => ({}));
-                    return alert('Error registrando suscripción: ' + (j.error || res.statusText));
-                  }
-                  alert('Notificaciones activadas.');
-                }}>Activar notificaciones</Button>
+                }}>🔔 Activar notificaciones</Button>
               </div>
             </SectionHeader>
             <form onSubmit={addMsg} style={{ display: 'grid', gap: '0.5rem', marginBottom: '0.5rem' }}>
