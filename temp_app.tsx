@@ -13,7 +13,6 @@ import CropSummary from './pages/CropSummary';
 import Expenses from './pages/Expenses';
 import Stock from './pages/Stock';
 import Crosti from './pages/Crosti';
-import Compras from './pages/Compras';
 
 const TopNav = styled.nav<{ scrolled: boolean }>`
   position: fixed;
@@ -111,7 +110,6 @@ function App() {
           <Link to="/expenses">💰 Gastos</Link>
           <Link to="/crosti">🍽️ Crosti</Link>
           <Link to="/stock">📦 Stock</Link>
-          <Link to="/compras">🛒 Compras</Link>
           <div style={{ marginLeft: 'auto', marginRight: 8, fontWeight: 600 }}>Bienvenido {user?.name}</div>
           <LogoutBtn onClick={handleLogout}>Cerrar sesión</LogoutBtn>
         </TopNav>
@@ -128,7 +126,6 @@ function App() {
           <Route path="/expenses" element={<RequireAuth><Page><Expenses /></Page></RequireAuth>} />
           <Route path="/crosti" element={<RequireAuth><Page><Crosti /></Page></RequireAuth>} />
           <Route path="/stock" element={<RequireAuth><Page><Stock /></Page></RequireAuth>} />
-          <Route path="/compras" element={<RequireAuth><Page><Compras /></Page></RequireAuth>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AnimatePresence>
