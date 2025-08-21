@@ -130,7 +130,7 @@ const Crops: React.FC = () => {
             <CardBody>
               <div>Ubicación: {c.location ?? '—'}</div>
               <div>Inicio: {new Date(c.startDate).toLocaleDateString('es-AR')}</div>
-              <div>Socios: {c.partners.map(p => p.name).join(' & ')}</div>
+
               <div>
                 Estado: <Badge variant={statusVariant(c.status)}>{c.status}</Badge>
               </div>
