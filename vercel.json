@@ -1,13 +1,11 @@
 {
-  "functions": {
-    "api/push/*.ts": {
-      "runtime": "@vercel/node@18"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     }
-  ]
+  ],
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
+  "framework": "create-react-app"
 }
