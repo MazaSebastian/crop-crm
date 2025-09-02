@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "api/push/*.ts": {
+      "runtime": "@vercel/node@18"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    }
+  ]
+}
