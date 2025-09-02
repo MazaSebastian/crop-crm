@@ -427,6 +427,7 @@ const Insumos: React.FC = () => {
         unidad_medida: formData.unidad_medida,
         precio_actual: parseFloat(formData.precio_actual),
         proveedor: formData.proveedor || undefined,
+        fecha_ultimo_precio: new Date().toISOString().split('T')[0],
         stock_actual: parseFloat(formData.stock_actual),
         stock_minimo: parseFloat(formData.stock_minimo),
         notas: formData.notas || undefined,
