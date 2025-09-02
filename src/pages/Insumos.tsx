@@ -320,7 +320,7 @@ const Insumos: React.FC = () => {
   const [editingInsumo, setEditingInsumo] = useState<Insumo | null>(null);
   const [formData, setFormData] = useState({
     nombre: '',
-    categoria: 'semillas' as const,
+    categoria: 'semillas' as 'semillas' | 'fertilizantes' | 'sustratos' | 'herramientas' | 'pesticidas' | 'otros',
     unidad_medida: '',
     precio_actual: '',
     proveedor: '',
