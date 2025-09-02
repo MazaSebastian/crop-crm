@@ -215,7 +215,7 @@ const Badge = styled.span<{ variant?: 'green' | 'yellow' | 'red' | 'gray' }>`
     }
   }};
   color: ${props => {
-    switch (props.variant) => {
+    switch (props.variant) {
       case 'green': return '#166534';
       case 'yellow': return '#92400e';
       case 'red': return '#991b1b';
