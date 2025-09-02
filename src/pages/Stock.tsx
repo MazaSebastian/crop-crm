@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FaPlus, FaEdit, FaTrash, FaBox, FaSearch, FaDownload } from 'react-icons/fa';
-import { StockItem, syncStockItemsFromSupabase, createStockItemSupabase, updateStockQtySupabase, deleteStockItemSupabase } from '../services/cropService';
+import { StockItem, syncStockItemsFromSupabase, createStockItemSupabase, updateStockQtySupabase, deleteStockItemSupabase } from '../services/stockService';
 
 const PageContainer = styled.div`
   padding: 1rem;
