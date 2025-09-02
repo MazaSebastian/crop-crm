@@ -22,7 +22,8 @@ import {
   FaTools,
   FaWrench,
   FaSeedling,
-  FaThermometerHalf
+  FaThermometerHalf,
+  FaTasks
 } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 
