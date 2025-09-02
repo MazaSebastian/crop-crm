@@ -20,7 +20,8 @@ import {
   FaChevronRight,
   FaHandshake,
   FaTools,
-  FaWrench
+  FaWrench,
+  FaSeedling
 } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 
