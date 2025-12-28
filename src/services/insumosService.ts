@@ -7,7 +7,7 @@ export async function getInsumos(): Promise<Insumo[]> {
     if (!supabase) return [];
 
     const { data, error } = await supabase
-      .from('crosti_insumos')
+      .from('chakra_insumos')
       .select('*')
       .eq('activo', true)
       .order('nombre');
@@ -30,7 +30,7 @@ export async function getInsumoById(id: string): Promise<Insumo | null> {
     if (!supabase) return null;
 
     const { data, error } = await supabase
-      .from('crosti_insumos')
+      .from('chakra_insumos')
       .select('*')
       .eq('id', id)
       .single();
@@ -53,7 +53,7 @@ export async function createInsumo(insumo: Omit<Insumo, 'id' | 'created_at' | 'u
     if (!supabase) return null;
 
     const { data, error } = await supabase
-      .from('crosti_insumos')
+      .from('chakra_insumos')
       .insert([insumo])
       .select()
       .single();
@@ -76,7 +76,7 @@ export async function updateInsumo(id: string, updates: Partial<Insumo>): Promis
     if (!supabase) return null;
 
     const { data, error } = await supabase
-      .from('crosti_insumos')
+      .from('chakra_insumos')
       .update(updates)
       .eq('id', id)
       .select()
@@ -100,7 +100,7 @@ export async function deleteInsumo(id: string): Promise<boolean> {
     if (!supabase) return false;
 
     const { error } = await supabase
-      .from('crosti_insumos')
+      .from('chakra_insumos')
       .update({ activo: false })
       .eq('id', id);
 
@@ -145,7 +145,7 @@ export async function updateInsumoPrecio(
     };
 
     const { error: historialError } = await supabase
-      .from('crosti_historial_precios')
+      .from('chakra_historial_precios')
       .insert([historialPrecio]);
 
     if (historialError) {
@@ -155,7 +155,7 @@ export async function updateInsumoPrecio(
 
     // Actualizar insumo con nuevo precio
     const { error: updateError } = await supabase
-      .from('crosti_insumos')
+      .from('chakra_insumos')
       .update({
         precio_anterior: insumoActual.precio_actual,
         precio_actual: nuevoPrecio,
@@ -183,7 +183,7 @@ export async function getHistorialPrecios(insumoId: string): Promise<HistorialPr
     if (!supabase) return [];
 
     const { data, error } = await supabase
-      .from('crosti_historial_precios')
+      .from('chakra_historial_precios')
       .select('*')
       .eq('insumo_id', insumoId)
       .order('fecha_cambio', { ascending: false });
@@ -206,7 +206,7 @@ export async function getInsumosStats() {
     if (!supabase) return null;
 
     const { data, error } = await supabase
-      .from('crosti_insumos')
+      .from('chakra_insumos')
       .select('precio_actual, stock_actual, stock_minimo, precio_anterior')
       .eq('activo', true);
 
@@ -237,7 +237,7 @@ export async function searchInsumos(searchTerm: string): Promise<Insumo[]> {
     if (!supabase) return [];
 
     const { data, error } = await supabase
-      .from('crosti_insumos')
+      .from('chakra_insumos')
       .select('*')
       .eq('activo', true)
       .or(`nombre.ilike.%${searchTerm}%,proveedor.ilike.%${searchTerm}%`)
@@ -261,7 +261,7 @@ export async function getInsumosByCategory(categoria: string): Promise<Insumo[]>
     if (!supabase) return [];
 
     const { data, error } = await supabase
-      .from('crosti_insumos')
+      .from('chakra_insumos')
       .select('*')
       .eq('activo', true)
       .eq('categoria', categoria)
@@ -284,9 +284,9 @@ export function subscribeToInsumosChanges(callback: (payload: any) => void) {
   if (!supabase) return { unsubscribe: () => { } };
 
   return supabase
-    .channel('crosti_insumos_changes')
+    .channel('chakra_insumos_changes')
     .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'crosti_insumos' },
+      { event: '*', schema: 'public', table: 'chakra_insumos' },
       callback
     )
     .subscribe();
@@ -297,9 +297,9 @@ export function subscribeToHistorialChanges(callback: (payload: any) => void) {
   if (!supabase) return { unsubscribe: () => { } };
 
   return supabase
-    .channel('crosti_historial_precios_changes')
+    .channel('chakra_historial_precios_changes')
     .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'crosti_historial_precios' },
+      { event: '*', schema: 'public', table: 'chakra_historial_precios' },
       callback
     )
     .subscribe();

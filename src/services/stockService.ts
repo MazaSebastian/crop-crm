@@ -12,33 +12,20 @@ export interface StockItem {
   updated_at: string;
 }
 
-// Función mock temporal hasta conectar con Supabase
+// Función para obtener items de Stock reales
 export async function syncStockItemsFromSupabase(): Promise<StockItem[]> {
-  // Por ahora retornamos datos mock
-  return [
-    {
-      id: '1',
-      name: 'Macetas 20cm',
-      qty: 50,
-      unit: 'unidades',
-      category: 'herramientas',
-      location: 'Almacén A',
-      notes: 'Macetas plásticas con drenaje',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    {
-      id: '2',
-      name: 'Fertilizante NPK',
-      qty: 25,
-      unit: 'kg',
-      category: 'fertilizantes',
-      location: 'Almacén B',
-      notes: 'Fertilizante balanceado',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
-  ];
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('chakra_stock_items')
+    .select('*')
+    .order('name');
+
+  if (error) {
+    console.error('Error fetching stock:', error);
+    return [];
+  }
+  return data as StockItem[];
 }
 
 export async function createStockItemSupabase(item: Omit<StockItem, 'id' | 'created_at' | 'updated_at'>): Promise<StockItem | null> {
@@ -46,8 +33,16 @@ export async function createStockItemSupabase(item: Omit<StockItem, 'id' | 'crea
     if (!supabase) return null;
 
     const { data, error } = await supabase
-      .from('crosti_stock_items')
-      .insert([item])
+      .from('chakra_stock_items')
+      .insert([{
+        name: item.name,
+        qty: item.qty,
+        unit: item.unit,
+        category: item.category,
+        location: item.location,
+        notes: item.notes
+        // created_at/updated_at handled by DB default
+      }])
       .select()
       .single();
 
@@ -68,7 +63,7 @@ export async function updateStockQtySupabase(id: string, newQty: number): Promis
     if (!supabase) return false;
 
     const { error } = await supabase
-      .from('crosti_stock_items')
+      .from('chakra_stock_items')
       .update({ qty: newQty, updated_at: new Date().toISOString() })
       .eq('id', id);
 
@@ -89,7 +84,7 @@ export async function deleteStockItemSupabase(id: string): Promise<boolean> {
     if (!supabase) return false;
 
     const { error } = await supabase
-      .from('crosti_stock_items')
+      .from('chakra_stock_items')
       .delete()
       .eq('id', id);
 
@@ -104,3 +99,4 @@ export async function deleteStockItemSupabase(id: string): Promise<boolean> {
     return false;
   }
 }
+
