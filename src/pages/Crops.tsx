@@ -419,7 +419,7 @@ const Crops: React.FC = () => {
           </ModalContent>
         </ModalOverlay>
       )}
-    </Page>
+    </Container>
   );
 };
 
