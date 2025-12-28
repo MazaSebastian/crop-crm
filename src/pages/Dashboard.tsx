@@ -4,14 +4,10 @@ import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   FaSeedling,
-  FaThermometerHalf,
-  FaTint,
-  FaWind,
   FaExclamationTriangle,
   FaCalendarCheck,
   FaLeaf,
   FaChartLine,
-  FaPlus,
   FaCheck,
   FaTimes,
   FaCheckCircle
@@ -231,30 +227,7 @@ const AlertItem = styled.div`
   }
 `;
 
-const QuickActionButton = styled.button`
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 1rem;
-  background: #3182ce;
-  color: white;
-  border: none;
-  border-radius: 1rem;
-  font-weight: 600;
-  font-size: 1rem;
-  margin-top: 1rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 6px rgba(49, 130, 206, 0.3);
 
-  &:hover {
-    background: #2b6cb0;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 8px rgba(49, 130, 206, 0.4);
-  }
-`;
 
 const ActionButtonSmall = styled.button<{ type: 'success' | 'danger' }>`
   background: none;
@@ -380,12 +353,7 @@ const Dashboard: React.FC = () => {
               </div>
             )}
 
-            <QuickActionButton>
-              <FaPlus /> Nuevo Cultivo
-            </QuickActionButton>
-            <QuickActionButton style={{ background: '#38a169' }}>
-              <FaTint /> Registrar Riego
-            </QuickActionButton>
+
           </div>
         </div>
       </ContentGrid>
