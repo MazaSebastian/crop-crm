@@ -29,209 +29,108 @@ import {
   FaChartLine
 } from 'react-icons/fa';
 
-import { cropsService } from '../services/cropsService';
-import { Crop } from '../types';
+import { tasksService } from '../services/tasksService';
+import { dailyLogsService } from '../services/dailyLogsService';
 
-// --- Styled Components ---
+// ... (keep styled components) ...
 
-const Container = styled.div`
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  min-height: 100vh;
-  padding-top: 5rem;
-  background-color: #f8fafc;
-`;
-
-const Header = styled.div`
-  margin-bottom: 2rem;
-`;
-
-const BackButton = styled.button`
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 0.5rem;
-  background: none;
-  border: none;
-  color: #718096;
-  font-weight: 600;
-  cursor: pointer;
-  margin-bottom: 1rem;
-  padding: 0;
-  font-size: 0.95rem;
-
-  &:hover {
-    color: #2f855a;
-  }
+  z-index: 1000;
 `;
 
-const TitleSection = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-`;
-
-const CropTitle = styled.h1`
-  font-size: 2rem;
-  font-weight: 800;
-  color: #1a202c;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-
-  svg { color: #38a169; }
-`;
-
-const MetaGrid = styled.div`
-  display: flex;
-  gap: 1.5rem;
-  margin-top: 0.75rem;
-  color: #4a5568;
-  font-size: 0.95rem;
-
-  div {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
-`;
-
-const CalendarContainer = styled.div`
+const Modal = styled.div`
   background: white;
-  border-radius: 1.25rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  border: 1px solid #edf2f7;
+  width: 90%;
+  max-width: 500px;
+  border-radius: 1.5rem;
   padding: 2rem;
-  margin-bottom: 2rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  position: relative;
 `;
 
-const CalendarHeader = styled.div`
+const ModalHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
 
-  h2 {
-    margin: 0;
-    font-size: 1.25rem;
-    color: #2d3748;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
+  h3 { margin: 0; color: #2d3748; font-size: 1.25rem; }
 `;
 
-const MonthNav = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+const CloseButton = styled.button`
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #a0aec0;
+  cursor: pointer;
+  &:hover { color: #e53e3e; }
+`;
 
-  button {
-    background: white;
+const TabGroup = styled.div`
+  display: flex;
+  margin-bottom: 1.5rem;
+  background: #f7fafc;
+  padding: 0.25rem;
+  border-radius: 0.5rem;
+`;
+
+const Tab = styled.button<{ active: boolean }>`
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: ${p => p.active ? 'white' : 'transparent'};
+  color: ${p => p.active ? '#2f855a' : '#718096'};
+  font-weight: ${p => p.active ? '600' : '400'};
+  box-shadow: ${p => p.active ? '0 1px 3px 0 rgba(0,0,0,0.1)' : 'none'};
+  transition: all 0.2s;
+  cursor: pointer;
+`;
+
+const FormGroup = styled.div`
+  margin-bottom: 1rem;
+  label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+  }
+  input, textarea, select {
+    width: 100%;
+    padding: 0.75rem;
     border: 1px solid #e2e8f0;
     border-radius: 0.5rem;
-    padding: 0.5rem;
-    cursor: pointer;
-    color: #4a5568;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    &:hover { background: #f7fafc; color: #2f855a; }
+    font-size: 1rem;
+    &:focus { outline: none; border-color: #38b2ac; box-shadow: 0 0 0 3px rgba(56, 178, 172, 0.1); }
   }
-
-  span {
-    font-weight: 600;
-    min-width: 120px;
-    text-align: center;
-  }
+  textarea { min-height: 100px; resize: vertical; }
 `;
 
-// Monthly View Grid
-const MonthGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 1px;
-  background: #e2e8f0; // Grid lines
-  border: 1px solid #e2e8f0;
+const PrimaryButton = styled.button`
+  width: 100%;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #2f855a 0%, #38b2ac 100%);
+  color: white;
+  border: none;
   border-radius: 0.5rem;
-  overflow: hidden;
-
-  > div {
-    background: white;
-    min-height: 100px;
-    padding: 0.5rem;
-    position: relative;
-  }
-`;
-
-const DayHeader = styled.div`
-  background: #f7fafc !important;
-  min-height: auto !important;
   font-weight: 600;
-  color: #718096;
-  font-size: 0.85rem;
-  text-align: center;
-  padding: 0.75rem !important;
-  text-transform: uppercase;
-`;
-
-const DayCell = styled.div<{ isCurrentMonth?: boolean, isToday?: boolean }>`
-  opacity: ${props => props.isCurrentMonth ? 1 : 0.4};
-  background: ${props => props.isToday ? '#f0fff4 !important' : 'white'};
-  
-  .day-number {
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: ${props => props.isToday ? '#2f855a' : '#2d3748'};
-    margin-bottom: 0.5rem;
-    display: block;
-  }
-
-  &:hover {
-    background: #fafafa;
-  }
-`;
-
-// Annual Heatmap
-const HeatmapContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+  font-size: 1rem;
+  cursor: pointer;
   margin-top: 1rem;
-`;
-
-const HeatmapMonth = styled.div`
-  flex: 1;
-  min-width: 80px;
-`;
-
-const HeatmapGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
-`;
-
-const HeatmapCell = styled.div<{ level: number }>`
-  aspect-ratio: 1;
-  border-radius: 2px;
-  background-color: ${p => {
-    if (p.level === 0) return '#ebedf0';
-    if (p.level === 1) return '#9be9a8';
-    if (p.level === 2) return '#40c463';
-    if (p.level === 3) return '#30a14e';
-    return '#216e39';
-  }};
   transition: transform 0.1s;
-  
-  &:hover { transform: scale(1.2); }
+  &:hover { transform: translateY(-1px); }
+  &:active { transform: translateY(0); }
 `;
 
 
@@ -240,6 +139,15 @@ const CropDetail: React.FC = () => {
   const navigate = useNavigate();
   const [crop, setCrop] = useState<Crop | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [activeTab, setActiveTab] = useState<'task' | 'log'>('task');
+
+  // Form State
+  const [taskForm, setTaskForm] = useState({ title: '', type: 'info', description: '' });
+  const [logForm, setLogForm] = useState({ notes: '' });
 
   useEffect(() => {
     if (id) {
@@ -253,6 +161,51 @@ const CropDetail: React.FC = () => {
       navigate('/crops'); // Redirect if not found
     }
     setCrop(data);
+  };
+
+  const handleDayClick = async (day: Date) => {
+    setSelectedDate(day);
+
+    // Reset forms
+    setTaskForm({ title: '', type: 'info', description: '' });
+    setLogForm({ notes: '' });
+
+    // Try to fetch existing log to pre-fill
+    if (id) {
+      const existingLog = await dailyLogsService.getLogByDate(id, format(day, 'yyyy-MM-dd'));
+      if (existingLog) {
+        setLogForm({ notes: existingLog.notes });
+        setActiveTab('log'); // Switch to log if exists
+      } else {
+        setActiveTab('task');
+      }
+    }
+
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!selectedDate || !id) return;
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+
+    if (activeTab === 'task') {
+      await tasksService.createTask({
+        title: taskForm.title,
+        description: taskForm.description,
+        type: taskForm.type as any,
+        due_date: dateStr,
+        crop_id: id
+      });
+      alert('Tarea creada exitosamente');
+    } else {
+      await dailyLogsService.upsertLog({
+        crop_id: id,
+        date: dateStr,
+        notes: logForm.notes
+      });
+      alert('Registro guardado exitosamente');
+    }
+    setIsModalOpen(false);
   };
 
   const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
@@ -323,6 +276,8 @@ const CropDetail: React.FC = () => {
               key={idx}
               isCurrentMonth={isSameMonth(day, monthStart)}
               isToday={isSameDay(day, new Date())}
+              onClick={() => handleDayClick(day)}
+              style={{ cursor: 'pointer' }}
             >
               <span className="day-number">{format(day, 'd')}</span>
               {/* Events would go here */}
@@ -352,6 +307,62 @@ const CropDetail: React.FC = () => {
           ))}
         </div>
       </CalendarContainer>
+
+      {isModalOpen && selectedDate && (
+        <ModalOverlay onClick={() => setIsModalOpen(false)}>
+          <Modal onClick={e => e.stopPropagation()}>
+            <ModalHeader>
+              <h3>{format(selectedDate, 'EEEE d de MMMM', { locale: es })}</h3>
+              <CloseButton onClick={() => setIsModalOpen(false)}>&times;</CloseButton>
+            </ModalHeader>
+
+            <TabGroup>
+              <Tab active={activeTab === 'task'} onClick={() => setActiveTab('task')}>Nueva Tarea</Tab>
+              <Tab active={activeTab === 'log'} onClick={() => setActiveTab('log')}>Diario de Cultivo</Tab>
+            </TabGroup>
+
+            {activeTab === 'task' ? (
+              <>
+                <FormGroup>
+                  <label>Título</label>
+                  <input
+                    value={taskForm.title}
+                    onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
+                    placeholder="Ej: Riego profundo con CalMag"
+                  />
+                </FormGroup>
+                <FormGroup>
+                  <label>Tipo</label>
+                  <select value={taskForm.type} onChange={e => setTaskForm({ ...taskForm, type: e.target.value as any })}>
+                    <option value="info">Info / Recordatorio</option>
+                    <option value="warning">Importante</option>
+                    <option value="danger">Urgente</option>
+                  </select>
+                </FormGroup>
+                <FormGroup>
+                  <label>Descripción (Opcional)</label>
+                  <textarea
+                    value={taskForm.description}
+                    onChange={e => setTaskForm({ ...taskForm, description: e.target.value })}
+                  />
+                </FormGroup>
+              </>
+            ) : (
+              <FormGroup>
+                <label>Notas del Día</label>
+                <textarea
+                  value={logForm.notes}
+                  onChange={e => setLogForm({ ...logForm, notes: e.target.value })}
+                  placeholder="¿Cómo se ve la planta hoy? ¿Alguna plaga? ¿Crecimiento?"
+                  style={{ minHeight: '200px' }}
+                />
+              </FormGroup>
+            )}
+
+            <PrimaryButton onClick={handleSave}>Guardar</PrimaryButton>
+          </Modal>
+        </ModalOverlay>
+      )}
 
     </Container>
   );

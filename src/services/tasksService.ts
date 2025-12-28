@@ -1,6 +1,14 @@
 import { supabase } from './supabaseClient';
 import { Task } from '../types';
 
+export interface CreateTaskInput {
+    title: string;
+    description?: string;
+    type: 'info' | 'warning' | 'danger';
+    due_date?: string;
+    crop_id?: string;
+}
+
 export const tasksService = {
     async getPendingTasks(): Promise<Task[]> {
         if (!supabase) return [];
@@ -20,13 +28,17 @@ export const tasksService = {
         return data as Task[];
     },
 
-    async createTask(task: Omit<Task, 'id' | 'created_at' | 'status'>): Promise<Task | null> {
+    async createTask(task: CreateTaskInput): Promise<Task | null> {
         if (!supabase) return null;
 
         const { data, error } = await supabase
             .from('chakra_tasks')
             .insert([{
-                ...task,
+                title: task.title,
+                description: task.description,
+                type: task.type,
+                due_date: task.due_date,
+                crop_id: task.crop_id,
                 status: 'pending'
             }])
             .select()
