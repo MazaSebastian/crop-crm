@@ -286,7 +286,8 @@ const Dashboard: React.FC = () => {
         <KPICard alert>
           <div className="icon-wrapper"><FaExclamationTriangle /></div>
           <div className="label">Alertas</div>
-          <div className="value">2 <span className="unit">pendientes</span></div>
+          <div className="value">{alerts.length} <span className="unit">pendientes</span></div>
+
           <div className="subtext">Requiere atención</div>
         </KPICard>
       </KPISection>
