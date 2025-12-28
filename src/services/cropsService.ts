@@ -15,13 +15,12 @@ export const cropsService = {
             return [];
         }
 
-        // Map DB fields to Frontend types if necessary (snake_case -> camelCase)
         return data.map((c: any) => ({
             id: c.id,
             name: c.name,
             location: c.location,
             startDate: c.start_date,
-            // estimatedHarvestDate: c.estimated_harvest_date, // To be added
+            estimatedHarvestDate: c.estimated_harvest_date,
             photoUrl: c.photo_url,
             partners: [], // Not yet implemented in DB fully
             status: c.status
@@ -37,7 +36,7 @@ export const cropsService = {
                 name: crop.name,
                 location: crop.location,
                 start_date: crop.startDate,
-                // estimated_harvest_date: crop.estimatedHarvestDate, // To be added
+                estimated_harvest_date: crop.estimatedHarvestDate,
                 status: 'active'
             }])
             .select()

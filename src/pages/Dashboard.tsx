@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { tasksService } from '../services/tasksService';
+import { cropsService } from '../services/cropsService';
+import { Task, Crop } from '../types';
 
 import styled from 'styled-components';
 
@@ -255,150 +257,165 @@ const AlertActions = styled.div`
 `;
 
 
-const Dashboard: React.FC = () => {
-  const [alerts, setAlerts] = useState<any[]>([]); // TODO: Use Task type properly, mapped to UI
+const [alerts, setAlerts] = useState<any[]>([]);
+const [crops, setCrops] = useState<Crop[]>([]);
+const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadTasks();
-  }, []);
+useEffect(() => {
+  loadData();
+}, []);
 
-  const loadTasks = async () => {
-    const tasks = await tasksService.getPendingTasks();
+const loadData = async () => {
+  try {
+    const [tasks, loadedCrops] = await Promise.all([
+      tasksService.getPendingTasks(),
+      cropsService.getCrops()
+    ]);
+
     // Map DB tasks to UI alert format
     const mappedAlerts = tasks.map(t => ({
       id: t.id,
       type: t.type,
       title: t.title,
       message: t.description || '',
-      icon: getIconForType(t.type) // Helper needed or inline
+      icon: getIconForType(t.type)
     }));
     setAlerts(mappedAlerts);
-  };
+    setCrops(loadedCrops);
+  } catch (error) {
+    console.error('Error loading dashboard data:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const getIconForType = (type: string) => {
-    switch (type) {
-      case 'warning': return <FaExclamationTriangle />;
-      case 'info': return <FaCalendarCheck />;
-      case 'danger': return <FaExclamationTriangle />;
-      default: return <FaCheckCircle />;
-    }
-  };
+const getIconForType = (type: string) => {
+  switch (type) {
+    case 'warning': return <FaExclamationTriangle />;
+    case 'info': return <FaCalendarCheck />;
+    case 'danger': return <FaExclamationTriangle />;
+    default: return <FaCheckCircle />;
+  }
+};
 
-  const removeAlert = async (id: string, action: 'done' | 'dismissed') => {
-    // Optimistic update
-    setAlerts(prev => prev.filter(a => a.id !== id));
+const removeAlert = async (id: string, action: 'done' | 'dismissed') => {
+  setAlerts(prev => prev.filter(a => a.id !== id));
+  const success = await tasksService.updateStatus(id, action);
+  if (!success) loadData();
+};
 
-    // DB Update
-    const success = await tasksService.updateStatus(id, action);
-    if (!success) {
-      // Revert if failed (optional, simplified for now)
-      loadTasks();
-    }
-  };
+const handleAction = (id: any, action: 'done' | 'dismissed') => {
+  removeAlert(id, action);
+};
 
-  // Helper for rendering
-  const handleAction = (id: any, action: 'done' | 'dismissed') => {
-    removeAlert(id, action);
-  };
+const activeCrops = crops.filter(c => c.status === 'active');
 
-  return (
-    <Container>
-      <WelcomeHeader>
-        <h1>Panel de Control</h1>
-        <p>Bienvenido de nuevo. Aquí está el estado actual de tus cultivos.</p>
-      </WelcomeHeader>
+// Helper to calculate days since start (Stage mockup)
+const getStage = (dateStr: string) => {
+  const days = Math.floor((new Date().getTime() - new Date(dateStr).getTime()) / (1000 * 3600 * 24));
+  return `Día ${days}`;
+};
+
+return (
+  <Container>
+    <WelcomeHeader>
+      <h1>Panel de Control</h1>
+      <p>Bienvenido de nuevo. Aquí está el estado actual de tus cultivos.</p>
+    </WelcomeHeader>
 
 
-      <KPISection>
-        <Link to="/crops" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <KPICard active>
-            <div className="icon-wrapper"><FaSeedling /></div>
-            <div className="label">Cultivos Activos</div>
-            <div className="value">4 <span className="unit">variedades</span></div>
-            <div className="subtext"><FaChartLine /> +1 esta semana</div>
-          </KPICard>
-        </Link>
-
-        {/* Removed Temperature and Humidity cards as requested */}
-
-        <KPICard alert>
-          <div className="icon-wrapper"><FaExclamationTriangle /></div>
-          <div className="label">Alertas</div>
-          <div className="value">{alerts.length} <span className="unit">pendientes</span></div>
-
-          <div className="subtext">Requiere atención</div>
+    <KPISection>
+      <Link to="/crops" style={{ textDecoration: 'none', color: 'inherit' }}>
+        <KPICard active>
+          <div className="icon-wrapper"><FaSeedling /></div>
+          <div className="label">Cultivos Activos</div>
+          <div className="value">{activeCrops.length} <span className="unit">variedades</span></div>
+          <div className="subtext"><FaChartLine /> En curso</div>
         </KPICard>
-      </KPISection>
+      </Link>
+
+      {/* Removed Temperature and Humidity cards as requested */}
+
+      <KPICard alert>
+        <div className="icon-wrapper"><FaExclamationTriangle /></div>
+        <div className="label">Alertas</div>
+        <div className="value">{alerts.length} <span className="unit">pendientes</span></div>
+
+        <div className="subtext">Requiere atención</div>
+      </KPICard>
+    </KPISection>
 
 
-      <ContentGrid>
-        <div>
-          <SectionTitle><FaLeaf /> Cultivos Destacados</SectionTitle>
-          <MainCard>
-            {[
-              { name: 'Gorilla Glue #4', stage: 'Floración (Sem 3)', health: 'Excelente', temp: '25°C', hum: '45%' },
-              { name: 'Lemon Haze', stage: 'Vegetativo (Día 40)', health: 'Bueno', temp: '24°C', hum: '60%' },
-              { name: 'OG Kush', stage: 'Plántula', health: 'Normal', temp: '26°C', hum: '70%' },
-            ].map((crop, i) => (
-              <CropRow key={i}>
+    <ContentGrid>
+      <div>
+        <SectionTitle><FaLeaf /> Cultivos Destacados</SectionTitle>
+        <MainCard>
+          {activeCrops.length === 0 ? (
+            <p style={{ color: '#718096', fontStyle: 'italic' }}>No hay cultivos activos. ¡Inicia uno nuevo!</p>
+          ) : (
+            activeCrops.slice(0, 3).map((crop) => (
+              <CropRow key={crop.id}>
                 <div className="crop-info">
                   <div className="crop-icon"><FaSeedling /></div>
                   <div className="details">
                     <h4>{crop.name}</h4>
-                    <p>{crop.stage}</p>
+                    <p>{crop.location} • {getStage(crop.startDate)}</p>
                   </div>
                 </div>
                 <div className="crop-stats">
                   <div className="stat">
-                    <div className="val">{crop.temp}</div>
+                    <div className="val">--</div>
                     <div className="lbl">Temp</div>
                   </div>
                   <div className="stat">
-                    <div className="val">{crop.hum}</div>
+                    <div className="val">--</div>
                     <div className="lbl">Hum</div>
                   </div>
                 </div>
-                <div className="status-badge">{crop.health}</div>
-              </CropRow>
-            ))}
-          </MainCard>
-        </div>
-
-        <div>
-          <SectionTitle><FaExclamationTriangle /> Alertas & Tareas</SectionTitle>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-            {alerts.map(alert => (
-              <AlertItem key={alert.id} style={alert.type === 'info' ? { background: '#ebf8ff', borderLeftColor: '#4299e1' } : {}}>
-                <div className="icon" style={alert.type === 'info' ? { color: '#4299e1' } : {}}>{alert.icon}</div>
-                <div className="content">
-                  <h5 style={alert.type === 'info' ? { color: '#2b6cb0' } : {}}>{alert.title}</h5>
-                  <p style={alert.type === 'info' ? { color: '#2c5282' } : {}}>{alert.message}</p>
+                <div className="status-badge" style={{ background: '#c6f6d5', color: '#22543d' }}>
+                  Saludable
                 </div>
-                <AlertActions>
-                  <ActionButtonSmall type="success" onClick={() => handleAction(alert.id, 'done')} title="Marcar como realizado">
-                    <FaCheck />
-                  </ActionButtonSmall>
-                  <ActionButtonSmall type="danger" onClick={() => handleAction(alert.id, 'dismissed')} title="Descartar">
-                    <FaTimes />
-                  </ActionButtonSmall>
-                </AlertActions>
+              </CropRow>
+            )))}
+        </MainCard>
 
-              </AlertItem>
-            ))}
+      </div>
 
-            {alerts.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '2rem', color: '#a0aec0', background: 'white', borderRadius: '0.5rem' }}>
-                <FaCheckCircle style={{ fontSize: '2rem', marginBottom: '0.5rem', color: '#38a169' }} />
-                <p>¡Todo al día!</p>
+      <div>
+        <SectionTitle><FaExclamationTriangle /> Alertas & Tareas</SectionTitle>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+          {alerts.map(alert => (
+            <AlertItem key={alert.id} style={alert.type === 'info' ? { background: '#ebf8ff', borderLeftColor: '#4299e1' } : {}}>
+              <div className="icon" style={alert.type === 'info' ? { color: '#4299e1' } : {}}>{alert.icon}</div>
+              <div className="content">
+                <h5 style={alert.type === 'info' ? { color: '#2b6cb0' } : {}}>{alert.title}</h5>
+                <p style={alert.type === 'info' ? { color: '#2c5282' } : {}}>{alert.message}</p>
               </div>
-            )}
+              <AlertActions>
+                <ActionButtonSmall type="success" onClick={() => handleAction(alert.id, 'done')} title="Marcar como realizado">
+                  <FaCheck />
+                </ActionButtonSmall>
+                <ActionButtonSmall type="danger" onClick={() => handleAction(alert.id, 'dismissed')} title="Descartar">
+                  <FaTimes />
+                </ActionButtonSmall>
+              </AlertActions>
+
+            </AlertItem>
+          ))}
+
+          {alerts.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#a0aec0', background: 'white', borderRadius: '0.5rem' }}>
+              <FaCheckCircle style={{ fontSize: '2rem', marginBottom: '0.5rem', color: '#38a169' }} />
+              <p>¡Todo al día!</p>
+            </div>
+          )}
 
 
-          </div>
         </div>
-      </ContentGrid>
-    </Container>
-  );
+      </div>
+    </ContentGrid>
+  </Container>
+);
 };
 
 export default Dashboard;
