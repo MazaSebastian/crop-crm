@@ -34,7 +34,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           id: session.user.id,
           email: session.user.email || '',
           name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Usuario',
-          role: session.user.user_metadata?.role || 'dj',
+          role: session.user.user_metadata?.role || 'partner',
+
           avatar: session.user.user_metadata?.avatar
         };
         setUser(userData);
@@ -51,7 +52,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           id: session.user.id,
           email: session.user.email || '',
           name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Usuario',
-          role: session.user.user_metadata?.role || 'dj',
+          role: session.user.user_metadata?.role || 'partner',
+
           avatar: session.user.user_metadata?.avatar
         };
         setUser(userData);
@@ -65,9 +67,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (credentials: LoginCredentials): Promise<boolean> => {
     if (!supabase) return false;
-    
+
     setIsLoading(true);
-    
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: credentials.email,
@@ -85,7 +87,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           id: data.user.id,
           email: data.user.email || '',
           name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'Usuario',
-          role: data.user.user_metadata?.role || 'dj',
+          role: data.user.user_metadata?.role || 'partner',
+
           avatar: data.user.user_metadata?.avatar
         };
         setUser(userData);
