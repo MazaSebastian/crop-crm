@@ -402,10 +402,13 @@ const Stock: React.FC = () => {
       id: editingItem?.id || `item-${Date.now()}`,
       name: formData.name.trim(),
       qty: Number(formData.qty),
-      unit: formData.unit
+      unit: formData.unit || 'u',
+      category: 'general',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
-    const success = editingItem 
+    const success = editingItem
       ? await updateStockQtySupabase(item.id, item.qty)
       : await createStockItemSupabase(item);
 
@@ -560,7 +563,7 @@ const Stock: React.FC = () => {
                   </Button>
                 </div>
               </StockHeader>
-              
+
               <StockInfo>
                 <div className="info-row">
                   <span className="label">Cantidad:</span>
@@ -568,14 +571,14 @@ const Stock: React.FC = () => {
                 </div>
                 <div className="info-row">
                   <span className="label">Estado:</span>
-                  <span className="value" style={{ 
-                    color: item.qty < 10 ? '#ef4444' : item.qty < 50 ? '#f59e0b' : '#10b981' 
+                  <span className="value" style={{
+                    color: item.qty < 10 ? '#ef4444' : item.qty < 50 ? '#f59e0b' : '#10b981'
                   }}>
                     {item.qty < 10 ? 'Bajo' : item.qty < 50 ? 'Medio' : 'Alto'}
                   </span>
                 </div>
               </StockInfo>
-              
+
               <QuantityControl>
                 <button
                   className="qty-btn"
@@ -616,7 +619,7 @@ const Stock: React.FC = () => {
                 required
               />
             </FormGroup>
-            
+
             <FormGroup>
               <label>Cantidad</label>
               <input
@@ -628,7 +631,7 @@ const Stock: React.FC = () => {
                 required
               />
             </FormGroup>
-            
+
             <FormGroup>
               <label>Unidad</label>
               <select
@@ -643,7 +646,7 @@ const Stock: React.FC = () => {
                 <option value="pz">Piezas (pz)</option>
               </select>
             </FormGroup>
-            
+
             <ModalActions>
               <Button
                 type="button"

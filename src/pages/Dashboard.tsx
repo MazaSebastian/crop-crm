@@ -1,788 +1,357 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import { 
-  FaCalendarAlt, 
-  FaExclamationTriangle,
-  FaCheckCircle,
-  FaClock,
-  FaPlay,
-  FaBell,
+  FaSeedling, 
+  FaThermometerHalf, 
+  FaTint, 
+  FaWind, 
+  FaExclamationTriangle, 
+  FaCalendarCheck,
+  FaLeaf,
   FaChartLine,
-  FaArrowUp,
-  FaArrowDown,
-  FaPlus,
-  FaEye,
-  FaEdit,
-  FaTrash,
-  FaStar,
-  FaUserFriends,
-  FaHeadphones,
-  FaBullhorn,
-  FaGraduationCap,
-  FaInfoCircle,
-  FaExclamationCircle,
-  FaTools
+  FaPlus
 } from 'react-icons/fa';
-import { useAuth } from '../context/AuthContext';
-import TechnicalReportModal from '../components/TechnicalReportModal';
 
-const DashboardContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+// --- Styled Components (Premium Eco-Tech Theme) ---
+
+const Container = styled.div`
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding-top: 5rem; // Space for TopNav
+  background-color: #f8fafc;
 `;
 
-const WelcomeSection = styled.div`
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 1.5rem;
-  padding: 1.5rem;
-  color: white;
-  margin-bottom: 1.5rem;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+const WelcomeHeader = styled.div`
+  margin-bottom: 2.5rem;
   
-  &::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    animation: float 6s ease-in-out infinite;
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #1a202c;
+    margin: 0;
+    letter-spacing: -0.05rem;
+    background: linear-gradient(135deg, #2f855a 0%, #38b2ac 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
-  
-  @keyframes float {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-20px) rotate(180deg); }
-  }
-  
-  .welcome-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-    
-    h1 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin-bottom: 0.25rem;
-    }
-    
-    p {
-      opacity: 0.9;
-      font-size: 0.75rem;
-    }
-  }
-  
-  .welcome-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(75px, 1fr));
-    gap: 0.5rem;
-    margin-top: 0.75rem;
-    
-    .stat-item {
-      text-align: center;
-      padding: 0.5rem;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 0.25rem;
-      backdrop-filter: blur(10px);
-      
-      .stat-number {
-        font-size: 0.75rem;
-        font-weight: 700;
-        margin-bottom: 0.125rem;
-      }
-      
-      .stat-label {
-        font-size: 0.625rem;
-        opacity: 0.8;
-      }
-    }
+
+  p {
+    font-size: 1.1rem;
+    color: #718096;
+    margin-top: 0.5rem;
+    font-weight: 500;
   }
 `;
 
-const StatsGrid = styled.div`
+const KPISection = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
 `;
 
-const StatCard = styled.div<{ color?: string; trend?: string }>`
+const KPICard = styled.div<{ active?: boolean, alert?: boolean }>`
   background: white;
-  border-radius: 1rem;
-  padding: 1rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
+  border-radius: 1.25rem;
+  padding: 1.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+  border: 1px solid ${props => props.alert ? '#feb2b2' : '#edf2f7'};
+  transition: transform 0.2s, box-shadow 0.2s;
   position: relative;
   overflow: hidden;
-  
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Decorative accent line */
   &::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
-    height: 4px;
-    background: ${props => props.color || 'linear-gradient(90deg, #3b82f6, #8b5cf6)'};
+    width: 6px;
+    height: 100%;
+    background: ${props => props.alert ? '#e53e3e' : props.active ? '#38a169' : '#cbd5e0'};
   }
-  
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+
+  .icon-wrapper {
+    display: inline-flex;
+    padding: 0.75rem;
+    border-radius: 1rem;
+    background: ${props => props.alert ? '#fff5f5' : '#f0fff4'};
+    color: ${props => props.alert ? '#c53030' : '#2f855a'};
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
   }
-  
-  .stat-header {
+
+  .label {
+    font-size: 0.875rem;
+    color: #718096;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 0.25rem 0;
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+
+    .unit {
+      font-size: 1rem;
+      color: #a0aec0;
+      font-weight: 500;
+    }
+  }
+
+  .subtext {
+    font-size: 0.8rem;
+    color: ${props => props.alert ? '#e53e3e' : '#718096'};
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.25rem;
-    
-    .stat-icon {
-      width: 24px;
-      height: 24px;
-      border-radius: 0.375rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.625rem;
-      color: white;
-      background: ${props => props.color || '#3b82f6'};
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    
-    .stat-trend {
-      display: flex;
-      align-items: center;
-      gap: 0.125rem;
-      font-size: 0.5rem;
-      font-weight: 600;
-      padding: 0.125rem 0.25rem;
-      border-radius: 0.375rem;
-      background: ${props => props.trend === 'positive' ? '#d1fae5' : '#fee2e2'};
-      color: ${props => props.trend === 'positive' ? '#065f46' : '#991b1b'};
-    }
-  }
-  
-  .stat-value {
-    font-size: 1rem;
-    font-weight: 800;
-    color: #1e293b;
-    margin-bottom: 0.125rem;
-    line-height: 1;
-  }
-  
-  .stat-label {
-    color: #64748b;
-    font-size: 0.5rem;
-    font-weight: 500;
-    margin-bottom: 0.25rem;
-  }
-  
-  .stat-chart {
-    height: 12px;
-    background: #f8fafc;
-    border-radius: 0.125rem;
-    position: relative;
-    overflow: hidden;
-    
-    .chart-bar {
-      height: 100%;
-      background: ${props => props.color || '#3b82f6'};
-      border-radius: 0.125rem;
-      transition: width 0.3s ease-in-out;
-    }
+    gap: 0.35rem;
   }
 `;
 
 const ContentGrid = styled.div`
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 1rem;
-  
-  @media (max-width: 1200px) {
+  gap: 2rem;
+
+  @media (max-width: 1100px) {
     grid-template-columns: 1fr;
   }
 `;
 
-const Section = styled.div`
+const SectionTitle = styled.h2`
+  font-size: 1.5rem;
+  color: #2d3748;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+`;
+
+const MainCard = styled.div`
   background: white;
-  border-radius: 0.75rem;
-  padding: 1rem;
-  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
-  border: 1px solid #e5e7eb;
-  
-  .section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid #e5e7eb;
-    
-    h3 {
-      font-size: 1rem;
-      font-weight: 700;
-      color: #1e293b;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    
-    .view-all {
-      color: #3b82f6;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-      padding: 0.375rem 0.75rem;
-      border-radius: 0.375rem;
-      transition: all 0.2s ease-in-out;
-      
-      &:hover {
-        background: #f0f9ff;
-        text-decoration: none;
-      }
-    }
-  }
+  border-radius: 1.5rem;
+  padding: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #edf2f7;
 `;
 
-const AnnouncementList = styled.div`
+const CropRow = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-`;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+  border-bottom: 1px solid #edf2f7;
 
-const AnnouncementItem = styled.div<{ type: string }>`
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  border-radius: 0.5rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  transition: all 0.2s ease-in-out;
-  cursor: pointer;
-  
-  &:hover {
-    background: #f1f5f9;
-    transform: translateX(2px);
+  &:last-child {
+    border-bottom: none;
   }
-  
-  .announcement-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 0.5rem;
+
+  .crop-info {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 0.875rem;
-    color: white;
-    background: ${props => {
-      switch (props.type) {
-        case 'important': return '#ef4444';
-        case 'update': return '#3b82f6';
-        case 'training': return '#10b981';
-        case 'info': return '#6b7280';
-        default: return '#f59e0b';
-      }
-    }};
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-  
-  .announcement-details {
-    flex: 1;
-    
-    .announcement-title {
-      font-weight: 600;
-      color: #1e293b;
-      margin-bottom: 0.125rem;
-      font-size: 0.875rem;
-    }
-    
-    .announcement-description {
-      font-size: 0.75rem;
-      color: #64748b;
-      line-height: 1.4;
-      margin-bottom: 0.25rem;
-    }
-    
-    .announcement-meta {
-      font-size: 0.625rem;
-      color: #9ca3af;
+    gap: 1rem;
+
+    .crop-icon {
+      width: 48px;
+      height: 48px;
+      background: #c6f6d5;
+      color: #2f855a;
+      border-radius: 50%;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+
+    .details {
+      h4 { margin: 0; color: #2d3748; font-size: 1rem; font-weight: 600; }
+      p { margin: 0; color: #718096; font-size: 0.85rem; }
     }
   }
-  
-  .announcement-type {
-    font-size: 0.625rem;
+
+  .crop-stats {
+    display: flex;
+    gap: 1.5rem;
+    
+    .stat {
+      text-align: right;
+      .val { font-weight: 600; color: #2d3748; }
+      .lbl { font-size: 0.75rem; color: #a0aec0; }
+    }
+  }
+
+  .status-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
     font-weight: 600;
-    padding: 0.125rem 0.5rem;
-    border-radius: 0.75rem;
-    text-transform: uppercase;
-    background: ${props => {
-      switch (props.type) {
-        case 'important': return '#fee2e2';
-        case 'update': return '#dbeafe';
-        case 'training': return '#d1fae5';
-        case 'info': return '#f3f4f6';
-        default: return '#fef3c7';
-      }
-    }};
-    color: ${props => {
-      switch (props.type) {
-        case 'important': return '#991b1b';
-        case 'update': return '#1e40af';
-        case 'training': return '#065f46';
-        case 'info': return '#374151';
-        default: return '#92400e';
-      }
-    }};
+    background: #e6fffa;
+    color: #2c7a7b;
+
+    &.warning { background: #fffaf0; color: #c05621; }
+    &.danger { background: #fff5f5; color: #c53030; }
   }
 `;
 
-const AlertList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-`;
-
-const AlertItem = styled.div<{ type: string }>`
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.75rem;
+const AlertItem = styled.div`
+  background: #fffaf0;
+  border-left: 4px solid #ed8936;
+  padding: 1rem;
   border-radius: 0.5rem;
-  background: ${props => props.type === 'warning' ? '#fef3c7' : '#dbeafe'};
-  border: 1px solid ${props => props.type === 'warning' ? '#f59e0b' : '#3b82f6'};
-  transition: all 0.2s ease-in-out;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: start;
+  gap: 0.75rem;
+
+  .icon { color: #ed8936; margin-top: 0.2rem; }
   
+  .content {
+    h5 { margin: 0; color: #744210; font-weight: 600; }
+    p { margin: 0.25rem 0 0; color: #975a16; font-size: 0.85rem; }
+  }
+`;
+
+const QuickActionButton = styled.button`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #3182ce;
+  color: white;
+  border: none;
+  border-radius: 1rem;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-top: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px rgba(49, 130, 206, 0.3);
+
   &:hover {
-    transform: translateX(2px);
-  }
-  
-  .alert-icon {
-    color: ${props => props.type === 'warning' ? '#f59e0b' : '#3b82f6'};
-    font-size: 1rem;
-    margin-top: 0.125rem;
-  }
-  
-  .alert-content {
-    flex: 1;
-    
-    .alert-title {
-      font-weight: 600;
-      color: #1e293b;
-      font-size: 0.75rem;
-      margin-bottom: 0.125rem;
-    }
-    
-    .alert-description {
-      font-size: 0.625rem;
-      color: #64748b;
-      line-height: 1.4;
-    }
+    background: #2b6cb0;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(49, 130, 206, 0.4);
   }
 `;
 
 const Dashboard: React.FC = () => {
-  const { user } = useAuth();
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [isTechnicalReportModalOpen, setIsTechnicalReportModalOpen] = useState(false);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  // Datos de eventos para calcular estadísticas
-  const allEvents = [
-    {
-      id: '1',
-      title: 'Boda María & Juan',
-      date: '2024-08-15',
-      time: '20:00',
-      client: 'María González',
-      guests: 150,
-      type: 'wedding',
-      status: 'confirmed',
-      coordinated: true,
-      equipment: [],
-      notes: 'Boda elegante con música en vivo'
-    },
-    {
-      id: '2',
-      title: 'Cumpleaños 15 Años - Ana',
-      date: '2024-08-18',
-      time: '19:00',
-      client: 'Ana Rodríguez',
-      guests: 80,
-      type: 'birthday',
-      status: 'pending',
-      coordinated: false,
-      equipment: [],
-      notes: 'Tema: Princesas Disney'
-    },
-    {
-      id: '3',
-      title: 'Evento Corporativo TechCorp',
-      date: '2024-08-20',
-      time: '18:00',
-      client: 'TechCorp S.A.',
-      guests: 200,
-      type: 'corporate',
-      status: 'confirmed',
-      coordinated: true,
-      equipment: [],
-      notes: 'Presentación de nuevos productos'
-    },
-    {
-      id: '4',
-      title: 'Graduación Universidad',
-      date: '2024-08-22',
-      time: '21:00',
-      client: 'Universidad Nacional',
-      guests: 300,
-      type: 'other',
-      status: 'in-progress',
-      coordinated: false,
-      equipment: [],
-      notes: 'Ceremonia de graduación'
-    },
-    {
-      id: '5',
-      title: 'Boda Carlos & Laura',
-      date: '2024-08-25',
-      time: '19:30',
-      client: 'Carlos Martínez',
-      guests: 120,
-      type: 'wedding',
-      status: 'confirmed',
-      coordinated: true,
-      equipment: [],
-      notes: 'Boda tradicional'
-    },
-    {
-      id: '6',
-      title: 'Cumpleaños Empresarial',
-      date: '2024-08-28',
-      time: '20:00',
-      client: 'Empresa ABC',
-      guests: 180,
-      type: 'corporate',
-      status: 'pending',
-      coordinated: false,
-      equipment: [],
-      notes: 'Celebración 10 años'
-    }
-  ];
-
-  // Calcular estadísticas basadas en coordinación
-  const coordinatedEvents = allEvents.filter(event => event.coordinated).length;
-  const uncoordinatedEvents = allEvents.filter(event => !event.coordinated).length;
-
-  const stats = [
-    {
-      title: 'Eventos Coordinados',
-      value: coordinatedEvents.toString(),
-      icon: <FaCheckCircle />,
-      color: '#10b981',
-      trend: 'positive',
-      trendValue: `${Math.round((coordinatedEvents / allEvents.length) * 100)}%`,
-      chartData: [coordinatedEvents]
-    },
-    {
-      title: 'Eventos Sin Coordinar',
-      value: uncoordinatedEvents.toString(),
-      icon: <FaExclamationTriangle />,
-      color: '#ef4444',
-      trend: 'negative',
-      trendValue: `${Math.round((uncoordinatedEvents / allEvents.length) * 100)}%`,
-      chartData: [uncoordinatedEvents]
-    }
-  ];
-
-  // Datos de anuncios de gerencia
-  const announcements = [
-    {
-      id: '1',
-      title: 'Nueva Capacitación: Protocolos de Seguridad',
-      description: 'Todos los empleados deben completar la capacitación obligatoria sobre nuevos protocolos de seguridad antes del 30 de agosto.',
-      type: 'training',
-      author: 'Gerencia General',
-      date: '2024-08-13',
-      priority: 'high'
-    },
-    {
-      id: '2',
-      title: 'Actualización del Sistema de Reservas',
-      description: 'El sistema de reservas será actualizado este fin de semana. Habrá interrupciones temporales el sábado de 2:00 AM a 6:00 AM.',
-      type: 'update',
-      author: 'Departamento IT',
-      date: '2024-08-12',
-      priority: 'medium'
-    },
-    {
-      id: '3',
-      title: 'Cambios en Horarios de Trabajo',
-      description: 'A partir del próximo mes, los horarios de trabajo se ajustarán. Revisen sus nuevos horarios en el portal de empleados.',
-      type: 'important',
-      author: 'Recursos Humanos',
-      date: '2024-08-11',
-      priority: 'high'
-    },
-    {
-      id: '4',
-      title: 'Nuevas Políticas de Limpieza',
-      description: 'Se han implementado nuevas políticas de limpieza y desinfección. Todos deben familiarizarse con los nuevos procedimientos.',
-      type: 'info',
-      author: 'Mantenimiento',
-      date: '2024-08-10',
-      priority: 'medium'
-    }
-  ];
-
-  const alerts = [
-    {
-      id: '1',
-      title: 'Eventos Sin Coordinar',
-      description: `${uncoordinatedEvents} eventos requieren coordinación inmediata`,
-      type: 'warning',
-      time: 'Ahora'
-    },
-    {
-      id: '2',
-      title: 'Coordinación Completada',
-      description: 'Boda María & Juan y Evento TechCorp ya están coordinados',
-      type: 'info',
-      time: '1 hora'
-    },
-    {
-      id: '3',
-      title: 'Recordatorio de Coordinación',
-      description: 'Cumpleaños 15 Años necesita coordinación antes del 18 de agosto',
-      type: 'warning',
-      time: '2 horas'
-    }
-  ];
-
-  const getAnnouncementIcon = (type: string) => {
-    switch (type) {
-      case 'important': return <FaExclamationCircle />;
-      case 'update': return <FaInfoCircle />;
-      case 'training': return <FaGraduationCap />;
-      case 'info': return <FaInfoCircle />;
-      default: return <FaBullhorn />;
-    }
-  };
-
-  const getGreeting = () => {
-    const hour = currentTime.getHours();
-    if (hour < 12) return 'Buenos días';
-    if (hour < 18) return 'Buenas tardes';
-    return 'Buenas noches';
-  };
-
+  // TODO: Replace with real data from Supabase
   return (
-    <DashboardContainer>
-      <WelcomeSection>
-        <div className="welcome-header">
-          <div>
-            <h1>{getGreeting()}, {user?.name}!</h1>
-            <p>Aquí tienes un resumen completo de las actividades del día</p>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>
-              {currentTime.toLocaleDateString('es-ES', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
-            </div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '600' }}>
-              {currentTime.toLocaleTimeString('es-ES', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-              })}
-            </div>
-          </div>
-        </div>
-        
-        <div className="welcome-stats">
-          <div className="stat-item">
-            <div className="stat-number">{allEvents.length}</div>
-            <div className="stat-label">Total Eventos</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-number">{coordinatedEvents}</div>
-            <div className="stat-label">Coordinados</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-number">{uncoordinatedEvents}</div>
-            <div className="stat-label">Sin Coordinar</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-number">{Math.round((coordinatedEvents / allEvents.length) * 100)}%</div>
-            <div className="stat-label">Tasa de Coordinación</div>
-          </div>
-        </div>
-        
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          marginTop: '1rem',
-          gap: '1rem'
-        }}>
-          <button
-            onClick={() => setIsTechnicalReportModalOpen(true)}
-            style={{
-              background: 'rgba(255, 255, 255, 0.2)',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              color: 'white',
-              padding: '0.75rem 1.5rem',
-              borderRadius: '0.5rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontSize: '0.875rem',
-              fontWeight: '600',
-              transition: 'all 0.2s ease',
-              backdropFilter: 'blur(10px)'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}
-          >
-            <FaTools />
-            Reportar Problema Técnico
-          </button>
-        </div>
-      </WelcomeSection>
+    <Container>
+      <WelcomeHeader>
+        <h1>Panel de Control</h1>
+        <p>Bienvenido de nuevo. Aquí está el estado actual de tus cultivos.</p>
+      </WelcomeHeader>
 
-      <StatsGrid>
-        {stats.map((stat, index) => (
-          <StatCard key={index} color={stat.color} trend={stat.trend}>
-            <div className="stat-header">
-              <div className="stat-icon">
-                {stat.icon}
-              </div>
-              <div className="stat-trend">
-                {stat.trend === 'positive' ? <FaArrowUp /> : <FaArrowDown />}
-                {stat.trendValue}
-              </div>
-            </div>
-            <div className="stat-value">{stat.value}</div>
-            <div className="stat-label">{stat.title}</div>
-            <div className="stat-chart">
-              <div 
-                className="chart-bar" 
-                style={{ 
-                  width: `${Math.max(...stat.chartData)}%`,
-                  background: stat.color 
-                }}
-              />
-            </div>
-          </StatCard>
-        ))}
-      </StatsGrid>
+      <KPISection>
+        <KPICard active>
+          <div className="icon-wrapper"><FaSeedling /></div>
+          <div className="label">Cultivos Activos</div>
+          <div className="value">4 <span className="unit">variedades</span></div>
+          <div className="subtext"><FaChartLine /> +1 esta semana</div>
+        </KPICard>
+
+        <KPICard>
+          <div className="icon-wrapper"><FaThermometerHalf /></div>
+          <div className="label">Temperatura (Prom)</div>
+          <div className="value">24.5 <span className="unit">°C</span></div>
+          <div className="subtext" style={{ color: '#38a169' }}>En rango óptimo</div>
+        </KPICard>
+
+        <KPICard>
+          <div className="icon-wrapper"><FaTint /></div>
+          <div className="label">Humedad (Prom)</div>
+          <div className="value">58 <span className="unit">%</span></div>
+          <div className="subtext">Fase Vegetativa</div>
+        </KPICard>
+
+        <KPICard alert>
+          <div className="icon-wrapper"><FaExclamationTriangle /></div>
+          <div className="label">Alertas</div>
+          <div className="value">2 <span className="unit">pendientes</span></div>
+          <div className="subtext">Requiere atención</div>
+        </KPICard>
+      </KPISection>
 
       <ContentGrid>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <Section>
-            <div className="section-header">
-              <h3>
-                <FaBullhorn />
-                Anuncios
-              </h3>
-              <span className="view-all">Ver todos</span>
-            </div>
-            <AnnouncementList>
-              {announcements.map((announcement) => (
-                <AnnouncementItem key={announcement.id} type={announcement.type}>
-                  <div className="announcement-icon">
-                    {getAnnouncementIcon(announcement.type)}
+        <div>
+          <SectionTitle><FaLeaf /> Cultivos Destacados</SectionTitle>
+          <MainCard>
+            {[
+              { name: 'Gorilla Glue #4', stage: 'Floración (Sem 3)', health: 'Excelente', temp: '25°C', hum: '45%' },
+              { name: 'Lemon Haze', stage: 'Vegetativo (Día 40)', health: 'Bueno', temp: '24°C', hum: '60%' },
+              { name: 'OG Kush', stage: 'Plántula', health: 'Normal', temp: '26°C', hum: '70%' },
+            ].map((crop, i) => (
+              <CropRow key={i}>
+                <div className="crop-info">
+                  <div className="crop-icon"><FaSeedling /></div>
+                  <div className="details">
+                    <h4>{crop.name}</h4>
+                    <p>{crop.stage}</p>
                   </div>
-                  <div className="announcement-details">
-                    <div className="announcement-title">{announcement.title}</div>
-                    <div className="announcement-description">
-                      {announcement.description}
-                    </div>
-                    <div className="announcement-meta">
-                      <span>{announcement.author}</span>
-                      <span>•</span>
-                      <span>{new Date(announcement.date).toLocaleDateString('es-ES', { 
-                        day: 'numeric', 
-                        month: 'short' 
-                      })}</span>
-                    </div>
+                </div>
+                <div className="crop-stats">
+                  <div className="stat">
+                    <div className="val">{crop.temp}</div>
+                    <div className="lbl">Temp</div>
                   </div>
-                  <div className="announcement-type">
-                    {announcement.type === 'important' && 'Importante'}
-                    {announcement.type === 'update' && 'Actualización'}
-                    {announcement.type === 'training' && 'Capacitación'}
-                    {announcement.type === 'info' && 'Información'}
+                  <div className="stat">
+                    <div className="val">{crop.hum}</div>
+                    <div className="lbl">Hum</div>
                   </div>
-                </AnnouncementItem>
-              ))}
-            </AnnouncementList>
-          </Section>
+                </div>
+                <div className="status-badge">{crop.health}</div>
+              </CropRow>
+            ))}
+          </MainCard>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <Section>
-            <div className="section-header">
-              <h3>
-                <FaBell />
-                Alertas y Notificaciones
-              </h3>
-            </div>
-            <AlertList>
-              {alerts.map((alert) => (
-                <AlertItem key={alert.id} type={alert.type}>
-                  <div className="alert-icon">
-                    {alert.type === 'warning' ? <FaExclamationTriangle /> : <FaCheckCircle />}
-                  </div>
-                  <div className="alert-content">
-                    <div className="alert-title">{alert.title}</div>
-                    <div className="alert-description">
-                      {alert.description}
-                      <span style={{ marginLeft: '0.5rem', fontWeight: '500' }}>
-                        • Hace {alert.time}
-                      </span>
-                    </div>
-                  </div>
-                </AlertItem>
-              ))}
-            </AlertList>
-          </Section>
+        <div>
+           <SectionTitle><FaExclamationTriangle /> Alertas & Tareas</SectionTitle>
+           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+             <AlertItem>
+               <div className="icon"><FaExclamationTriangle /></div>
+               <div className="content">
+                 <h5>Nivel de Agua Bajo</h5>
+                 <p>Tanque principal al 15%. Rellenar antes de las 18:00.</p>
+               </div>
+             </AlertItem>
+
+             <AlertItem style={{  background: '#ebf8ff', borderLeftColor: '#4299e1' }}>
+               <div className="icon" style={{ color: '#4299e1' }}><FaCalendarCheck /></div>
+               <div className="content">
+                 <h5 style={{ color: '#2b6cb0' }}>Poda Apical Programada</h5>
+                 <p style={{ color: '#2c5282' }}>Hoy para: Lemon Haze</p>
+               </div>
+             </AlertItem>
+
+             <QuickActionButton>
+               <FaPlus /> Nuevo Cultivo
+             </QuickActionButton>
+             <QuickActionButton style={{ background: '#38a169' }}>
+               <FaTint /> Registrar Riego
+             </QuickActionButton>
+           </div>
         </div>
       </ContentGrid>
-      
-      <TechnicalReportModal
-        isOpen={isTechnicalReportModalOpen}
-        onClose={() => setIsTechnicalReportModalOpen(false)}
-        djId={user?.id}
-        djName={user?.name}
-        eventId="current-event"
-        eventName="Evento Actual"
-      />
-    </DashboardContainer>
+    </Container>
   );
 };
 
 export default Dashboard;
-
