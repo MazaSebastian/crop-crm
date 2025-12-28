@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { tasksService } from '../services/tasksService';
 
 import styled from 'styled-components';
+
 import {
   FaSeedling,
   FaExclamationTriangle,
@@ -254,13 +256,49 @@ const AlertActions = styled.div`
 
 
 const Dashboard: React.FC = () => {
-  const [alerts, setAlerts] = useState([
-    { id: 1, type: 'warning', title: 'Nivel de Agua Bajo', message: 'Tanque principal al 15%. Rellenar antes de las 18:00.', icon: <FaExclamationTriangle /> },
-    { id: 2, type: 'info', title: 'Poda Apical Programada', message: 'Hoy para: Lemon Haze', icon: <FaCalendarCheck /> }
-  ]);
+  const [alerts, setAlerts] = useState<any[]>([]); // TODO: Use Task type properly, mapped to UI
 
-  const removeAlert = (id: number) => {
+  useEffect(() => {
+    loadTasks();
+  }, []);
+
+  const loadTasks = async () => {
+    const tasks = await tasksService.getPendingTasks();
+    // Map DB tasks to UI alert format
+    const mappedAlerts = tasks.map(t => ({
+      id: t.id,
+      type: t.type,
+      title: t.title,
+      message: t.description || '',
+      icon: getIconForType(t.type) // Helper needed or inline
+    }));
+    setAlerts(mappedAlerts);
+  };
+
+  const getIconForType = (type: string) => {
+    switch (type) {
+      case 'warning': return <FaExclamationTriangle />;
+      case 'info': return <FaCalendarCheck />;
+      case 'danger': return <FaExclamationTriangle />;
+      default: return <FaCheckCircle />;
+    }
+  };
+
+  const removeAlert = async (id: string, action: 'done' | 'dismissed') => {
+    // Optimistic update
     setAlerts(prev => prev.filter(a => a.id !== id));
+
+    // DB Update
+    const success = await tasksService.updateStatus(id, action);
+    if (!success) {
+      // Revert if failed (optional, simplified for now)
+      loadTasks();
+    }
+  };
+
+  // Helper for rendering
+  const handleAction = (id: any, action: 'done' | 'dismissed') => {
+    removeAlert(id, action);
   };
 
   return (
@@ -337,13 +375,14 @@ const Dashboard: React.FC = () => {
                   <p style={alert.type === 'info' ? { color: '#2c5282' } : {}}>{alert.message}</p>
                 </div>
                 <AlertActions>
-                  <ActionButtonSmall type="success" onClick={() => removeAlert(alert.id)} title="Marcar como realizado">
+                  <ActionButtonSmall type="success" onClick={() => handleAction(alert.id, 'done')} title="Marcar como realizado">
                     <FaCheck />
                   </ActionButtonSmall>
-                  <ActionButtonSmall type="danger" onClick={() => removeAlert(alert.id)} title="Descartar">
+                  <ActionButtonSmall type="danger" onClick={() => handleAction(alert.id, 'dismissed')} title="Descartar">
                     <FaTimes />
                   </ActionButtonSmall>
                 </AlertActions>
+
               </AlertItem>
             ))}
 

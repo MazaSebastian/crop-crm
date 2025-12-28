@@ -72,6 +72,17 @@ export interface CropTask {
   completedAt?: string;
 }
 
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  type: 'info' | 'warning' | 'danger';
+  status: 'pending' | 'done' | 'dismissed';
+  due_date?: string;
+  created_at: string;
+}
+
+
 // ==========================
 // Tipos para Gestión de Insumos (Materia Prima)
 // ==========================
