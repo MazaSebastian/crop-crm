@@ -32,7 +32,205 @@ import {
 import { tasksService } from '../services/tasksService';
 import { dailyLogsService } from '../services/dailyLogsService';
 
-// ... (keep styled components) ...
+const Container = styled.div`
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding-top: 5rem;
+  background-color: #f8fafc;
+`;
+
+const Header = styled.div`
+  margin-bottom: 2rem;
+`;
+
+const BackButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  color: #718096;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  padding: 0;
+  font-size: 0.95rem;
+
+  &:hover {
+    color: #2f855a;
+  }
+`;
+
+const TitleSection = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+`;
+
+const CropTitle = styled.h1`
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1a202c;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  svg { color: #38a169; }
+`;
+
+const MetaGrid = styled.div`
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.75rem;
+  color: #4a5568;
+  font-size: 0.95rem;
+
+  div {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+`;
+
+const CalendarContainer = styled.div`
+  background: white;
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #edf2f7;
+  padding: 2rem;
+  margin-bottom: 2rem;
+`;
+
+const CalendarHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #2d3748;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+`;
+
+const MonthNav = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  button {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: #4a5568;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover { background: #f7fafc; color: #2f855a; }
+  }
+
+  span {
+    font-weight: 600;
+    min-width: 120px;
+    text-align: center;
+  }
+`;
+
+// Monthly View Grid
+const MonthGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: #e2e8f0; // Grid lines
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+
+  > div {
+    background: white;
+    min-height: 100px;
+    padding: 0.5rem;
+    position: relative;
+  }
+`;
+
+const DayHeader = styled.div`
+  background: #f7fafc !important;
+  min-height: auto !important;
+  font-weight: 600;
+  color: #718096;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 0.75rem !important;
+  text-transform: uppercase;
+`;
+
+const DayCell = styled.div<{ isCurrentMonth?: boolean, isToday?: boolean }>`
+  opacity: ${props => props.isCurrentMonth ? 1 : 0.4};
+  background: ${props => props.isToday ? '#f0fff4 !important' : 'white'};
+  
+  .day-number {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: ${props => props.isToday ? '#2f855a' : '#2d3748'};
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  &:hover {
+    background: #fafafa;
+  }
+`;
+
+// Annual Heatmap
+const HeatmapContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 1rem;
+`;
+
+const HeatmapMonth = styled.div`
+  flex: 1;
+  min-width: 80px;
+`;
+
+const HeatmapGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+`;
+
+const HeatmapCell = styled.div<{ level: number }>`
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background-color: ${p => {
+    if (p.level === 0) return '#ebedf0';
+    if (p.level === 1) return '#9be9a8';
+    if (p.level === 2) return '#40c463';
+    if (p.level === 3) return '#30a14e';
+    return '#216e39';
+  }};
+  transition: transform 0.1s;
+  
+  &:hover { transform: scale(1.2); }
+`;
 
 const ModalOverlay = styled.div`
   position: fixed;
