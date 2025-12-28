@@ -4,6 +4,8 @@ import type { Insumo, HistorialPrecio } from '../types';
 // Obtener todos los insumos
 export async function getInsumos(): Promise<Insumo[]> {
   try {
+    if (!supabase) return [];
+
     const { data, error } = await supabase
       .from('crosti_insumos')
       .select('*')
@@ -25,6 +27,8 @@ export async function getInsumos(): Promise<Insumo[]> {
 // Obtener insumo por ID
 export async function getInsumoById(id: string): Promise<Insumo | null> {
   try {
+    if (!supabase) return null;
+
     const { data, error } = await supabase
       .from('crosti_insumos')
       .select('*')
@@ -46,6 +50,8 @@ export async function getInsumoById(id: string): Promise<Insumo | null> {
 // Crear nuevo insumo
 export async function createInsumo(insumo: Omit<Insumo, 'id' | 'created_at' | 'updated_at'>): Promise<Insumo | null> {
   try {
+    if (!supabase) return null;
+
     const { data, error } = await supabase
       .from('crosti_insumos')
       .insert([insumo])
@@ -67,6 +73,8 @@ export async function createInsumo(insumo: Omit<Insumo, 'id' | 'created_at' | 'u
 // Actualizar insumo existente
 export async function updateInsumo(id: string, updates: Partial<Insumo>): Promise<Insumo | null> {
   try {
+    if (!supabase) return null;
+
     const { data, error } = await supabase
       .from('crosti_insumos')
       .update(updates)
@@ -89,6 +97,8 @@ export async function updateInsumo(id: string, updates: Partial<Insumo>): Promis
 // Eliminar insumo (marcar como inactivo)
 export async function deleteInsumo(id: string): Promise<boolean> {
   try {
+    if (!supabase) return false;
+
     const { error } = await supabase
       .from('crosti_insumos')
       .update({ activo: false })
@@ -108,13 +118,15 @@ export async function deleteInsumo(id: string): Promise<boolean> {
 
 // Actualizar precio de insumo y crear registro en historial
 export async function updateInsumoPrecio(
-  id: string, 
-  nuevoPrecio: number, 
-  motivo: string, 
+  id: string,
+  nuevoPrecio: number,
+  motivo: string,
   proveedor?: string,
   cantidadComprada?: number
 ): Promise<boolean> {
   try {
+    if (!supabase) return false;
+
     // Obtener insumo actual
     const insumoActual = await getInsumoById(id);
     if (!insumoActual) {
@@ -168,6 +180,8 @@ export async function updateInsumoPrecio(
 // Obtener historial de precios de un insumo
 export async function getHistorialPrecios(insumoId: string): Promise<HistorialPrecio[]> {
   try {
+    if (!supabase) return [];
+
     const { data, error } = await supabase
       .from('crosti_historial_precios')
       .select('*')
@@ -189,6 +203,8 @@ export async function getHistorialPrecios(insumoId: string): Promise<HistorialPr
 // Obtener estadísticas de insumos
 export async function getInsumosStats() {
   try {
+    if (!supabase) return null;
+
     const { data, error } = await supabase
       .from('crosti_insumos')
       .select('precio_actual, stock_actual, stock_minimo, precio_anterior')
@@ -218,6 +234,8 @@ export async function getInsumosStats() {
 // Buscar insumos por término
 export async function searchInsumos(searchTerm: string): Promise<Insumo[]> {
   try {
+    if (!supabase) return [];
+
     const { data, error } = await supabase
       .from('crosti_insumos')
       .select('*')
@@ -240,6 +258,8 @@ export async function searchInsumos(searchTerm: string): Promise<Insumo[]> {
 // Filtrar insumos por categoría
 export async function getInsumosByCategory(categoria: string): Promise<Insumo[]> {
   try {
+    if (!supabase) return [];
+
     const { data, error } = await supabase
       .from('crosti_insumos')
       .select('*')
@@ -261,10 +281,12 @@ export async function getInsumosByCategory(categoria: string): Promise<Insumo[]>
 
 // Suscribirse a cambios en tiempo real
 export function subscribeToInsumosChanges(callback: (payload: any) => void) {
+  if (!supabase) return { unsubscribe: () => { } };
+
   return supabase
     .channel('crosti_insumos_changes')
-    .on('postgres_changes', 
-      { event: '*', schema: 'public', table: 'crosti_insumos' }, 
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'crosti_insumos' },
       callback
     )
     .subscribe();
@@ -272,10 +294,12 @@ export function subscribeToInsumosChanges(callback: (payload: any) => void) {
 
 // Suscribirse a cambios en historial de precios
 export function subscribeToHistorialChanges(callback: (payload: any) => void) {
+  if (!supabase) return { unsubscribe: () => { } };
+
   return supabase
     .channel('crosti_historial_precios_changes')
-    .on('postgres_changes', 
-      { event: '*', schema: 'public', table: 'crosti_historial_precios' }, 
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'crosti_historial_precios' },
       callback
     )
     .subscribe();

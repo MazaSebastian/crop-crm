@@ -43,6 +43,8 @@ export async function syncStockItemsFromSupabase(): Promise<StockItem[]> {
 
 export async function createStockItemSupabase(item: Omit<StockItem, 'id' | 'created_at' | 'updated_at'>): Promise<StockItem | null> {
   try {
+    if (!supabase) return null;
+
     const { data, error } = await supabase
       .from('crosti_stock_items')
       .insert([item])
@@ -63,6 +65,8 @@ export async function createStockItemSupabase(item: Omit<StockItem, 'id' | 'crea
 
 export async function updateStockQtySupabase(id: string, newQty: number): Promise<boolean> {
   try {
+    if (!supabase) return false;
+
     const { error } = await supabase
       .from('crosti_stock_items')
       .update({ qty: newQty, updated_at: new Date().toISOString() })
@@ -82,6 +86,8 @@ export async function updateStockQtySupabase(id: string, newQty: number): Promis
 
 export async function deleteStockItemSupabase(id: string): Promise<boolean> {
   try {
+    if (!supabase) return false;
+
     const { error } = await supabase
       .from('crosti_stock_items')
       .delete()
