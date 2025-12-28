@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import styled from 'styled-components';
@@ -11,8 +11,12 @@ import {
   FaCalendarCheck,
   FaLeaf,
   FaChartLine,
-  FaPlus
+  FaPlus,
+  FaCheck,
+  FaTimes,
+  FaCheckCircle
 } from 'react-icons/fa';
+
 
 // --- Styled Components (Premium Eco-Tech Theme) ---
 
@@ -252,14 +256,47 @@ const QuickActionButton = styled.button`
   }
 `;
 
+const ActionButtonSmall = styled.button<{ type: 'success' | 'danger' }>`
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: ${props => props.type === 'success' ? '#38a169' : '#e53e3e'};
+  padding: 0.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  &:hover {
+    background: ${props => props.type === 'success' ? '#c6f6d5' : '#fed7d7'};
+  }
+`;
+
+const AlertActions = styled.div`
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+`;
+
+
 const Dashboard: React.FC = () => {
-  // TODO: Replace with real data from Supabase
+  const [alerts, setAlerts] = useState([
+    { id: 1, type: 'warning', title: 'Nivel de Agua Bajo', message: 'Tanque principal al 15%. Rellenar antes de las 18:00.', icon: <FaExclamationTriangle /> },
+    { id: 2, type: 'info', title: 'Poda Apical Programada', message: 'Hoy para: Lemon Haze', icon: <FaCalendarCheck /> }
+  ]);
+
+  const removeAlert = (id: number) => {
+    setAlerts(prev => prev.filter(a => a.id !== id));
+  };
+
   return (
     <Container>
       <WelcomeHeader>
         <h1>Panel de Control</h1>
         <p>Bienvenido de nuevo. Aquí está el estado actual de tus cultivos.</p>
       </WelcomeHeader>
+
 
       <KPISection>
         <Link to="/crops" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -318,21 +355,30 @@ const Dashboard: React.FC = () => {
         <div>
           <SectionTitle><FaExclamationTriangle /> Alertas & Tareas</SectionTitle>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-            <AlertItem>
-              <div className="icon"><FaExclamationTriangle /></div>
-              <div className="content">
-                <h5>Nivel de Agua Bajo</h5>
-                <p>Tanque principal al 15%. Rellenar antes de las 18:00.</p>
-              </div>
-            </AlertItem>
+            {alerts.map(alert => (
+              <AlertItem key={alert.id} style={alert.type === 'info' ? { background: '#ebf8ff', borderLeftColor: '#4299e1' } : {}}>
+                <div className="icon" style={alert.type === 'info' ? { color: '#4299e1' } : {}}>{alert.icon}</div>
+                <div className="content">
+                  <h5 style={alert.type === 'info' ? { color: '#2b6cb0' } : {}}>{alert.title}</h5>
+                  <p style={alert.type === 'info' ? { color: '#2c5282' } : {}}>{alert.message}</p>
+                </div>
+                <AlertActions>
+                  <ActionButtonSmall type="success" onClick={() => removeAlert(alert.id)} title="Marcar como realizado">
+                    <FaCheck />
+                  </ActionButtonSmall>
+                  <ActionButtonSmall type="danger" onClick={() => removeAlert(alert.id)} title="Descartar">
+                    <FaTimes />
+                  </ActionButtonSmall>
+                </AlertActions>
+              </AlertItem>
+            ))}
 
-            <AlertItem style={{ background: '#ebf8ff', borderLeftColor: '#4299e1' }}>
-              <div className="icon" style={{ color: '#4299e1' }}><FaCalendarCheck /></div>
-              <div className="content">
-                <h5 style={{ color: '#2b6cb0' }}>Poda Apical Programada</h5>
-                <p style={{ color: '#2c5282' }}>Hoy para: Lemon Haze</p>
+            {alerts.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '2rem', color: '#a0aec0', background: 'white', borderRadius: '0.5rem' }}>
+                <FaCheckCircle style={{ fontSize: '2rem', marginBottom: '0.5rem', color: '#38a169' }} />
+                <p>¡Todo al día!</p>
               </div>
-            </AlertItem>
+            )}
 
             <QuickActionButton>
               <FaPlus /> Nuevo Cultivo

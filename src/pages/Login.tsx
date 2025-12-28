@@ -240,9 +240,10 @@ const Login: React.FC = () => {
           <div className="icon-wrapper">
             <FaLeaf />
           </div>
-          <h1>Crop CRM</h1>
-          <p>Gestión de Cultivos Solidarios</p>
+          <h1>Chakra GrowApp</h1>
+          <p>Gestión de Cultivos</p>
         </Logo>
+
 
         <Form onSubmit={handleSubmit}>
           {error && <ErrorMessage>{error}</ErrorMessage>}
