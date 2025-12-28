@@ -183,7 +183,7 @@ const HamburgerButton = styled.button`
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { logout } = useAuth();
 
   // Close sidebar when route changes only on mobile
   React.useEffect(() => {
@@ -239,10 +239,11 @@ const Sidebar: React.FC = () => {
         </NavList>
 
         <UserSection>
-          <LogoutButton onClick={signOut}>
+          <LogoutButton onClick={logout}>
             <FaSignOutAlt /> Cerrar Sesión
           </LogoutButton>
         </UserSection>
+
       </SidebarContainer>
     </>
   );
