@@ -10,7 +10,7 @@ import {
   FaMapMarkerAlt
 } from 'react-icons/fa';
 import type { Crop } from '../types';
-import type { Crop } from '../types';
+
 
 
 const Page = styled.div`
