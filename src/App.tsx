@@ -4,6 +4,7 @@ import styled from 'styled-components';
 // import LiveChat from './components/LiveChat'; // Disabling LiveChat for CRM cleanup
 import Dashboard from './pages/Dashboard';
 import Crops from './pages/Crops';
+import CropDetail from './pages/CropDetail';
 import DailyLog from './pages/DailyLog';
 import Parameters from './pages/Parameters';
 import Tasks from './pages/Tasks';
@@ -59,6 +60,13 @@ function App() {
           <RequireAuth>
             <MainContent>
               <Crops />
+            </MainContent>
+          </RequireAuth>
+        } />
+        <Route path="/crops/:id" element={
+          <RequireAuth>
+            <MainContent>
+              <CropDetail />
             </MainContent>
           </RequireAuth>
         } />

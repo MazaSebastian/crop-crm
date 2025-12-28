@@ -27,6 +27,32 @@ export const cropsService = {
         }));
     },
 
+    async getCropById(id: string): Promise<Crop | null> {
+        if (!supabase) return null;
+
+        const { data, error } = await supabase
+            .from('chakra_crops')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) {
+            console.error('Error fetching crop:', error);
+            return null;
+        }
+
+        return {
+            id: data.id,
+            name: data.name,
+            location: data.location,
+            startDate: data.start_date,
+            estimatedHarvestDate: data.estimated_harvest_date,
+            photoUrl: data.photo_url,
+            partners: [],
+            status: data.status
+        };
+    },
+
     async createCrop(crop: Omit<Crop, 'id' | 'partners' | 'status'> & { estimatedHarvestDate?: string }): Promise<Crop | null> {
         if (!supabase) return null;
 

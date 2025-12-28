@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   FaSeedling,
@@ -13,7 +14,7 @@ import type { Crop } from '../types';
 
 
 
-const Page = styled.div`
+const Container = styled.div`
   padding: 2rem;
   padding-top: 5rem;
   max-width: 1400px;
@@ -320,8 +321,14 @@ const Crops: React.FC = () => {
     return Math.floor(diff / (1000 * 60 * 60 * 24));
   };
 
+  const navigate = useNavigate();
+
+  const handleCardClick = (id: string) => {
+    navigate(`/crops/${id}`);
+  };
+
   return (
-    <Page>
+    <Container>
       <Header>
         <h1>Mis Cultivos</h1>
         <CreateButton onClick={() => setIsModalOpen(true)}><FaPlus /> Nuevo Cultivo</CreateButton>
@@ -329,7 +336,7 @@ const Crops: React.FC = () => {
 
       <Grid>
         {crops.map(c => (
-          <Card key={c.id}>
+          <Card key={c.id} onClick={() => handleCardClick(c.id)} style={{ cursor: 'pointer' }}>
             <CardHeader>
               <div className="icon"><FaSeedling /></div>
               <div className="title">{c.name}</div>
