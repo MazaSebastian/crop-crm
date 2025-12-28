@@ -10,7 +10,8 @@ import {
   FaMapMarkerAlt
 } from 'react-icons/fa';
 import type { Crop } from '../types';
-import { getCrops } from '../services/mockDataService';
+import type { Crop } from '../types';
+
 
 const Page = styled.div`
   padding: 2rem;
@@ -170,8 +171,143 @@ const CreateButton = styled.button`
   }
 `;
 
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  padding: 2rem;
+  border-radius: 1.5rem;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: fadeIn 0.2s ease-out;
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  h2 {
+    margin-top: 0;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+  }
+`;
+
+const FormGroup = styled.div`
+  margin-bottom: 1.25rem;
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #4a5568;
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+
+  input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: #3182ce;
+      box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+    }
+  }
+`;
+
+const ModalActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+`;
+
+const Button = styled.button<{ variant?: 'primary' | 'secondary' }>`
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid ${p => p.variant === 'secondary' ? '#e2e8f0' : 'transparent'};
+  background: ${p => p.variant === 'secondary' ? 'white' : '#3182ce'};
+  color: ${p => p.variant === 'secondary' ? '#4a5568' : 'white'};
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: ${p => p.variant === 'secondary' ? '#f7fafc' : '#2b6cb0'};
+  }
+`;
+
 const Crops: React.FC = () => {
-  const crops: Crop[] = useMemo(() => getCrops(), []);
+  const [crops, setCrops] = useState<Crop[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // New Crop Form State
+  const [formData, setFormData] = useState({
+    name: '',
+    startDate: new Date().toISOString().split('T')[0],
+    estimatedHarvestDate: '',
+    location: ''
+  });
+
+  // Load initial data
+  // Using useState + useEffect instead of useMemo to allow async fetching
+  React.useEffect(() => {
+    loadCrops();
+  }, []);
+
+  const loadCrops = async () => {
+    setLoading(true);
+    // Dynamic import to avoid circular dependency issues if any, or just standard import
+    // Assuming cropsService is imported or import it on top. 
+    // Ideally update imports above.
+    const { cropsService } = await import('../services/cropsService');
+    const data = await cropsService.getCrops();
+    setCrops(data);
+    setLoading(false);
+  };
+
+  const handleCreate = async () => {
+    if (!formData.name || !formData.startDate || !formData.location) return;
+
+    const { cropsService } = await import('../services/cropsService');
+    const newCrop = await cropsService.createCrop({
+      name: formData.name,
+      location: formData.location,
+      startDate: formData.startDate,
+      estimatedHarvestDate: formData.estimatedHarvestDate || undefined
+    });
+
+    if (newCrop) {
+      setCrops(prev => [newCrop, ...prev]);
+      setIsModalOpen(false);
+      setFormData({
+        name: '',
+        startDate: new Date().toISOString().split('T')[0],
+        estimatedHarvestDate: '',
+        location: ''
+      });
+    }
+  };
 
   const statusVariant = (s: Crop['status']): 'green' | 'yellow' | 'gray' => {
     if (s === 'active') return 'green';
@@ -188,7 +324,7 @@ const Crops: React.FC = () => {
     <Page>
       <Header>
         <h1>Mis Cultivos</h1>
-        <CreateButton><FaPlus /> Nuevo Cultivo</CreateButton>
+        <CreateButton onClick={() => setIsModalOpen(true)}><FaPlus /> Nuevo Cultivo</CreateButton>
       </Header>
 
       <Grid>
@@ -201,7 +337,7 @@ const Crops: React.FC = () => {
             <CardBody>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Badge variant={statusVariant(c.status)}>{c.status}</Badge>
-                <span style={{ fontSize: '0.8rem', color: '#718096' }}>ID: {c.id.split('-')[1]}</span>
+                {/* ID removed as requested */}
               </div>
 
               <InfoRow>
@@ -210,8 +346,11 @@ const Crops: React.FC = () => {
               <InfoRow>
                 <FaCalendarAlt /> Inicio: {new Date(c.startDate).toLocaleDateString('es-AR')} ({getDaysSince(c.startDate)} días)
               </InfoRow>
-
-              {/* Future: Add mini stats or recent activity summary here */}
+              {c.estimatedHarvestDate && (
+                <InfoRow>
+                  <FaCalendarAlt /> Fin Previsto: {new Date(c.estimatedHarvestDate).toLocaleDateString('es-AR')}
+                </InfoRow>
+              )}
             </CardBody>
             <ActionBar>
               <ActionButton title="Registro Diario"><FaThermometerHalf /> Diario</ActionButton>
@@ -221,8 +360,61 @@ const Crops: React.FC = () => {
           </Card>
         ))}
       </Grid>
+
+      {/* Create Modal */}
+      {isModalOpen && (
+        <ModalOverlay onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false) }}>
+          <ModalContent>
+            <h2>Nuevo Cultivo</h2>
+
+            <FormGroup>
+              <label>Nombre del Cultivo</label>
+              <input
+                type="text"
+                placeholder="Ej: Gorilla Glue #4"
+                value={formData.name}
+                onChange={e => setFormData({ ...formData, name: e.target.value })}
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <label>Ubicación</label>
+              <input
+                type="text"
+                placeholder="Ej: Carpa Indoor 1, Exterior..."
+                value={formData.location}
+                onChange={e => setFormData({ ...formData, location: e.target.value })}
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <label>Fecha de Inicio</label>
+              <input
+                type="date"
+                value={formData.startDate}
+                onChange={e => setFormData({ ...formData, startDate: e.target.value })}
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <label>Fecha Finalización (Estimada)</label>
+              <input
+                type="date"
+                value={formData.estimatedHarvestDate}
+                onChange={e => setFormData({ ...formData, estimatedHarvestDate: e.target.value })}
+              />
+            </FormGroup>
+
+            <ModalActions>
+              <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
+              <Button onClick={handleCreate}>Crear Cultivo</Button>
+            </ModalActions>
+          </ModalContent>
+        </ModalOverlay>
+      )}
     </Page>
   );
 };
 
 export default Crops;
+

@@ -34,6 +34,7 @@ export interface Crop {
   name: string;
   location?: string;
   startDate: string; // ISO
+  estimatedHarvestDate?: string; // ISO
   photoUrl?: string;
   partners: CropPartner[]; // pensado para 2 personas
   status: 'active' | 'paused' | 'completed';
