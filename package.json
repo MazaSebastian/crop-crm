@@ -13,6 +13,7 @@
     "@types/react-dom": "^18.0.6",
     "@types/styled-components": "^5.1.26",
     "axios": "^1.4.0",
+    "date-fns": "^2.30.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.10.1",
@@ -28,7 +29,6 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "deploy": "npx vercel deploy --prod"
-
   },
   "eslintConfig": {
     "extends": [

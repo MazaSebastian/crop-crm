@@ -2,31 +2,31 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import {
-    format,
-    eachDayOfInterval,
-    startOfMonth,
-    endOfMonth,
-    startOfWeek,
-    endOfWeek,
-    isSameMonth,
-    isSameDay,
-    addMonths,
-    subMonths,
-    eachMonthOfInterval,
-    startOfYear,
-    endOfYear
+  format,
+  eachDayOfInterval,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  isSameMonth,
+  isSameDay,
+  addMonths,
+  subMonths,
+  eachMonthOfInterval,
+  startOfYear,
+  endOfYear
 } from 'date-fns';
-import { es } from 'date-fns/locale';
+import es from 'date-fns/locale/es';
 import {
-    FaArrowLeft,
-    FaCalendarAlt,
-    FaSeedling,
-    FaMapMarkerAlt,
-    FaTint,
-    FaChevronLeft,
-    FaChevronRight,
-    FaLeaf,
-    FaChartLine
+  FaArrowLeft,
+  FaCalendarAlt,
+  FaSeedling,
+  FaMapMarkerAlt,
+  FaTint,
+  FaChevronLeft,
+  FaChevronRight,
+  FaLeaf,
+  FaChartLine
 } from 'react-icons/fa';
 
 import { cropsService } from '../services/cropsService';
@@ -223,12 +223,12 @@ const HeatmapCell = styled.div<{ level: number }>`
   aspect-ratio: 1;
   border-radius: 2px;
   background-color: ${p => {
-        if (p.level === 0) return '#ebedf0';
-        if (p.level === 1) return '#9be9a8';
-        if (p.level === 2) return '#40c463';
-        if (p.level === 3) return '#30a14e';
-        return '#216e39';
-    }};
+    if (p.level === 0) return '#ebedf0';
+    if (p.level === 1) return '#9be9a8';
+    if (p.level === 2) return '#40c463';
+    if (p.level === 3) return '#30a14e';
+    return '#216e39';
+  }};
   transition: transform 0.1s;
   
   &:hover { transform: scale(1.2); }
@@ -236,125 +236,125 @@ const HeatmapCell = styled.div<{ level: number }>`
 
 
 const CropDetail: React.FC = () => {
-    const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
-    const [crop, setCrop] = useState<Crop | null>(null);
-    const [currentDate, setCurrentDate] = useState(new Date());
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [crop, setCrop] = useState<Crop | null>(null);
+  const [currentDate, setCurrentDate] = useState(new Date());
 
-    useEffect(() => {
-        if (id) {
-            loadCrop(id);
-        }
-    }, [id]);
-
-    const loadCrop = async (cropId: string) => {
-        const data = await cropsService.getCropById(cropId);
-        if (!data) {
-            navigate('/crops'); // Redirect if not found
-        }
-        setCrop(data);
-    };
-
-    const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
-    const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
-
-    // Calendar Logic
-    const monthStart = startOfMonth(currentDate);
-    const monthEnd = endOfMonth(monthStart);
-    const startDate = startOfWeek(monthStart, { weekStartsOn: 1 }); // Monday start
-    const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
-    const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
-
-    const weekDays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-
-    // Annual Logic for 2025 (Mock data for now)
-    const yearStart = startOfYear(new Date());
-    const yearMonths = eachMonthOfInterval({
-        start: mapYearStart(new Date()),
-        end: new Date()
-    }).slice(-12); // Show last 12 months or simple current year
-
-
-    function mapYearStart(date: Date) {
-        return startOfYear(date);
+  useEffect(() => {
+    if (id) {
+      loadCrop(id);
     }
+  }, [id]);
 
-    if (!crop) return <div>Cargando...</div>;
+  const loadCrop = async (cropId: string) => {
+    const data = await cropsService.getCropById(cropId);
+    if (!data) {
+      navigate('/crops'); // Redirect if not found
+    }
+    setCrop(data);
+  };
 
-    return (
-        <Container>
-            <Header>
-                <BackButton onClick={() => navigate('/crops')}>
-                    <FaArrowLeft /> Volver a Cultivos
-                </BackButton>
+  const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
+  const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
 
-                <TitleSection>
-                    <div>
-                        <CropTitle><FaLeaf /> {crop.name}</CropTitle>
-                        <MetaGrid>
-                            <div><FaMapMarkerAlt /> {crop.location}</div>
-                            <div><FaCalendarAlt /> Inicio: {format(new Date(crop.startDate), 'dd MMM yyyy', { locale: es })}</div>
-                            {crop.estimatedHarvestDate && (
-                                <div><FaSeedling /> Cosecha: {format(new Date(crop.estimatedHarvestDate), 'MMM yyyy', { locale: es })}</div>
-                            )}
-                        </MetaGrid>
-                    </div>
-                </TitleSection>
-            </Header>
+  // Calendar Logic
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(monthStart);
+  const startDate = startOfWeek(monthStart, { weekStartsOn: 1 }); // Monday start
+  const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
+  const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
 
-            {/* Monthly View */}
-            <CalendarContainer>
-                <CalendarHeader>
-                    <h2><FaCalendarAlt /> Calendario Mensual</h2>
-                    <MonthNav>
-                        <button onClick={prevMonth}><FaChevronLeft /></button>
-                        <span>{format(currentDate, 'MMMM yyyy', { locale: es })}</span>
-                        <button onClick={nextMonth}><FaChevronRight /></button>
-                    </MonthNav>
-                </CalendarHeader>
+  const weekDays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
-                <MonthGrid>
-                    {weekDays.map(day => (
-                        <DayHeader key={day}>{day}</DayHeader>
-                    ))}
+  // Annual Logic for 2025 (Mock data for now)
+  const yearStart = startOfYear(new Date());
+  const yearMonths = eachMonthOfInterval({
+    start: mapYearStart(new Date()),
+    end: new Date()
+  }).slice(-12); // Show last 12 months or simple current year
 
-                    {calendarDays.map((day, idx) => (
-                        <DayCell
-                            key={idx}
-                            isCurrentMonth={isSameMonth(day, monthStart)}
-                            isToday={isSameDay(day, new Date())}
-                        >
-                            <span className="day-number">{format(day, 'd')}</span>
-                            {/* Events would go here */}
-                        </DayCell>
-                    ))}
-                </MonthGrid>
-            </CalendarContainer>
 
-            {/* Annual Overview (Visual concept) */}
-            <CalendarContainer>
-                <CalendarHeader>
-                    <h2><FaChartLine /> Actividad Anual</h2>
-                </CalendarHeader>
-                <p style={{ color: '#718096', fontSize: '0.9rem', marginBottom: '1rem' }}>Densidad de registros y tareas completadas.</p>
+  function mapYearStart(date: Date) {
+    return startOfYear(date);
+  }
 
-                <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '1rem' }}>
-                    {/* Simple mockup for Monthly Intensity Blocks */}
-                    {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((m) => (
-                        <div key={m} style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
-                            <div style={{ fontSize: '0.75rem', color: '#a0aec0', marginBottom: '4px' }}>{m}</div>
-                            <div style={{ display: 'grid', gridTemplateRows: 'repeat(5, 1fr)', gridAutoFlow: 'column', gap: '3px' }}>
-                                {[...Array(20)].map((_, i) => (
-                                    <HeatmapCell key={i} level={Math.floor(Math.random() * 5)} style={{ width: '12px', height: '12px' }} />
-                                ))}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </CalendarContainer>
+  if (!crop) return <div>Cargando...</div>;
 
-        </Container>
-    );
+  return (
+    <Container>
+      <Header>
+        <BackButton onClick={() => navigate('/crops')}>
+          <FaArrowLeft /> Volver a Cultivos
+        </BackButton>
+
+        <TitleSection>
+          <div>
+            <CropTitle><FaLeaf /> {crop.name}</CropTitle>
+            <MetaGrid>
+              <div><FaMapMarkerAlt /> {crop.location}</div>
+              <div><FaCalendarAlt /> Inicio: {format(new Date(crop.startDate), 'dd MMM yyyy', { locale: es })}</div>
+              {crop.estimatedHarvestDate && (
+                <div><FaSeedling /> Cosecha: {format(new Date(crop.estimatedHarvestDate), 'MMM yyyy', { locale: es })}</div>
+              )}
+            </MetaGrid>
+          </div>
+        </TitleSection>
+      </Header>
+
+      {/* Monthly View */}
+      <CalendarContainer>
+        <CalendarHeader>
+          <h2><FaCalendarAlt /> Calendario Mensual</h2>
+          <MonthNav>
+            <button onClick={prevMonth}><FaChevronLeft /></button>
+            <span>{format(currentDate, 'MMMM yyyy', { locale: es })}</span>
+            <button onClick={nextMonth}><FaChevronRight /></button>
+          </MonthNav>
+        </CalendarHeader>
+
+        <MonthGrid>
+          {weekDays.map(day => (
+            <DayHeader key={day}>{day}</DayHeader>
+          ))}
+
+          {calendarDays.map((day, idx) => (
+            <DayCell
+              key={idx}
+              isCurrentMonth={isSameMonth(day, monthStart)}
+              isToday={isSameDay(day, new Date())}
+            >
+              <span className="day-number">{format(day, 'd')}</span>
+              {/* Events would go here */}
+            </DayCell>
+          ))}
+        </MonthGrid>
+      </CalendarContainer>
+
+      {/* Annual Overview (Visual concept) */}
+      <CalendarContainer>
+        <CalendarHeader>
+          <h2><FaChartLine /> Actividad Anual</h2>
+        </CalendarHeader>
+        <p style={{ color: '#718096', fontSize: '0.9rem', marginBottom: '1rem' }}>Densidad de registros y tareas completadas.</p>
+
+        <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '1rem' }}>
+          {/* Simple mockup for Monthly Intensity Blocks */}
+          {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((m) => (
+            <div key={m} style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
+              <div style={{ fontSize: '0.75rem', color: '#a0aec0', marginBottom: '4px' }}>{m}</div>
+              <div style={{ display: 'grid', gridTemplateRows: 'repeat(5, 1fr)', gridAutoFlow: 'column', gap: '3px' }}>
+                {[...Array(20)].map((_, i) => (
+                  <HeatmapCell key={i} level={Math.floor(Math.random() * 5)} style={{ width: '12px', height: '12px' }} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </CalendarContainer>
+
+    </Container>
+  );
 };
 
 export default CropDetail;
