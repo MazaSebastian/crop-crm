@@ -45,5 +45,21 @@ export const dailyLogsService = {
         }
 
         return data as DailyLog;
+    },
+
+    async getLogsByCropId(cropId: string): Promise<DailyLog[]> {
+        if (!supabase) return [];
+
+        const { data, error } = await supabase
+            .from('chakra_daily_logs')
+            .select('*')
+            .eq('crop_id', cropId);
+
+        if (error) {
+            console.error('Error fetching logs:', error);
+            return [];
+        }
+
+        return data as DailyLog[];
     }
 };

@@ -183,20 +183,25 @@ const DayHeader = styled.div`
   text-transform: uppercase;
 `;
 
-const DayCell = styled.div<{ isCurrentMonth?: boolean, isToday?: boolean }>`
+const DayCell = styled.div<{ isCurrentMonth?: boolean, isToday?: boolean, hasEvent?: boolean }>`
   opacity: ${props => props.isCurrentMonth ? 1 : 0.4};
-  background: ${props => props.isToday ? '#f0fff4 !important' : 'white'};
+  background-color: ${props => props.hasEvent ? '#c6f6d5 !important' : props.isToday ? '#f0fff4 !important' : 'white'};
+  border: ${props => props.hasEvent ? '1px solid #48bb78' : 'none'};
+  transition: all 0.2s;
   
   .day-number {
     font-weight: 600;
     font-size: 0.9rem;
-    color: ${props => props.isToday ? '#2f855a' : '#2d3748'};
+    color: ${props => props.hasEvent ? '#22543d' : props.isToday ? '#2f855a' : '#2d3748'};
     margin-bottom: 0.5rem;
     display: block;
   }
 
   &:hover {
-    background: #fafafa;
+    background-color: ${props => props.hasEvent ? '#9ae6b4 !important' : '#fafafa'};
+    transform: translateY(-2px);
+    z-index: 10;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
   }
 `;
 
@@ -349,11 +354,15 @@ const CropDetail: React.FC = () => {
   const [taskForm, setTaskForm] = useState({ title: '', type: 'info', description: '' });
   const [logForm, setLogForm] = useState({ notes: '' });
 
+  // Event Indicators Key
+  const [eventDates, setEventDates] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     if (id) {
       loadCrop(id);
+      loadEvents(id);
     }
-  }, [id]);
+  }, [id]); // Reload events when ID changes
 
   const loadCrop = async (cropId: string) => {
     const data = await cropsService.getCropById(cropId);
@@ -361,6 +370,23 @@ const CropDetail: React.FC = () => {
       navigate('/crops'); // Redirect if not found
     }
     setCrop(data);
+  };
+
+  const loadEvents = async (cropId: string) => {
+    try {
+      const [tasks, logs] = await Promise.all([
+        tasksService.getTasksByCropId(cropId),
+        dailyLogsService.getLogsByCropId(cropId)
+      ]);
+
+      const dates = new Set<string>();
+      tasks.forEach(t => t.due_date && dates.add(t.due_date));
+      logs.forEach(l => dates.add(l.date));
+
+      setEventDates(dates);
+    } catch (e) {
+      console.error("Error loading events", e);
+    }
   };
 
   const handleDayClick = async (day: Date) => {
@@ -372,7 +398,8 @@ const CropDetail: React.FC = () => {
 
     // Try to fetch existing log to pre-fill
     if (id) {
-      const existingLog = await dailyLogsService.getLogByDate(id, format(day, 'yyyy-MM-dd'));
+      const dateStr = format(day, 'yyyy-MM-dd');
+      const existingLog = await dailyLogsService.getLogByDate(id, dateStr);
       if (existingLog) {
         setLogForm({ notes: existingLog.notes });
         setActiveTab('log'); // Switch to log if exists
@@ -405,6 +432,8 @@ const CropDetail: React.FC = () => {
       });
       alert('Registro guardado exitosamente');
     }
+    // Refresh events map
+    loadEvents(id);
     setIsModalOpen(false);
   };
 
@@ -476,6 +505,7 @@ const CropDetail: React.FC = () => {
               key={idx}
               isCurrentMonth={isSameMonth(day, monthStart)}
               isToday={isSameDay(day, new Date())}
+              hasEvent={eventDates.has(format(day, 'yyyy-MM-dd'))}
               onClick={() => handleDayClick(day)}
               style={{ cursor: 'pointer' }}
             >

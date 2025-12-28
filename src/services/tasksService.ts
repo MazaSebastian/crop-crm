@@ -66,5 +66,21 @@ export const tasksService = {
         }
 
         return true;
+    },
+
+    async getTasksByCropId(cropId: string): Promise<Task[]> {
+        if (!supabase) return [];
+
+        const { data, error } = await supabase
+            .from('chakra_tasks')
+            .select('*')
+            .eq('crop_id', cropId);
+
+        if (error) {
+            console.error('Error fetching tasks for crop:', error);
+            return [];
+        }
+
+        return data as Task[];
     }
 };
