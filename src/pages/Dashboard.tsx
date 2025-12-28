@@ -1,11 +1,13 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+
 import styled from 'styled-components';
-import { 
-  FaSeedling, 
-  FaThermometerHalf, 
-  FaTint, 
-  FaWind, 
-  FaExclamationTriangle, 
+import {
+  FaSeedling,
+  FaThermometerHalf,
+  FaTint,
+  FaWind,
+  FaExclamationTriangle,
   FaCalendarCheck,
   FaLeaf,
   FaChartLine,
@@ -260,26 +262,16 @@ const Dashboard: React.FC = () => {
       </WelcomeHeader>
 
       <KPISection>
-        <KPICard active>
-          <div className="icon-wrapper"><FaSeedling /></div>
-          <div className="label">Cultivos Activos</div>
-          <div className="value">4 <span className="unit">variedades</span></div>
-          <div className="subtext"><FaChartLine /> +1 esta semana</div>
-        </KPICard>
+        <Link to="/crops" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <KPICard active>
+            <div className="icon-wrapper"><FaSeedling /></div>
+            <div className="label">Cultivos Activos</div>
+            <div className="value">4 <span className="unit">variedades</span></div>
+            <div className="subtext"><FaChartLine /> +1 esta semana</div>
+          </KPICard>
+        </Link>
 
-        <KPICard>
-          <div className="icon-wrapper"><FaThermometerHalf /></div>
-          <div className="label">Temperatura (Prom)</div>
-          <div className="value">24.5 <span className="unit">°C</span></div>
-          <div className="subtext" style={{ color: '#38a169' }}>En rango óptimo</div>
-        </KPICard>
-
-        <KPICard>
-          <div className="icon-wrapper"><FaTint /></div>
-          <div className="label">Humedad (Prom)</div>
-          <div className="value">58 <span className="unit">%</span></div>
-          <div className="subtext">Fase Vegetativa</div>
-        </KPICard>
+        {/* Removed Temperature and Humidity cards as requested */}
 
         <KPICard alert>
           <div className="icon-wrapper"><FaExclamationTriangle /></div>
@@ -288,6 +280,7 @@ const Dashboard: React.FC = () => {
           <div className="subtext">Requiere atención</div>
         </KPICard>
       </KPISection>
+
 
       <ContentGrid>
         <div>
@@ -323,31 +316,31 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div>
-           <SectionTitle><FaExclamationTriangle /> Alertas & Tareas</SectionTitle>
-           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-             <AlertItem>
-               <div className="icon"><FaExclamationTriangle /></div>
-               <div className="content">
-                 <h5>Nivel de Agua Bajo</h5>
-                 <p>Tanque principal al 15%. Rellenar antes de las 18:00.</p>
-               </div>
-             </AlertItem>
+          <SectionTitle><FaExclamationTriangle /> Alertas & Tareas</SectionTitle>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+            <AlertItem>
+              <div className="icon"><FaExclamationTriangle /></div>
+              <div className="content">
+                <h5>Nivel de Agua Bajo</h5>
+                <p>Tanque principal al 15%. Rellenar antes de las 18:00.</p>
+              </div>
+            </AlertItem>
 
-             <AlertItem style={{  background: '#ebf8ff', borderLeftColor: '#4299e1' }}>
-               <div className="icon" style={{ color: '#4299e1' }}><FaCalendarCheck /></div>
-               <div className="content">
-                 <h5 style={{ color: '#2b6cb0' }}>Poda Apical Programada</h5>
-                 <p style={{ color: '#2c5282' }}>Hoy para: Lemon Haze</p>
-               </div>
-             </AlertItem>
+            <AlertItem style={{ background: '#ebf8ff', borderLeftColor: '#4299e1' }}>
+              <div className="icon" style={{ color: '#4299e1' }}><FaCalendarCheck /></div>
+              <div className="content">
+                <h5 style={{ color: '#2b6cb0' }}>Poda Apical Programada</h5>
+                <p style={{ color: '#2c5282' }}>Hoy para: Lemon Haze</p>
+              </div>
+            </AlertItem>
 
-             <QuickActionButton>
-               <FaPlus /> Nuevo Cultivo
-             </QuickActionButton>
-             <QuickActionButton style={{ background: '#38a169' }}>
-               <FaTint /> Registrar Riego
-             </QuickActionButton>
-           </div>
+            <QuickActionButton>
+              <FaPlus /> Nuevo Cultivo
+            </QuickActionButton>
+            <QuickActionButton style={{ background: '#38a169' }}>
+              <FaTint /> Registrar Riego
+            </QuickActionButton>
+          </div>
         </div>
       </ContentGrid>
     </Container>
