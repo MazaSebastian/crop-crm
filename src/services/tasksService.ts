@@ -68,6 +68,36 @@ export const tasksService = {
         return true;
     },
 
+    async updateTask(id: string, updates: Partial<CreateTaskInput>): Promise<boolean> {
+        if (!supabase) return false;
+
+        const { error } = await supabase
+            .from('chakra_tasks')
+            .update(updates)
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error updating task:', error);
+            return false;
+        }
+        return true;
+    },
+
+    async deleteTask(id: string): Promise<boolean> {
+        if (!supabase) return false;
+
+        const { error } = await supabase
+            .from('chakra_tasks')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error deleting task:', error);
+            return false;
+        }
+        return true;
+    },
+
     async getTasksByCropId(cropId: string): Promise<Task[]> {
         if (!supabase) return [];
 

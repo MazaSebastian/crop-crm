@@ -61,5 +61,20 @@ export const dailyLogsService = {
         }
 
         return data as DailyLog[];
+    },
+
+    async deleteLog(id: string): Promise<boolean> {
+        if (!supabase) return false;
+
+        const { error } = await supabase
+            .from('chakra_daily_logs')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error deleting log:', error);
+            return false;
+        }
+        return true;
     }
 };

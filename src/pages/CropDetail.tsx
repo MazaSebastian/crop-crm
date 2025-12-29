@@ -26,7 +26,10 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaLeaf,
-  FaChartLine
+  FaChartLine,
+  FaTrash,
+  FaEdit,
+  FaTimes
 } from 'react-icons/fa';
 
 import { tasksService } from '../services/tasksService';
@@ -399,6 +402,11 @@ const CropDetail: React.FC = () => {
   const [taskForm, setTaskForm] = useState({ title: '', type: 'info', description: '' });
   const [logForm, setLogForm] = useState({ notes: '' });
 
+  // Modify/Delete State
+  const [selectedDayTasks, setSelectedDayTasks] = useState<Task[]>([]);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [existingLogId, setExistingLogId] = useState<string | null>(null);
+
   // ... (Define EventData type outside component)
   interface EventData {
     tasks: any[]; // Using any to avoid importing Task if not strictly needed, or import it.
@@ -471,33 +479,72 @@ const CropDetail: React.FC = () => {
   // ... (Inside return)
 
 
-  const handleDayClick = async (day: Date) => {
-    setSelectedDate(day);
+  // Reset forms and edit state
+  setTaskForm({ title: '', type: 'info', description: '' });
+  setLogForm({ notes: '' });
+  setEditingTaskId(null);
+  setExistingLogId(null);
+  setSelectedDayTasks([]); // Reset tasks list
 
-    // Reset forms
-    setTaskForm({ title: '', type: 'info', description: '' });
-    setLogForm({ notes: '' });
+  // Get Data from Map
+  const dateStr = format(day, 'yyyy-MM-dd');
+  const eventData = eventsMap.get(dateStr);
 
-    // Try to fetch existing log to pre-fill
-    if (id) {
-      const dateStr = format(day, 'yyyy-MM-dd');
-      const existingLog = await dailyLogsService.getLogByDate(id, dateStr);
-      if (existingLog) {
-        setLogForm({ notes: existingLog.notes });
-        setActiveTab('log'); // Switch to log if exists
-      } else {
-        setActiveTab('task');
-      }
+  if (eventData) {
+    setSelectedDayTasks(eventData.tasks || []);
+    if (eventData.log) {
+      setExistingLogId(eventData.log.id);
+      setLogForm({ notes: eventData.log.notes });
     }
+  }
 
-    setIsModalOpen(true);
-  };
+  // Determine initial tab (Logic: if log exists, show log. Else show task)
+  if (eventData?.log) {
+    setActiveTab('log');
+  } else {
+    setActiveTab('task');
+  }
 
-  const handleSave = async () => {
-    if (!selectedDate || !id) return;
-    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+  setIsModalOpen(true);
+};
 
-    if (activeTab === 'task') {
+const handleEditTask = (task: Task) => {
+  setTaskForm({
+    title: task.title,
+    type: task.type as any, // Warning: loss of type safety pending strict check
+    description: task.description || ''
+  });
+  setEditingTaskId(task.id);
+};
+
+const handleDeleteTask = async (taskId: string) => {
+  if (!confirm('¿Eliminar esta tarea?')) return;
+  await tasksService.deleteTask(taskId);
+  if (id) loadEvents(id);
+  setIsModalOpen(false); // Close to refresh cleanly or update local state
+};
+
+const handleDeleteLog = async () => {
+  if (!existingLogId) return;
+  if (!confirm('¿Eliminar este registro diario?')) return;
+  await dailyLogsService.deleteLog(existingLogId);
+  if (id) loadEvents(id);
+  setIsModalOpen(false);
+};
+
+const handleSave = async () => {
+  if (!selectedDate || !id) return;
+  const dateStr = format(selectedDate, 'yyyy-MM-dd');
+
+  if (activeTab === 'task') {
+    if (editingTaskId) {
+      await tasksService.updateTask(editingTaskId, {
+        title: taskForm.title,
+        description: taskForm.description,
+        type: taskForm.type as any,
+      });
+      alert('Tarea actualizada');
+    } else {
       await tasksService.createTask({
         title: taskForm.title,
         description: taskForm.description,
@@ -505,209 +552,245 @@ const CropDetail: React.FC = () => {
         due_date: dateStr,
         crop_id: id
       });
-      alert('Tarea creada exitosamente');
-    } else {
-      await dailyLogsService.upsertLog({
-        crop_id: id,
-        date: dateStr,
-        notes: logForm.notes
-      });
-      alert('Registro guardado exitosamente');
+      alert('Tarea creada');
     }
-    // Refresh events map
-    loadEvents(id);
-    setIsModalOpen(false);
-  };
-
-  const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
-  const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
-
-  // Calendar Logic
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(monthStart);
-  const startDate = startOfWeek(monthStart, { weekStartsOn: 1 }); // Monday start
-  const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
-  const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
-
-  const weekDays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-
-  // Annual Logic for 2025 (Mock data for now)
-  const yearStart = startOfYear(new Date());
-  const yearMonths = eachMonthOfInterval({
-    start: mapYearStart(new Date()),
-    end: new Date()
-  }).slice(-12); // Show last 12 months or simple current year
-
-
-  function mapYearStart(date: Date) {
-    return startOfYear(date);
+  } else {
+    await dailyLogsService.upsertLog({
+      crop_id: id,
+      date: dateStr,
+      notes: logForm.notes
+    });
+    alert('Registro guardado');
   }
+  // Refresh events map
+  if (id) await loadEvents(id);
+  setIsModalOpen(false);
+};
 
-  if (!crop) {
-    return (
-      <Container>
-        <Header>
-          <BackButton onClick={() => navigate('/crops')}>
-            <FaArrowLeft /> Volver
-          </BackButton>
-        </Header>
-        <div style={{ padding: '2rem', textAlign: 'center', color: '#718096' }}>
-          <h2>⏳ Cargando Datos...</h2>
-          <p>Intentando cargar cultivo ID: <strong>{id || 'No ID detected'}</strong></p>
-          <p><small>Versión de depuración activa.</small></p>
-        </div>
-      </Container>
-    );
-  }
+const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
+const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
 
+// Calendar Logic
+const monthStart = startOfMonth(currentDate);
+const monthEnd = endOfMonth(monthStart);
+const startDate = startOfWeek(monthStart, { weekStartsOn: 1 }); // Monday start
+const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
+const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
+
+const weekDays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+
+// Annual Logic for 2025 (Mock data for now)
+const yearStart = startOfYear(new Date());
+const yearMonths = eachMonthOfInterval({
+  start: mapYearStart(new Date()),
+  end: new Date()
+}).slice(-12); // Show last 12 months or simple current year
+
+
+function mapYearStart(date: Date) {
+  return startOfYear(date);
+}
+
+if (!crop) {
   return (
     <Container>
       <Header>
         <BackButton onClick={() => navigate('/crops')}>
-          <FaArrowLeft /> Volver a Cultivos
+          <FaArrowLeft /> Volver
         </BackButton>
-
-        <TitleSection>
-          <div>
-            <CropTitle><FaLeaf /> {crop.name}</CropTitle>
-            <MetaGrid>
-              <div><FaMapMarkerAlt /> {crop.location}</div>
-              <div><FaCalendarAlt /> Inicio: {format(new Date(crop.startDate), 'dd MMM yyyy', { locale: es })}</div>
-              {crop.estimatedHarvestDate && (
-                <div><FaSeedling /> Cosecha: {format(new Date(crop.estimatedHarvestDate), 'MMM yyyy', { locale: es })}</div>
-              )}
-            </MetaGrid>
-          </div>
-        </TitleSection>
       </Header>
-
-      {/* Monthly View */}
-      <CalendarContainer>
-        <CalendarHeader>
-          <h2><FaCalendarAlt /> Calendario Mensual</h2>
-          <MonthNav>
-            <button onClick={prevMonth}><FaChevronLeft /></button>
-            <span>{format(currentDate, 'MMMM yyyy', { locale: es })}</span>
-            <button onClick={nextMonth}><FaChevronRight /></button>
-          </MonthNav>
-        </CalendarHeader>
-
-        <MonthGrid>
-          {weekDays.map(day => (
-            <DayHeader key={day}>{day}</DayHeader>
-          ))}
-
-          {calendarDays.map((day, idx) => {
-            const dateKey = format(day, 'yyyy-MM-dd');
-            const data = eventsMap.get(dateKey);
-            const hasEvent = !!data;
-
-            return (
-              <DayCell
-                key={idx}
-                isCurrentMonth={isSameMonth(day, monthStart)}
-                isToday={isSameDay(day, new Date())}
-                hasEvent={hasEvent}
-                onClick={() => handleDayClick(day)}
-                style={{ cursor: 'pointer' }}
-              >
-                <span className="day-number">{format(day, 'd')}</span>
-                {hasEvent && (
-                  <Tooltip>
-                    {data?.log && <div className="log-badge">📝 Diario</div>}
-                    {data?.tasks.map((t, i) => (
-                      <div key={i} className="task-item">
-                        • {t.title}
-                      </div>
-                    ))}
-                  </Tooltip>
-                )}
-              </DayCell>
-            )
-          })}
-        </MonthGrid>
-      </CalendarContainer>
-
-      {/* Annual Overview (Visual concept) */}
-      <CalendarContainer>
-        <CalendarHeader>
-          <h2><FaChartLine /> Actividad Anual</h2>
-        </CalendarHeader>
-        <p style={{ color: '#718096', fontSize: '0.9rem', marginBottom: '1rem' }}>Densidad de registros y tareas completadas.</p>
-
-        <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '1rem' }}>
-          {/* Simple mockup for Monthly Intensity Blocks */}
-          {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((m) => (
-            <div key={m} style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
-              <div style={{ fontSize: '0.75rem', color: '#a0aec0', marginBottom: '4px' }}>{m}</div>
-              <div style={{ display: 'grid', gridTemplateRows: 'repeat(5, 1fr)', gridAutoFlow: 'column', gap: '3px' }}>
-                {[...Array(20)].map((_, i) => (
-                  <HeatmapCell key={i} level={Math.floor(Math.random() * 5)} style={{ width: '12px', height: '12px' }} />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </CalendarContainer>
-
-      {isModalOpen && selectedDate && (
-        <ModalOverlay onClick={() => setIsModalOpen(false)}>
-          <Modal onClick={e => e.stopPropagation()}>
-            <ModalHeader>
-              <h3>{format(selectedDate, "EEEE d 'de' MMMM", { locale: es })}</h3>
-              <CloseButton onClick={() => setIsModalOpen(false)}>&times;</CloseButton>
-            </ModalHeader>
-
-            <TabGroup>
-              <Tab active={activeTab === 'task'} onClick={() => setActiveTab('task')}>Nueva Tarea</Tab>
-              <Tab active={activeTab === 'log'} onClick={() => setActiveTab('log')}>Diario de Cultivo</Tab>
-            </TabGroup>
-
-            {activeTab === 'task' ? (
-              <>
-                <FormGroup>
-                  <label>Título</label>
-                  <input
-                    value={taskForm.title}
-                    onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
-                    placeholder="Ej: Riego profundo con CalMag"
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <label>Tipo</label>
-                  <select value={taskForm.type} onChange={e => setTaskForm({ ...taskForm, type: e.target.value as any })}>
-                    <option value="info">Info / Recordatorio</option>
-                    <option value="warning">Importante</option>
-                    <option value="danger">Urgente</option>
-                  </select>
-                </FormGroup>
-                <FormGroup>
-                  <label>Descripción (Opcional)</label>
-                  <textarea
-                    value={taskForm.description}
-                    onChange={e => setTaskForm({ ...taskForm, description: e.target.value })}
-                  />
-                </FormGroup>
-              </>
-            ) : (
-              <FormGroup>
-                <label>Notas del Día</label>
-                <textarea
-                  value={logForm.notes}
-                  onChange={e => setLogForm({ ...logForm, notes: e.target.value })}
-                  placeholder="¿Cómo se ve la planta hoy? ¿Alguna plaga? ¿Crecimiento?"
-                  style={{ minHeight: '200px' }}
-                />
-              </FormGroup>
-            )}
-
-            <PrimaryButton onClick={handleSave}>Guardar</PrimaryButton>
-          </Modal>
-        </ModalOverlay>
-      )}
-
+      <div style={{ padding: '2rem', textAlign: 'center', color: '#718096' }}>
+        <h2>⏳ Cargando Datos...</h2>
+        <p>Intentando cargar cultivo ID: <strong>{id || 'No ID detected'}</strong></p>
+        <p><small>Versión de depuración activa.</small></p>
+      </div>
     </Container>
   );
+}
+
+return (
+  <Container>
+    <Header>
+      <BackButton onClick={() => navigate('/crops')}>
+        <FaArrowLeft /> Volver a Cultivos
+      </BackButton>
+
+      <TitleSection>
+        <div>
+          <CropTitle><FaLeaf /> {crop.name}</CropTitle>
+          <MetaGrid>
+            <div><FaMapMarkerAlt /> {crop.location}</div>
+            <div><FaCalendarAlt /> Inicio: {format(new Date(crop.startDate), 'dd MMM yyyy', { locale: es })}</div>
+            {crop.estimatedHarvestDate && (
+              <div><FaSeedling /> Cosecha: {format(new Date(crop.estimatedHarvestDate), 'MMM yyyy', { locale: es })}</div>
+            )}
+          </MetaGrid>
+        </div>
+      </TitleSection>
+    </Header>
+
+    {/* Monthly View */}
+    <CalendarContainer>
+      <CalendarHeader>
+        <h2><FaCalendarAlt /> Calendario Mensual</h2>
+        <MonthNav>
+          <button onClick={prevMonth}><FaChevronLeft /></button>
+          <span>{format(currentDate, 'MMMM yyyy', { locale: es })}</span>
+          <button onClick={nextMonth}><FaChevronRight /></button>
+        </MonthNav>
+      </CalendarHeader>
+
+      <MonthGrid>
+        {weekDays.map(day => (
+          <DayHeader key={day}>{day}</DayHeader>
+        ))}
+
+        {calendarDays.map((day, idx) => {
+          const dateKey = format(day, 'yyyy-MM-dd');
+          const data = eventsMap.get(dateKey);
+          const hasEvent = !!data;
+
+          return (
+            <DayCell
+              key={idx}
+              isCurrentMonth={isSameMonth(day, monthStart)}
+              isToday={isSameDay(day, new Date())}
+              hasEvent={hasEvent}
+              onClick={() => handleDayClick(day)}
+              style={{ cursor: 'pointer' }}
+            >
+              <span className="day-number">{format(day, 'd')}</span>
+              {hasEvent && (
+                <Tooltip>
+                  {data?.log && <div className="log-badge">📝 Diario</div>}
+                  {data?.tasks.map((t, i) => (
+                    <div key={i} className="task-item">
+                      • {t.title}
+                    </div>
+                  ))}
+                </Tooltip>
+              )}
+            </DayCell>
+          )
+        })}
+      </MonthGrid>
+    </CalendarContainer>
+
+    {/* Annual Overview (Visual concept) */}
+    <CalendarContainer>
+      <CalendarHeader>
+        <h2><FaChartLine /> Actividad Anual</h2>
+      </CalendarHeader>
+      <p style={{ color: '#718096', fontSize: '0.9rem', marginBottom: '1rem' }}>Densidad de registros y tareas completadas.</p>
+
+      <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '1rem' }}>
+        {/* Simple mockup for Monthly Intensity Blocks */}
+        {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((m) => (
+          <div key={m} style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
+            <div style={{ fontSize: '0.75rem', color: '#a0aec0', marginBottom: '4px' }}>{m}</div>
+            <div style={{ display: 'grid', gridTemplateRows: 'repeat(5, 1fr)', gridAutoFlow: 'column', gap: '3px' }}>
+              {[...Array(20)].map((_, i) => (
+                <HeatmapCell key={i} level={Math.floor(Math.random() * 5)} style={{ width: '12px', height: '12px' }} />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </CalendarContainer>
+
+    {isModalOpen && selectedDate && (
+      <ModalOverlay onClick={() => setIsModalOpen(false)}>
+        <Modal onClick={e => e.stopPropagation()}>
+          <ModalHeader>
+            <h3>{format(selectedDate, "EEEE d 'de' MMMM", { locale: es })}</h3>
+            <CloseButton onClick={() => setIsModalOpen(false)}>&times;</CloseButton>
+          </ModalHeader>
+
+          <TabGroup>
+            <Tab active={activeTab === 'task'} onClick={() => setActiveTab('task')}>Nueva Tarea</Tab>
+            <Tab active={activeTab === 'log'} onClick={() => setActiveTab('log')}>Diario de Cultivo</Tab>
+          </TabGroup>
+
+          {activeTab === 'task' ? (
+            <>
+              {/* Task List for the Day */}
+              {selectedDayTasks.length > 0 && (
+                <div style={{ marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem' }}>
+                  <h4 style={{ margin: '0 0 0.5rem 0', color: '#718096' }}>Tareas Programadas:</h4>
+                  {selectedDayTasks.map(task => (
+                    <div key={task.id} style={{
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      background: '#f7fafc', padding: '0.5rem', borderRadius: '0.375rem', marginBottom: '0.5rem'
+                    }}>
+                      <span style={{ fontWeight: 500 }}>{task.title}</span>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={() => handleEditTask(task)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#4299e1' }}>
+                          <FaEdit />
+                        </button>
+                        <button onClick={() => handleDeleteTask(task.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#e53e3e' }}>
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <h4 style={{ margin: '0 0 1rem 0', color: '#2d3748' }}>
+                {editingTaskId ? 'Editar Tarea' : 'Agendar Nueva Tarea'}
+                {editingTaskId && <button onClick={() => { setEditingTaskId(null); setTaskForm({ title: '', type: 'info', description: '' }); }} style={{ marginLeft: '1rem', fontSize: '0.8rem', color: '#e53e3e', border: 'none', background: 'none', cursor: 'pointer' }}>Cancelar Edición</button>}
+              </h4>
+
+              <FormGroup>
+                <label>Título</label>
+                <input
+                  value={taskForm.title}
+                  onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
+                  placeholder="Ej: Riego profundo con CalMag"
+                />
+              </FormGroup>
+              <FormGroup>
+                <label>Tipo</label>
+                <select value={taskForm.type} onChange={e => setTaskForm({ ...taskForm, type: e.target.value as any })}>
+                  <option value="info">Info / Recordatorio</option>
+                  <option value="warning">Importante</option>
+                  <option value="danger">Urgente</option>
+                </select>
+              </FormGroup>
+              <FormGroup>
+                <label>Descripción (Opcional)</label>
+                <textarea
+                  value={taskForm.description}
+                  onChange={e => setTaskForm({ ...taskForm, description: e.target.value })}
+                />
+              </FormGroup>
+            </>
+          ) : (
+            <FormGroup>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <label style={{ margin: 0 }}>Notas del Día</label>
+                {existingLogId && (
+                  <button onClick={handleDeleteLog} style={{ color: '#e53e3e', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem' }}>
+                    <FaTrash /> Eliminar Registro
+                  </button>
+                )}
+              </div>
+              <textarea
+                value={logForm.notes}
+                onChange={e => setLogForm({ ...logForm, notes: e.target.value })}
+                placeholder="¿Cómo se ve la planta hoy? ¿Alguna plaga? ¿Crecimiento?"
+                style={{ minHeight: '200px' }}
+              />
+            </FormGroup>
+          )}
+
+          <PrimaryButton onClick={handleSave}>Guardar</PrimaryButton>
+        </Modal>
+      </ModalOverlay>
+    )}
+
+  </Container>
+);
 };
 
 export default CropDetail;
