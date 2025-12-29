@@ -535,7 +535,22 @@ const CropDetail: React.FC = () => {
     return startOfYear(date);
   }
 
-  if (!crop) return <div>Cargando...</div>;
+  if (!crop) {
+    return (
+      <Container>
+        <Header>
+          <BackButton onClick={() => navigate('/crops')}>
+            <FaArrowLeft /> Volver
+          </BackButton>
+        </Header>
+        <div style={{ padding: '2rem', textAlign: 'center', color: '#718096' }}>
+          <h2>⏳ Cargando Datos...</h2>
+          <p>Intentando cargar cultivo ID: <strong>{id || 'No ID detected'}</strong></p>
+          <p><small>Versión de depuración activa.</small></p>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container>
