@@ -29,15 +29,21 @@ export const cropsService = {
 
     async getCropById(id: string): Promise<Crop | null> {
         if (!supabase) return null;
+        console.log("Fetching crop with ID:", id);
 
         const { data, error } = await supabase
             .from('chakra_crops')
             .select('*')
             .eq('id', id)
-            .single();
+            .maybeSingle();
 
         if (error) {
             console.error('Error fetching crop:', error);
+            return null;
+        }
+
+        if (!data) {
+            console.warn(`No crop found with ID: ${id}`);
             return null;
         }
 
