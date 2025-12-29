@@ -460,6 +460,14 @@ const CropDetail: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    console.log("useEffect triggered. ID:", id);
+    if (id) {
+      loadCrop(id);
+      loadEvents(id);
+    }
+  }, [id]);
+
   // ... (Inside return)
 
 
