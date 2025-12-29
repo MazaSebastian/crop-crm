@@ -384,6 +384,7 @@ const CropDetail: React.FC = () => {
       logs.forEach(l => dates.add(l.date));
 
       setEventDates(dates);
+      console.log("Events loaded:", { tasks: tasks.length, logs: logs.length, dates: Array.from(dates) });
     } catch (e) {
       console.error("Error loading events", e);
     }
@@ -542,7 +543,7 @@ const CropDetail: React.FC = () => {
         <ModalOverlay onClick={() => setIsModalOpen(false)}>
           <Modal onClick={e => e.stopPropagation()}>
             <ModalHeader>
-              <h3>{format(selectedDate, 'EEEE d de MMMM', { locale: es })}</h3>
+              <h3>{format(selectedDate, "EEEE d 'de' MMMM", { locale: es })}</h3>
               <CloseButton onClick={() => setIsModalOpen(false)}>&times;</CloseButton>
             </ModalHeader>
 
