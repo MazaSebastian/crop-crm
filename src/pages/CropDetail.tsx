@@ -32,7 +32,13 @@ import {
 import { tasksService } from '../services/tasksService';
 import { dailyLogsService } from '../services/dailyLogsService';
 import { cropsService } from '../services/cropsService';
-import { Crop } from '../types';
+import { Crop, Task } from '../types';
+import { DailyLog } from '../services/dailyLogsService';
+
+interface EventData {
+  tasks: Task[];
+  log: DailyLog | null;
+}
 
 const Container = styled.div`
   padding: 2rem;
@@ -183,11 +189,45 @@ const DayHeader = styled.div`
   text-transform: uppercase;
 `;
 
+const Tooltip = styled.div`
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  width: max-content;
+  max-width: 200px;
+  z-index: 50;
+  display: none;
+  font-size: 0.75rem;
+  text-align: left;
+  pointer-events: none;
+
+  .log-badge {
+      background: #ebf8ff;
+      color: #3182ce;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-bottom: 4px;
+      font-weight: 600;
+  }
+
+  .task-item {
+      color: #4a5568;
+      margin-bottom: 2px;
+  }
+`;
+
 const DayCell = styled.div<{ isCurrentMonth?: boolean, isToday?: boolean, hasEvent?: boolean }>`
   opacity: ${props => props.isCurrentMonth ? 1 : 0.4};
   background-color: ${props => props.hasEvent ? '#c6f6d5 !important' : props.isToday ? '#f0fff4 !important' : 'white'};
   border: ${props => props.hasEvent ? '1px solid #48bb78' : 'none'};
   transition: all 0.2s;
+  position: relative;
   
   .day-number {
     font-weight: 600;
@@ -202,6 +242,10 @@ const DayCell = styled.div<{ isCurrentMonth?: boolean, isToday?: boolean, hasEve
     transform: translateY(-2px);
     z-index: 10;
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    
+    ${Tooltip} {
+        display: block;
+    }
   }
 `;
 
@@ -354,23 +398,17 @@ const CropDetail: React.FC = () => {
   const [taskForm, setTaskForm] = useState({ title: '', type: 'info', description: '' });
   const [logForm, setLogForm] = useState({ notes: '' });
 
-  // Event Indicators Key
-  const [eventDates, setEventDates] = useState<Set<string>>(new Set());
+  // ... (Define EventData type outside component)
+  interface EventData {
+    tasks: any[]; // Using any to avoid importing Task if not strictly needed, or import it.
+    log: any; // Using any or DailyLog
+  }
 
-  useEffect(() => {
-    if (id) {
-      loadCrop(id);
-      loadEvents(id);
-    }
-  }, [id]); // Reload events when ID changes
+  // ... (Inside CropDetail)
+  // State for events map
+  const [eventsMap, setEventsMap] = useState<Map<string, EventData>>(new Map());
 
-  const loadCrop = async (cropId: string) => {
-    const data = await cropsService.getCropById(cropId);
-    if (!data) {
-      navigate('/crops'); // Redirect if not found
-    }
-    setCrop(data);
-  };
+  // ...
 
   const loadEvents = async (cropId: string) => {
     try {
@@ -379,16 +417,33 @@ const CropDetail: React.FC = () => {
         dailyLogsService.getLogsByCropId(cropId)
       ]);
 
-      const dates = new Set<string>();
-      tasks.forEach(t => t.due_date && dates.add(t.due_date));
-      logs.forEach(l => dates.add(l.date));
+      const map = new Map<string, EventData>();
 
-      setEventDates(dates);
-      console.log("Events loaded:", { tasks: tasks.length, logs: logs.length, dates: Array.from(dates) });
+      tasks.forEach(t => {
+        if (t.due_date) {
+          const current = map.get(t.due_date) || { tasks: [], log: null };
+          current.tasks.push(t);
+          map.set(t.due_date, current);
+        }
+      });
+
+      logs.forEach(l => {
+        if (l.date) {
+          const current = map.get(l.date) || { tasks: [], log: null };
+          current.log = l;
+          map.set(l.date, current);
+        }
+      });
+
+      setEventsMap(map);
+      console.log("Events loaded:", map.size);
     } catch (e) {
       console.error("Error loading events", e);
     }
   };
+
+  // ... (Inside return)
+
 
   const handleDayClick = async (day: Date) => {
     setSelectedDate(day);
@@ -501,19 +556,34 @@ const CropDetail: React.FC = () => {
             <DayHeader key={day}>{day}</DayHeader>
           ))}
 
-          {calendarDays.map((day, idx) => (
-            <DayCell
-              key={idx}
-              isCurrentMonth={isSameMonth(day, monthStart)}
-              isToday={isSameDay(day, new Date())}
-              hasEvent={eventDates.has(format(day, 'yyyy-MM-dd'))}
-              onClick={() => handleDayClick(day)}
-              style={{ cursor: 'pointer' }}
-            >
-              <span className="day-number">{format(day, 'd')}</span>
-              {/* Events would go here */}
-            </DayCell>
-          ))}
+          {calendarDays.map((day, idx) => {
+            const dateKey = format(day, 'yyyy-MM-dd');
+            const data = eventsMap.get(dateKey);
+            const hasEvent = !!data;
+
+            return (
+              <DayCell
+                key={idx}
+                isCurrentMonth={isSameMonth(day, monthStart)}
+                isToday={isSameDay(day, new Date())}
+                hasEvent={hasEvent}
+                onClick={() => handleDayClick(day)}
+                style={{ cursor: 'pointer' }}
+              >
+                <span className="day-number">{format(day, 'd')}</span>
+                {hasEvent && (
+                  <Tooltip>
+                    {data?.log && <div className="log-badge">📝 Diario</div>}
+                    {data?.tasks.map((t, i) => (
+                      <div key={i} className="task-item">
+                        • {t.title}
+                      </div>
+                    ))}
+                  </Tooltip>
+                )}
+              </DayCell>
+            )
+          })}
         </MonthGrid>
       </CalendarContainer>
 
