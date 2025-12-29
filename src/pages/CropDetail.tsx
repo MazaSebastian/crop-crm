@@ -385,6 +385,7 @@ const PrimaryButton = styled.button`
 
 const CropDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  console.log("CropDetail Render. ID:", id); // Verify ID availability
   const navigate = useNavigate();
   const [crop, setCrop] = useState<Crop | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -410,6 +411,23 @@ const CropDetail: React.FC = () => {
 
   // ...
 
+  const loadCrop = async (cropId: string) => {
+    try {
+      console.log("Loading crop...", cropId);
+      const data = await cropsService.getCropById(cropId);
+      console.log("Crop data loaded:", data);
+
+      if (!data) {
+        console.warn("Crop not found, redirecting...");
+        navigate('/crops'); // Redirect if not found
+        return;
+      }
+      setCrop(data);
+    } catch (error) {
+      console.error("Error loading crop:", error);
+      navigate('/crops'); // Fallback redirect
+    }
+  };
   const loadEvents = async (cropId: string) => {
     try {
       const [tasks, logs] = await Promise.all([
