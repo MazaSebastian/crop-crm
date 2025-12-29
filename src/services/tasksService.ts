@@ -4,7 +4,7 @@ import { Task } from '../types';
 export interface CreateTaskInput {
     title: string;
     description?: string;
-    type: 'info' | 'warning' | 'danger';
+    type: 'info' | 'warning' | 'danger' | 'fertilizante' | 'defoliacion' | 'poda_apical' | 'hst' | 'lst' | 'enmienda' | 'te_compost' | 'agua';
     due_date?: string;
     crop_id?: string;
 }

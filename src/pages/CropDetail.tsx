@@ -400,6 +400,7 @@ const CropDetail: React.FC = () => {
 
   // Form State
   const [taskForm, setTaskForm] = useState({ title: '', type: 'info', description: '' });
+  const [fertilizerDetails, setFertilizerDetails] = useState(''); // New state for fertilizer info
   const [logForm, setLogForm] = useState({ notes: '' });
 
   // Modify/Delete State
@@ -482,6 +483,7 @@ const CropDetail: React.FC = () => {
 
     // Reset forms and edit state
     setTaskForm({ title: '', type: 'info', description: '' });
+    setFertilizerDetails('');
     setLogForm({ notes: '' });
     setEditingTaskId(null);
     setExistingLogId(null);
@@ -538,17 +540,23 @@ const CropDetail: React.FC = () => {
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
     if (activeTab === 'task') {
+      // Append fertilizer details if applicable
+      let finalDescription = taskForm.description;
+      if (taskForm.type === 'fertilizante' && fertilizerDetails.trim()) {
+        finalDescription = `${finalDescription ? finalDescription + '\n\n' : ''}🧪 Fertilizante/Dosis: ${fertilizerDetails}`;
+      }
+
       if (editingTaskId) {
         await tasksService.updateTask(editingTaskId, {
           title: taskForm.title,
-          description: taskForm.description,
+          description: finalDescription,
           type: taskForm.type as any,
         });
         window.alert('Tarea actualizada');
       } else {
         await tasksService.createTask({
           title: taskForm.title,
-          description: taskForm.description,
+          description: finalDescription,
           type: taskForm.type as any,
           due_date: dateStr,
           crop_id: id
@@ -753,11 +761,31 @@ const CropDetail: React.FC = () => {
                 <FormGroup>
                   <label>Tipo</label>
                   <select value={taskForm.type} onChange={e => setTaskForm({ ...taskForm, type: e.target.value as any })}>
-                    <option value="info">Info / Recordatorio</option>
-                    <option value="warning">Importante</option>
-                    <option value="danger">Urgente</option>
+                    <option value="info">Info / Atención</option>
+                    <option value="fertilizante">Fertilizante</option>
+                    <option value="defoliacion">Defoliación</option>
+                    <option value="poda_apical">Poda Apical</option>
+                    <option value="hst">HST (High Stress Training)</option>
+                    <option value="lst">LST (Low Stress Training)</option>
+                    <option value="enmienda">Enmienda</option>
+                    <option value="te_compost">Té de Compost</option>
+                    <option value="agua">Agua / Riego</option>
+                    <option value="warning">Alerta (Warning)</option>
+                    <option value="danger">Urgente (Danger)</option>
                   </select>
                 </FormGroup>
+
+                {taskForm.type === 'fertilizante' && (
+                  <FormGroup>
+                    <label>Tipo de Fertilizante y Medida</label>
+                    <textarea
+                      value={fertilizerDetails}
+                      onChange={e => setFertilizerDetails(e.target.value)}
+                      placeholder="Ej: Grow Big 5ml/L, CalMag 2ml/L..."
+                      style={{ minHeight: '60px', borderColor: '#48bb78' }}
+                    />
+                  </FormGroup>
+                )}
                 <FormGroup>
                   <label>Descripción (Opcional)</label>
                   <textarea
