@@ -659,6 +659,24 @@ const CropDetail: React.FC = () => {
             const data = eventsMap.get(dateKey);
             const hasEvent = !!data;
 
+            const getTaskColor = (type: string) => {
+              switch (type) {
+                case 'fertilizante': return '#805ad5'; // Purple
+                case 'agua': return '#3182ce'; // Blue
+                case 'defoliacion': return '#d69e2e'; // Orange/Yellow
+                case 'poda_apical': return '#e53e3e'; // Red
+                case 'hst': return '#c53030'; // Dark Red
+                case 'lst': return '#38b2ac'; // Teal
+                case 'enmienda': return '#744210'; // Brown
+                case 'te_compost': return '#276749'; // Dark Green
+                case 'warning': return '#dd6b20'; // Orange
+                case 'danger': return '#e53e3e'; // Red
+                default: return '#718096'; // Gray (Info)
+              }
+            };
+
+            // ... (Inside return)
+
             return (
               <DayCell
                 key={idx}
@@ -669,15 +687,27 @@ const CropDetail: React.FC = () => {
                 style={{ cursor: 'pointer' }}
               >
                 <span className="day-number">{format(day, 'd')}</span>
+
+                {/* Visual Indicators (Dots) */}
+                <div style={{ display: 'flex', gap: '2px', flexWrap: 'wrap', marginTop: 'auto' }}>
+                  {data?.tasks.map((t, i) => (
+                    <div key={i} style={{
+                      width: '6px', height: '6px', borderRadius: '50%',
+                      backgroundColor: getTaskColor(t.type)
+                    }} title={t.type} />
+                  ))}
+                  {data?.log && <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#48bb78' }} title="Diario" />}
+                </div>
+
                 {hasEvent && (
                   <Tooltip>
-                    {data?.log && <div className="log-badge">📝 Diario</div>}
+                    {data?.log && <div className="log-badge" style={{ backgroundColor: '#f0fff4', color: '#2f855a' }}>📝 Diario</div>}
                     {data?.tasks.map((t, i) => (
-                      <div key={i} className="task-item">
-                        <div><strong>• {t.title}</strong></div>
+                      <div key={i} className="task-item" style={{ borderLeft: `3px solid ${getTaskColor(t.type)}`, paddingLeft: '0.5rem' }}>
+                        <div><strong style={{ color: getTaskColor(t.type) }}>{t.title}</strong></div>
                         {t.description && (
-                          <div style={{ fontSize: '0.7rem', color: '#718096', marginLeft: '0.5rem', whiteSpace: 'pre-wrap' }}>
-                            {t.description.length > 50 ? t.description.substring(0, 50) + '...' : t.description}
+                          <div style={{ fontSize: '0.75rem', color: '#4a5568', marginTop: '0.1rem', whiteSpace: 'pre-wrap' }}>
+                            {t.description.length > 80 ? t.description.substring(0, 80) + '...' : t.description}
                           </div>
                         )}
                       </div>
