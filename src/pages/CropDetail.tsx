@@ -519,7 +519,7 @@ const CropDetail: React.FC = () => {
   };
 
   const handleDeleteTask = async (taskId: string) => {
-    if (!confirm('¿Eliminar esta tarea?')) return;
+    if (!window.confirm('¿Eliminar esta tarea?')) return;
     await tasksService.deleteTask(taskId);
     if (id) loadEvents(id);
     setIsModalOpen(false); // Close to refresh cleanly or update local state
@@ -527,7 +527,7 @@ const CropDetail: React.FC = () => {
 
   const handleDeleteLog = async () => {
     if (!existingLogId) return;
-    if (!confirm('¿Eliminar este registro diario?')) return;
+    if (!window.confirm('¿Eliminar este registro diario?')) return;
     await dailyLogsService.deleteLog(existingLogId);
     if (id) loadEvents(id);
     setIsModalOpen(false);
@@ -544,7 +544,7 @@ const CropDetail: React.FC = () => {
           description: taskForm.description,
           type: taskForm.type as any,
         });
-        alert('Tarea actualizada');
+        window.alert('Tarea actualizada');
       } else {
         await tasksService.createTask({
           title: taskForm.title,
@@ -553,7 +553,7 @@ const CropDetail: React.FC = () => {
           due_date: dateStr,
           crop_id: id
         });
-        alert('Tarea creada');
+        window.alert('Tarea creada');
       }
     } else {
       await dailyLogsService.upsertLog({
@@ -561,7 +561,7 @@ const CropDetail: React.FC = () => {
         date: dateStr,
         notes: logForm.notes
       });
-      alert('Registro guardado');
+      window.alert('Registro guardado');
     }
     // Refresh events map
     if (id) await loadEvents(id);
