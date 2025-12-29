@@ -674,7 +674,12 @@ const CropDetail: React.FC = () => {
                     {data?.log && <div className="log-badge">📝 Diario</div>}
                     {data?.tasks.map((t, i) => (
                       <div key={i} className="task-item">
-                        • {t.title}
+                        <div><strong>• {t.title}</strong></div>
+                        {t.description && (
+                          <div style={{ fontSize: '0.7rem', color: '#718096', marginLeft: '0.5rem', whiteSpace: 'pre-wrap' }}>
+                            {t.description.length > 50 ? t.description.substring(0, 50) + '...' : t.description}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </Tooltip>
