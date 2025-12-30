@@ -50,6 +50,11 @@ const Container = styled.div`
   min-height: 100vh;
   padding-top: 5rem;
   background-color: #f8fafc;
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+    padding-top: 5rem;
+  }
 `;
 
 const Header = styled.div`
@@ -119,6 +124,11 @@ const CalendarContainer = styled.div`
   border: 1px solid #edf2f7;
   padding: 2rem;
   margin-bottom: 2rem;
+
+  @media (max-width: 768px) {
+    padding: 0.75rem;
+    border-radius: 1rem;
+  }
 `;
 
 const CalendarHeader = styled.div`
@@ -178,6 +188,11 @@ const MonthGrid = styled.div`
     min-height: 100px;
     padding: 0.5rem;
     position: relative;
+
+    @media (max-width: 768px) {
+      min-height: 60px;
+      padding: 0.25rem;
+    }
   }
 `;
 
@@ -190,6 +205,11 @@ const DayHeader = styled.div`
   text-align: center;
   padding: 0.75rem !important;
   text-transform: uppercase;
+
+  @media (max-width: 768px) {
+    font-size: 0.65rem;
+    padding: 0.5rem 0.1rem !important;
+  }
 `;
 
 const Tooltip = styled.div`
