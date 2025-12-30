@@ -11,6 +11,7 @@ import Tasks from './pages/Tasks';
 import Stock from './pages/Stock';
 import Compras from './pages/Compras';
 import Insumos from './pages/Insumos';
+import Expenses from './pages/Expenses';
 import Login from './pages/Login';
 import { useAuth } from './context/AuthContext';
 import './App.css';
@@ -109,6 +110,13 @@ function App() {
           <RequireAuth>
             <MainContent>
               <Compras />
+            </MainContent>
+          </RequireAuth>
+        } />
+        <Route path="/expenses" element={
+          <RequireAuth>
+            <MainContent>
+              <Expenses />
             </MainContent>
           </RequireAuth>
         } />

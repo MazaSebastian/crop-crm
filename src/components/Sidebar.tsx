@@ -12,7 +12,8 @@ import {
   FaBars,
   FaTimes,
   FaSeedling,
-  FaSignOutAlt
+  FaSignOutAlt,
+  FaMoneyBillWave
 } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 
@@ -230,6 +231,9 @@ const Sidebar: React.FC = () => {
           </StyledNavLink>
           <StyledNavLink to="/insumos">
             <FaShoppingBag /> Insumos
+          </StyledNavLink>
+          <StyledNavLink to="/expenses">
+            <FaMoneyBillWave /> Gastos
           </StyledNavLink>
           {/* 
           <StyledNavLink to="/compras">
