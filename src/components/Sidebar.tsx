@@ -219,9 +219,7 @@ const Sidebar: React.FC = () => {
           </StyledNavLink>
 
 
-          <StyledNavLink to="/tasks">
-            <FaTasks /> Tareas
-          </StyledNavLink>
+
           <StyledNavLink to="/stock">
             <FaBoxes /> Stock
           </StyledNavLink>

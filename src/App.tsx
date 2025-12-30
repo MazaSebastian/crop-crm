@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import Dashboard from './pages/Dashboard';
 import Crops from './pages/Crops';
 import CropDetail from './pages/CropDetail';
-import Tasks from './pages/Tasks';
+
 import Stock from './pages/Stock';
 import Compras from './pages/Compras';
 import Insumos from './pages/Insumos';
@@ -71,13 +71,7 @@ function App() {
         } />
 
 
-        <Route path="/tasks" element={
-          <RequireAuth>
-            <MainContent>
-              <Tasks />
-            </MainContent>
-          </RequireAuth>
-        } />
+
         <Route path="/stock" element={
           <RequireAuth>
             <MainContent>
