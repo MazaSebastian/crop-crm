@@ -708,7 +708,7 @@ const CropDetail: React.FC = () => {
 
                 {/* Visual Indicators (Dots) - keep dots if multiple tasks, otherwise clean */}
                 <div style={{ display: 'flex', gap: '2px', flexWrap: 'wrap', marginTop: 'auto', justifyContent: 'center' }}>
-                  {data?.tasks.length > 1 && data.tasks.slice(1).map((t, i) => (
+                  {(data?.tasks?.length || 0) > 1 && data!.tasks.slice(1).map((t, i) => (
                     <div key={i} style={{
                       width: '4px', height: '4px', borderRadius: '50%',
                       backgroundColor: 'rgba(255,255,255,0.8)'
