@@ -254,39 +254,7 @@ const DayCell = styled.div<{ isCurrentMonth?: boolean, isToday?: boolean, hasEve
   }
 `;
 
-// Annual Heatmap
-const HeatmapContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 1rem;
-`;
 
-const HeatmapMonth = styled.div`
-  flex: 1;
-  min-width: 80px;
-`;
-
-const HeatmapGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
-`;
-
-const HeatmapCell = styled.div<{ level: number }>`
-  aspect-ratio: 1;
-  border-radius: 2px;
-  background-color: ${p => {
-    if (p.level === 0) return '#ebedf0';
-    if (p.level === 1) return '#9be9a8';
-    if (p.level === 2) return '#40c463';
-    if (p.level === 3) return '#30a14e';
-    return '#216e39';
-  }};
-  transition: transform 0.1s;
-  
-  &:hover { transform: scale(1.2); }
-`;
 
 const ModalOverlay = styled.div`
   position: fixed;
@@ -738,27 +706,7 @@ const CropDetail: React.FC = () => {
         </MonthGrid>
       </CalendarContainer>
 
-      {/* Annual Overview (Visual concept) */}
-      <CalendarContainer>
-        <CalendarHeader>
-          <h2><FaChartLine /> Actividad Anual</h2>
-        </CalendarHeader>
-        <p style={{ color: '#718096', fontSize: '0.9rem', marginBottom: '1rem' }}>Densidad de registros y tareas completadas.</p>
 
-        <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '1rem' }}>
-          {/* Simple mockup for Monthly Intensity Blocks */}
-          {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((m) => (
-            <div key={m} style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
-              <div style={{ fontSize: '0.75rem', color: '#a0aec0', marginBottom: '4px' }}>{m}</div>
-              <div style={{ display: 'grid', gridTemplateRows: 'repeat(5, 1fr)', gridAutoFlow: 'column', gap: '3px' }}>
-                {[...Array(20)].map((_, i) => (
-                  <HeatmapCell key={i} level={Math.floor(Math.random() * 5)} style={{ width: '12px', height: '12px' }} />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </CalendarContainer>
 
       {isModalOpen && selectedDate && (
         <ModalOverlay onClick={() => setIsModalOpen(false)}>
