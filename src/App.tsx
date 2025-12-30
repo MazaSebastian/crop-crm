@@ -71,13 +71,7 @@ function App() {
             </MainContent>
           </RequireAuth>
         } />
-        <Route path="/daily-log" element={
-          <RequireAuth>
-            <MainContent>
-              <DailyLog />
-            </MainContent>
-          </RequireAuth>
-        } />
+
         <Route path="/parameters" element={
           <RequireAuth>
             <MainContent>
