@@ -137,11 +137,13 @@ const Expenses: React.FC = () => {
             date: new Date().toISOString().split('T')[0] // today YYYY-MM-DD
         };
 
-        const res = await expensesService.createMovement(newVal);
-        if (res) {
+        const result = await expensesService.createMovement(newVal);
+        if (result.success) {
             setConcept('');
             setAmount('');
             loadData();
+        } else {
+            alert('Error al crear: ' + result.error);
         }
     };
 

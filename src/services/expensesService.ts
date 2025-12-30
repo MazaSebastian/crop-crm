@@ -31,17 +31,23 @@ export const expensesService = {
     },
 
     async createMovement(movement: CashMovement) {
-        if (!supabase) return null;
+        if (!supabase) return { success: false, error: "No Supabase client" };
+
+        // Auto-generate ID if not present (legacy format)
+        const newId = movement.id || `mov-${Date.now()}`;
+
+        const payload = { ...movement, id: newId };
+
         const { data, error } = await supabase
             .from('cash_movements')
-            .insert([movement])
+            .insert([payload])
             .select();
 
         if (error) {
             console.error('Error creating movement:', error);
-            return null;
+            return { success: false, error: error.message || JSON.stringify(error) };
         }
-        return data?.[0] as CashMovement;
+        return { success: true, data: data?.[0] as CashMovement };
     },
 
     async deleteMovement(id: string) {
