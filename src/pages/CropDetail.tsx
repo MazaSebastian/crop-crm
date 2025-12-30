@@ -225,26 +225,28 @@ const Tooltip = styled.div`
   }
 `;
 
-const DayCell = styled.div<{ isCurrentMonth?: boolean, isToday?: boolean, hasEvent?: boolean }>`
+const DayCell = styled.div<{ isCurrentMonth?: boolean, isToday?: boolean, hasEvent?: boolean, backgroundColor?: string, textColor?: string }>`
   opacity: ${props => props.isCurrentMonth ? 1 : 0.4};
-  background-color: ${props => props.hasEvent ? '#c6f6d5 !important' : props.isToday ? '#f0fff4 !important' : 'white'};
-  border: ${props => props.hasEvent ? '1px solid #48bb78' : 'none'};
+  background-color: ${props => props.backgroundColor ? props.backgroundColor + ' !important' : (props.isToday ? '#f0fff4 !important' : 'white')};
+  border: none;
   transition: all 0.2s;
   position: relative;
   
   .day-number {
     font-weight: 600;
     font-size: 0.9rem;
-    color: ${props => props.hasEvent ? '#22543d' : props.isToday ? '#2f855a' : '#2d3748'};
+    color: ${props => props.textColor ? props.textColor : (props.isToday ? '#2f855a' : '#2d3748')};
     margin-bottom: 0.5rem;
     display: block;
   }
 
   &:hover {
-    background-color: ${props => props.hasEvent ? '#9ae6b4 !important' : '#fafafa'};
     transform: translateY(-2px);
     z-index: 10;
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    // Darken slightly on hover if it has a color
+    filter: ${props => props.backgroundColor ? 'brightness(95%)' : 'none'};
+    background-color: ${props => !props.backgroundColor ? '#fafafa' : undefined};
     
     ${Tooltip} {
         display: block;
@@ -409,10 +411,10 @@ const CropDetail: React.FC = () => {
   const [existingLogId, setExistingLogId] = useState<string | null>(null);
 
   // ... (Define EventData type outside component)
-  interface EventData {
-    tasks: any[]; // Using any to avoid importing Task if not strictly needed, or import it.
-    log: any; // Using any or DailyLog
-  }
+  // interface EventData {
+  //   tasks: any[]; // Using any to avoid importing Task if not strictly needed, or import it.
+  //   log: any; // Using any or DailyLog
+  // }
 
   // ... (Inside CropDetail)
   // State for events map
@@ -658,6 +660,7 @@ const CropDetail: React.FC = () => {
             const dateKey = format(day, 'yyyy-MM-dd');
             const data = eventsMap.get(dateKey);
             const hasEvent = !!data;
+            const hasTask = data?.tasks && data.tasks.length > 0;
 
             const getTaskColor = (type: string) => {
               switch (type) {
@@ -671,11 +674,24 @@ const CropDetail: React.FC = () => {
                 case 'te_compost': return '#276749'; // Dark Green
                 case 'warning': return '#dd6b20'; // Orange
                 case 'danger': return '#e53e3e'; // Red
-                default: return '#718096'; // Gray (Info)
+                default: return '#718096'; // Gray
               }
             };
 
-            // ... (Inside return)
+            // Determine background color
+            let cellBg = undefined;
+            let cellText = undefined;
+
+            if (hasTask && data.tasks.length > 0) {
+              // Prioritize: Use the color of the first task found.
+              // We could add complex priority logic here if needed.
+              cellBg = getTaskColor(data.tasks[0].type);
+              cellText = 'white';
+            } else if (data?.log) {
+              // If only log, maybe a soft green?
+              cellBg = '#c6f6d5';
+              cellText = '#22543d';
+            }
 
             return (
               <DayCell
@@ -683,20 +699,22 @@ const CropDetail: React.FC = () => {
                 isCurrentMonth={isSameMonth(day, monthStart)}
                 isToday={isSameDay(day, new Date())}
                 hasEvent={hasEvent}
+                backgroundColor={cellBg}
+                textColor={cellText}
                 onClick={() => handleDayClick(day)}
                 style={{ cursor: 'pointer' }}
               >
                 <span className="day-number">{format(day, 'd')}</span>
 
-                {/* Visual Indicators (Dots) */}
-                <div style={{ display: 'flex', gap: '2px', flexWrap: 'wrap', marginTop: 'auto' }}>
-                  {data?.tasks.map((t, i) => (
+                {/* Visual Indicators (Dots) - keep dots if multiple tasks, otherwise clean */}
+                <div style={{ display: 'flex', gap: '2px', flexWrap: 'wrap', marginTop: 'auto', justifyContent: 'center' }}>
+                  {data?.tasks.length > 1 && data.tasks.slice(1).map((t, i) => (
                     <div key={i} style={{
-                      width: '6px', height: '6px', borderRadius: '50%',
-                      backgroundColor: getTaskColor(t.type)
-                    }} title={t.type} />
+                      width: '4px', height: '4px', borderRadius: '50%',
+                      backgroundColor: 'rgba(255,255,255,0.8)'
+                    }} />
                   ))}
-                  {data?.log && <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#48bb78' }} title="Diario" />}
+                  {data?.log && <div style={{ fontSize: '0.7rem', lineHeight: 1 }} title="Diario">📝</div>}
                 </div>
 
                 {hasEvent && (
