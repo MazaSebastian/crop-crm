@@ -5,8 +5,6 @@ import styled from 'styled-components';
 import Dashboard from './pages/Dashboard';
 import Crops from './pages/Crops';
 import CropDetail from './pages/CropDetail';
-import DailyLog from './pages/DailyLog';
-import Parameters from './pages/Parameters';
 import Tasks from './pages/Tasks';
 import Stock from './pages/Stock';
 import Compras from './pages/Compras';
