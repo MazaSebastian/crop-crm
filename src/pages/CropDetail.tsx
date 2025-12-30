@@ -784,7 +784,7 @@ const CropDetail: React.FC = () => {
                         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                         background: '#f7fafc', padding: '0.5rem', borderRadius: '0.375rem', marginBottom: '0.5rem'
                       }}>
-                        <span style={{ fontWeight: 500 }}>{task.title}</span>
+                        <span style={{ fontWeight: 500, color: '#2d3748' }}>{task.title}</span>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                           <button onClick={() => handleEditTask(task)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#4299e1' }}>
                             <FaEdit />
