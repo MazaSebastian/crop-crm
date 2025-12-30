@@ -218,9 +218,7 @@ const Sidebar: React.FC = () => {
             <FaSeedling /> Mis Cultivos
           </StyledNavLink>
 
-          <StyledNavLink to="/parameters">
-            <FaTint /> Parámetros
-          </StyledNavLink>
+
           <StyledNavLink to="/tasks">
             <FaTasks /> Tareas
           </StyledNavLink>

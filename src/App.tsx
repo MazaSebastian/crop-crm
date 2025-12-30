@@ -72,13 +72,7 @@ function App() {
           </RequireAuth>
         } />
 
-        <Route path="/parameters" element={
-          <RequireAuth>
-            <MainContent>
-              <Parameters />
-            </MainContent>
-          </RequireAuth>
-        } />
+
         <Route path="/tasks" element={
           <RequireAuth>
             <MainContent>
