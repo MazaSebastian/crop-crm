@@ -44,6 +44,14 @@ export const notificationService = {
         }
     },
 
+    async promptSubscription() {
+        try {
+            await OneSignal.Slidedown.promptPush();
+        } catch (error) {
+            console.error('Error prompting subscription:', error);
+        }
+    },
+
     async sendSelfNotification(title: string, message: string) {
         if (!ONESIGNAL_APP_ID || !ONESIGNAL_API_KEY) {
             console.warn('Cannot send notification: Missing keys.');
