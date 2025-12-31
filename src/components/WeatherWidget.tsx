@@ -51,8 +51,9 @@ const ForecastGrid = styled.div`
   }
 `;
 
-const DayCard = styled.div`
-  background: rgba(255, 255, 255, 0.6);
+const DayCard = styled.div<{ isRainy?: boolean }>`
+  background: ${props => props.isRainy ? '#ebf8ff' : 'rgba(255, 255, 255, 0.6)'};
+  border: ${props => props.isRainy ? '2px solid #4299e1' : '1px solid transparent'}; // Blue border for rain
   border-radius: 1rem;
   padding: 0.75rem 0.5rem;
   text-align: center;
@@ -60,12 +61,20 @@ const DayCard = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+
+  // Rain visual effect if needed
+  ${props => props.isRainy && `
+    box-shadow: 0 0 15px rgba(66, 153, 225, 0.4);
+    transform: translateY(-4px);
+  `}
 
   &:hover {
     background: white;
-    transform: translateY(-2px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transform: translateY(-4px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   }
 
   .day-name {
@@ -73,13 +82,13 @@ const DayCard = styled.div`
     font-weight: 700;
     text-transform: uppercase;
     margin-bottom: 0.25rem;
-    color: #285e61;
+    color: ${props => props.isRainy ? '#2c5282' : '#285e61'};
   }
 
   .icon {
     font-size: 2rem;
     margin: 0.25rem 0;
-    color: #38b2ac;
+    color: ${props => props.isRainy ? '#3182ce' : '#38b2ac'};
   }
 
   .temps {
@@ -92,28 +101,24 @@ const DayCard = styled.div`
   }
 
   .precip {
-    font-size: 0.7rem;
-    color: #3182ce;
+    font-size: 0.75rem;
+    color: #2b6cb0;
     margin-top: 0.25rem;
-    font-weight: 500;
+    font-weight: 700;
+    background: #bee3f8;
+    padding: 2px 6px;
+    border-radius: 4px;
   }
 `;
 
 const getWeatherIcon = (code: number) => {
-  // WMO Weather interpretation codes (WW)
-  // 0: Clear sky
+  // ... (same icon logic)
   if (code === 0) return <WiDaySunny color="#ecc94b" />;
-  // 1, 2, 3: Mainly clear, partly cloudy, and overcast
   if (code <= 3) return <WiDayCloudy color="#a0aec0" />;
-  // 45, 48: Fog
   if (code <= 48) return <WiFog color="#cbd5e0" />;
-  // 51-67: Drizzle and Rain
   if (code <= 67) return <WiRain color="#4299e1" />;
-  // 71-77: Snow
   if (code <= 77) return <WiSnow color="#63b3ed" />;
-  // 80-82: Rain showers
   if (code <= 82) return <WiRain color="#4299e1" />;
-  // 95-99: Thunderstorm
   return <WiThunderstorm color="#805ad5" />;
 };
 
@@ -130,29 +135,34 @@ export const WeatherWidget: React.FC = () => {
     load();
   }, []);
 
-  if (loading) return null; // Or skeleton
+  if (loading) return null;
 
   return (
     <WidgetContainer>
       <Title><WiDaySunny /> Pronóstico Semanal (Olivos)</Title>
       <ForecastGrid>
-        {forecast.map((day) => (
-          <DayCard key={day.date}>
-            <div className="day-name">
-              {format(new Date(day.date + 'T00:00:00'), 'EEE', { locale: es })}
-            </div>
-            <div className="icon">
-              {getWeatherIcon(day.weatherCode)}
-            </div>
-            <div className="temps">
-              <span className="max">{Math.round(day.maxTemp)}°</span>
-              <span className="min">{Math.round(day.minTemp)}°</span>
-            </div>
-            {day.precipitation > 0 && (
-              <div className="precip">{day.precipitation}mm</div>
-            )}
-          </DayCard>
-        ))}
+        {forecast.map((day) => {
+          // Basic rain check: Code indicates rain OR significant precipitation
+          const isRainy = (day.weatherCode >= 50 && day.weatherCode <= 99) || day.precipitation >= 1.0;
+
+          return (
+            <DayCard key={day.date} isRainy={isRainy}>
+              <div className="day-name">
+                {format(new Date(day.date + 'T00:00:00'), 'EEE', { locale: es })}
+              </div>
+              <div className="icon">
+                {getWeatherIcon(day.weatherCode)}
+              </div>
+              <div className="temps">
+                <span className="max">{Math.round(day.maxTemp)}°</span>
+                <span className="min">{Math.round(day.minTemp)}°</span>
+              </div>
+              {day.precipitation > 0 && (
+                <div className="precip">{day.precipitation}mm</div>
+              )}
+            </DayCard>
+          );
+        })}
       </ForecastGrid>
     </WidgetContainer>
   );
