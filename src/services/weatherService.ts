@@ -10,8 +10,8 @@ export interface DailyWeather {
     precipitation: number;
 }
 
-const LAT = -34.5106; // Olivos, Vicente Lopez
-const LON = -58.4964;
+const LAT = -34.5175; // Exact user location
+const LON = -58.5331;
 
 export const weatherService = {
     async getWeeklyForecast(): Promise<DailyWeather[]> {
