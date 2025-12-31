@@ -37,13 +37,12 @@ export const notificationService = {
                         'message.action.subscribing': 'Suscribiendo...'
                     }
                 },
-            },
             });
-        console.log('OneSignal Initialized');
-    } catch(error) {
-        console.error('OneSignal Init Error:', error);
-    }
-},
+            console.log('OneSignal Initialized');
+        } catch (error: any) {
+            console.error('OneSignal Init Error:', error);
+        }
+    },
 
     async sendSelfNotification(title: string, message: string) {
         if (!ONESIGNAL_APP_ID || !ONESIGNAL_API_KEY) {
