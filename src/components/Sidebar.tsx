@@ -10,12 +10,16 @@ import {
   FaBoxes,
   FaShoppingBag,
   FaBars,
+  FaTractor,
+  FaBars,
   FaTimes,
   FaSeedling,
   FaSignOutAlt,
-  FaMoneyBillWave
+  FaMoneyBillWave,
+  FaBell
 } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
+import { notificationService } from '../services/notificationService';
 
 const SidebarContainer = styled.div<{ isOpen: boolean }>`
   position: fixed;
@@ -237,6 +241,19 @@ const Sidebar: React.FC = () => {
         </NavList>
 
         <UserSection>
+          <div style={{ marginBottom: '1rem' }}>
+            <StyledNavLink
+              to="#"
+              onClick={async (e) => {
+                e.preventDefault();
+                await notificationService.init();
+                alert('Intentando activar notificaciones... Si no aparece el aviso, revisa la configuración de tu navegador.');
+              }}
+              style={{ color: '#d69e2e', justifyContent: 'center', background: '#fffbeb', border: '1px solid #fef3c7' }}
+            >
+              <FaBell /> Suscribir Alertas
+            </StyledNavLink>
+          </div>
           <LogoutButton onClick={logout}>
             <FaSignOutAlt /> Cerrar Sesión
           </LogoutButton>
