@@ -244,8 +244,8 @@ const Sidebar: React.FC = () => {
               to="#"
               onClick={async (e) => {
                 e.preventDefault();
-                await notificationService.init();
-                alert('Intentando activar notificaciones... Si no aparece el aviso, revisa la configuración de tu navegador.');
+                console.log('Solicitando permisos de notificación...');
+                await notificationService.promptSubscription();
               }}
               style={{ color: '#d69e2e', justifyContent: 'center', background: '#fffbeb', border: '1px solid #fef3c7' }}
             >
