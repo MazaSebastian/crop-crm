@@ -18,7 +18,8 @@ export interface WeatherData {
     daily: DailyWeather[];
 }
 
-// ... LAT/LON constants remain ...
+const LAT = -34.5175; // Exact user location
+const LON = -58.5331;
 
 export const weatherService = {
     async getForecast(): Promise<WeatherData | null> {
