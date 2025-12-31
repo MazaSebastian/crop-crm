@@ -47,24 +47,32 @@ export const notificationService = {
     async promptSubscription() {
         try {
             console.log("Prompting for subscription...");
-            // Method 1: New SDK (v16+) via react-onesignal wrapper if available
+
+            // Method 1: New SDK (v16+)
             if (OneSignal.Notifications && typeof OneSignal.Notifications.requestPermission === 'function') {
                 console.log("Using OneSignal.Notifications.requestPermission()");
                 await OneSignal.Notifications.requestPermission();
             }
-            // Method 2: Fallback to Slidedown
+            // Method 2: Slidedown object
             else if (OneSignal.Slidedown) {
                 console.log("Using OneSignal.Slidedown.promptPush()");
                 await OneSignal.Slidedown.promptPush();
             }
-            // Method 3: Legacy or Direct register
+            // Method 3: Legacy showSlidedownPrompt
+            else if (typeof (OneSignal as any).showSlidedownPrompt === 'function') {
+                console.log("Using showSlidedownPrompt (Legacy)");
+                await (OneSignal as any).showSlidedownPrompt();
+            }
+            // Method 4: Legacy Register
+            else if (typeof (OneSignal as any).registerForPushNotifications === 'function') {
+                console.log("Using registerForPushNotifications (Legacy)");
+                await (OneSignal as any).registerForPushNotifications();
+            }
             else {
-                console.warn("No explicit prompt method found in this SDK version. Attempting register.");
-                // Some older versions trigger on init, or via register()
+                console.error("No subscription method found.");
             }
         } catch (error) {
             console.error('Error prompting subscription:', error);
-            alert("Error al solicitar permisos: " + JSON.stringify(error));
         }
     },
 
