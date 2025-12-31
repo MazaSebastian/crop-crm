@@ -149,7 +149,11 @@ export const WeatherWidget: React.FC = () => {
 
       <ForecastGrid>
         {weather.daily.map((day) => {
-          const isRainy = (day.weatherCode >= 50 && day.weatherCode <= 99) || day.precipitation >= 1.0;
+          // More strict rain check: Ignore light drizzle (< 1.5mm) for visual alarm
+          // Codes: 61+ (Rain), 80+ (Showers), 95+ (Thunder)
+          // Drizzle (51-55) is often negligible if precip sum is low
+          const isRainy = (day.precipitation >= 1.5) || (day.weatherCode >= 61 && day.weatherCode <= 99);
+
           return (
             <DayCard key={day.date} isRainy={isRainy}>
               <div className="day-name">
@@ -162,7 +166,7 @@ export const WeatherWidget: React.FC = () => {
                 <span className="max">{Math.round(day.maxTemp)}°</span>
                 <span className="min">{Math.round(day.minTemp)}°</span>
               </div>
-              {day.precipitation > 0 && (
+              {day.precipitation >= 1.0 && (
                 <div className="precip">{day.precipitation}mm</div>
               )}
             </DayCard>
