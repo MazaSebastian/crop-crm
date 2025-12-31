@@ -16,6 +16,7 @@ import {
   FaTimes,
   FaCheckCircle
 } from 'react-icons/fa';
+import { WeatherWidget } from '../components/WeatherWidget';
 
 
 // --- Styled Components (Premium Eco-Tech Theme) ---
@@ -324,6 +325,7 @@ const Dashboard: React.FC = () => {
         <p>Bienvenido de nuevo. Aquí está el estado actual de tus cultivos.</p>
       </WelcomeHeader>
 
+      <WeatherWidget />
 
       <KPISection>
         <Link to="/crops" style={{ textDecoration: 'none', color: 'inherit' }}>
