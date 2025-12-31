@@ -10,8 +10,8 @@ export interface DailyWeather {
     precipitation: number;
 }
 
-const LAT = -33.4489; // Santiago
-const LON = -70.6693;
+const LAT = -34.5106; // Olivos, Vicente Lopez
+const LON = -58.4964;
 
 export const weatherService = {
     async getWeeklyForecast(): Promise<DailyWeather[]> {

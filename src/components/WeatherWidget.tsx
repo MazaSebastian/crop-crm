@@ -5,13 +5,13 @@ import { weatherService, DailyWeather } from '../services/weatherService';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
-    WiDaySunny,
-    WiDayCloudy,
-    WiCloud,
-    WiRain,
-    WiThunderstorm,
-    WiSnow,
-    WiFog
+  WiDaySunny,
+  WiDayCloudy,
+  WiCloud,
+  WiRain,
+  WiThunderstorm,
+  WiSnow,
+  WiFog
 } from 'react-icons/wi';
 
 const WidgetContainer = styled.div`
@@ -100,60 +100,60 @@ const DayCard = styled.div`
 `;
 
 const getWeatherIcon = (code: number) => {
-    // WMO Weather interpretation codes (WW)
-    // 0: Clear sky
-    if (code === 0) return <WiDaySunny color="#ecc94b" />;
-    // 1, 2, 3: Mainly clear, partly cloudy, and overcast
-    if (code <= 3) return <WiDayCloudy color="#a0aec0" />;
-    // 45, 48: Fog
-    if (code <= 48) return <WiFog color="#cbd5e0" />;
-    // 51-67: Drizzle and Rain
-    if (code <= 67) return <WiRain color="#4299e1" />;
-    // 71-77: Snow
-    if (code <= 77) return <WiSnow color="#63b3ed" />;
-    // 80-82: Rain showers
-    if (code <= 82) return <WiRain color="#4299e1" />;
-    // 95-99: Thunderstorm
-    return <WiThunderstorm color="#805ad5" />;
+  // WMO Weather interpretation codes (WW)
+  // 0: Clear sky
+  if (code === 0) return <WiDaySunny color="#ecc94b" />;
+  // 1, 2, 3: Mainly clear, partly cloudy, and overcast
+  if (code <= 3) return <WiDayCloudy color="#a0aec0" />;
+  // 45, 48: Fog
+  if (code <= 48) return <WiFog color="#cbd5e0" />;
+  // 51-67: Drizzle and Rain
+  if (code <= 67) return <WiRain color="#4299e1" />;
+  // 71-77: Snow
+  if (code <= 77) return <WiSnow color="#63b3ed" />;
+  // 80-82: Rain showers
+  if (code <= 82) return <WiRain color="#4299e1" />;
+  // 95-99: Thunderstorm
+  return <WiThunderstorm color="#805ad5" />;
 };
 
 export const WeatherWidget: React.FC = () => {
-    const [forecast, setForecast] = useState<DailyWeather[]>([]);
-    const [loading, setLoading] = useState(true);
+  const [forecast, setForecast] = useState<DailyWeather[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        async function load() {
-            const data = await weatherService.getWeeklyForecast();
-            setForecast(data);
-            setLoading(false);
-        }
-        load();
-    }, []);
+  useEffect(() => {
+    async function load() {
+      const data = await weatherService.getWeeklyForecast();
+      setForecast(data);
+      setLoading(false);
+    }
+    load();
+  }, []);
 
-    if (loading) return null; // Or skeleton
+  if (loading) return null; // Or skeleton
 
-    return (
-        <WidgetContainer>
-            <Title><WiDaySunny /> Pronóstico Semanal (Santiago)</Title>
-            <ForecastGrid>
-                {forecast.map((day) => (
-                    <DayCard key={day.date}>
-                        <div className="day-name">
-                            {format(new Date(day.date + 'T00:00:00'), 'EEE', { locale: es })}
-                        </div>
-                        <div className="icon">
-                            {getWeatherIcon(day.weatherCode)}
-                        </div>
-                        <div className="temps">
-                            <span className="max">{Math.round(day.maxTemp)}°</span>
-                            <span className="min">{Math.round(day.minTemp)}°</span>
-                        </div>
-                        {day.precipitation > 0 && (
-                            <div className="precip">{day.precipitation}mm</div>
-                        )}
-                    </DayCard>
-                ))}
-            </ForecastGrid>
-        </WidgetContainer>
-    );
+  return (
+    <WidgetContainer>
+      <Title><WiDaySunny /> Pronóstico Semanal (Olivos)</Title>
+      <ForecastGrid>
+        {forecast.map((day) => (
+          <DayCard key={day.date}>
+            <div className="day-name">
+              {format(new Date(day.date + 'T00:00:00'), 'EEE', { locale: es })}
+            </div>
+            <div className="icon">
+              {getWeatherIcon(day.weatherCode)}
+            </div>
+            <div className="temps">
+              <span className="max">{Math.round(day.maxTemp)}°</span>
+              <span className="min">{Math.round(day.minTemp)}°</span>
+            </div>
+            {day.precipitation > 0 && (
+              <div className="precip">{day.precipitation}mm</div>
+            )}
+          </DayCard>
+        ))}
+      </ForecastGrid>
+    </WidgetContainer>
+  );
 };
