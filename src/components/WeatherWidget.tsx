@@ -123,28 +123,33 @@ const getWeatherIcon = (code: number) => {
 };
 
 export const WeatherWidget: React.FC = () => {
-  const [forecast, setForecast] = useState<DailyWeather[]>([]);
+  const [weather, setWeather] = useState<{ current: { temp: number; code: number }; daily: DailyWeather[] } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
-      const data = await weatherService.getWeeklyForecast();
-      setForecast(data);
+      const data = await weatherService.getForecast();
+      setWeather(data);
       setLoading(false);
     }
     load();
   }, []);
 
-  if (loading) return null;
+  if (loading || !weather) return null;
 
   return (
     <WidgetContainer>
-      <Title><WiDaySunny /> Pronóstico Semanal (Olivos)</Title>
-      <ForecastGrid>
-        {forecast.map((day) => {
-          // Basic rain check: Code indicates rain OR significant precipitation
-          const isRainy = (day.weatherCode >= 50 && day.weatherCode <= 99) || day.precipitation >= 1.0;
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <Title style={{ margin: 0 }}><WiDaySunny /> Pronóstico (Munro/Olivos)</Title>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#e6fffa', padding: '0.5rem 1rem', borderRadius: '999px', fontSize: '1.2rem', fontWeight: 'bold' }}>
+          {getWeatherIcon(weather.current.code)}
+          <span>{Math.round(weather.current.temp)}°C Ahora</span>
+        </div>
+      </div>
 
+      <ForecastGrid>
+        {weather.daily.map((day) => {
+          const isRainy = (day.weatherCode >= 50 && day.weatherCode <= 99) || day.precipitation >= 1.0;
           return (
             <DayCard key={day.date} isRainy={isRainy}>
               <div className="day-name">
