@@ -9,7 +9,6 @@ import {
   FaTasks,
   FaBoxes,
   FaShoppingBag,
-  FaShoppingBag,
   FaBars,
   FaTimes,
   FaSeedling,
