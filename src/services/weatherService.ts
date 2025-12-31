@@ -2,6 +2,14 @@
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+export interface DailyWeather {
+    date: string;
+    maxTemp: number;
+    minTemp: number;
+    weatherCode: number;
+    precipitation: number;
+}
+
 export interface WeatherData {
     current: {
         temp: number;
