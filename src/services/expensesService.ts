@@ -1,5 +1,6 @@
 
 import { supabase } from './supabaseClient';
+import { notificationService } from './notificationService';
 
 export interface CashMovement {
     id?: string;
@@ -47,6 +48,15 @@ export const expensesService = {
             console.error('Error creating movement:', error);
             return { success: false, error: error.message || JSON.stringify(error) };
         }
+        if (data?.[0]) {
+            const m = data[0];
+            // Fire and forget notification
+            notificationService.sendSelfNotification(
+                `Nuevo ${m.type === 'INGRESO' ? 'Ingreso 💰' : 'Gasto 💸'}`,
+                `${m.concept}: $${m.amount} (${m.owner})`
+            );
+        }
+
         return { success: true, data: data?.[0] as CashMovement };
     },
 

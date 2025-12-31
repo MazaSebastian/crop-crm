@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 // import LiveChat from './components/LiveChat'; // Disabling LiveChat for CRM cleanup
@@ -10,6 +10,7 @@ import Stock from './pages/Stock';
 import Compras from './pages/Compras';
 import Insumos from './pages/Insumos';
 import Expenses from './pages/Expenses';
+import { notificationService } from './services/notificationService';
 import Login from './pages/Login';
 import { useAuth } from './context/AuthContext';
 import './App.css';
@@ -31,6 +32,14 @@ const MainContent = styled.main`
 
 const RequireAuth: React.FC<{ children: React.ReactElement }> = ({ children }) => {
   const { user, isLoading } = useAuth();
+  useEffect(() => {
+    // Init Notifications
+    const initNotifications = async () => {
+      await notificationService.init();
+    };
+    initNotifications();
+  }, []);
+
   if (isLoading) return null;
   if (!user) return <Navigate to="/login" replace />;
   return children;
