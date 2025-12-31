@@ -17,7 +17,7 @@ export const weatherService = {
     async getWeeklyForecast(): Promise<DailyWeather[]> {
         try {
             const response = await fetch(
-                `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`
+                `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=America%2FArgentina%2FBuenos_Aires`
             );
             const data = await response.json();
 
