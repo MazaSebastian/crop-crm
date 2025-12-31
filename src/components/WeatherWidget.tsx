@@ -111,14 +111,28 @@ const DayCard = styled.div<{ isRainy?: boolean }>`
   }
 `;
 
-const getWeatherIcon = (code: number) => {
-  // ... (same icon logic)
+const getWeatherIcon = (code: number, precip?: number) => {
+  // WMO Weather interpretation codes (WW)
+
+  // Custom Override: If precip is negligible (< 1.0mm), show clouds instead of rain
+  // This prevents "Rain" icon when it's just a 0.2mm drizzle
+  if (precip !== undefined && precip < 1.0 && (code >= 51 && code <= 99)) {
+    return <WiDayCloudy color="#a0aec0" />;
+  }
+
+  // 0: Clear sky
   if (code === 0) return <WiDaySunny color="#ecc94b" />;
+  // 1, 2, 3: Mainly clear, partly cloudy, and overcast
   if (code <= 3) return <WiDayCloudy color="#a0aec0" />;
+  // 45, 48: Fog
   if (code <= 48) return <WiFog color="#cbd5e0" />;
+  // 51-67: Drizzle and Rain
   if (code <= 67) return <WiRain color="#4299e1" />;
+  // 71-77: Snow
   if (code <= 77) return <WiSnow color="#63b3ed" />;
+  // 80-82: Rain showers
   if (code <= 82) return <WiRain color="#4299e1" />;
+  // 95-99: Thunderstorm
   return <WiThunderstorm color="#805ad5" />;
 };
 
@@ -149,10 +163,9 @@ export const WeatherWidget: React.FC = () => {
 
       <ForecastGrid>
         {weather.daily.map((day) => {
-          // More strict rain check: Ignore light drizzle (< 1.5mm) for visual alarm
-          // Codes: 61+ (Rain), 80+ (Showers), 95+ (Thunder)
-          // Drizzle (51-55) is often negligible if precip sum is low
-          const isRainy = (day.precipitation >= 1.5) || (day.weatherCode >= 61 && day.weatherCode <= 99);
+          // Strict visual alarm: ONLY if precipitation is significant (> 1.5mm)
+          // We ignore the code here to avoid "bordering" drizzle days
+          const isRainy = day.precipitation >= 1.5;
 
           return (
             <DayCard key={day.date} isRainy={isRainy}>
@@ -160,7 +173,7 @@ export const WeatherWidget: React.FC = () => {
                 {format(new Date(day.date + 'T00:00:00'), 'EEE', { locale: es })}
               </div>
               <div className="icon">
-                {getWeatherIcon(day.weatherCode)}
+                {getWeatherIcon(day.weatherCode, day.precipitation)}
               </div>
               <div className="temps">
                 <span className="max">{Math.round(day.maxTemp)}°</span>
