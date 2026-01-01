@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import { Task } from '../types';
+import { notificationService } from './notificationService';
 
 export interface CreateTaskInput {
     title: string;
@@ -8,8 +9,6 @@ export interface CreateTaskInput {
     due_date?: string;
     crop_id?: string;
 }
-
-import { notificationService } from './notificationService';
 
 export const tasksService = {
     async getPendingTasks(): Promise<Task[]> {
