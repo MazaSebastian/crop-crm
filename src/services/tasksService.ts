@@ -9,6 +9,8 @@ export interface CreateTaskInput {
     crop_id?: string;
 }
 
+import { notificationService } from './notificationService';
+
 export const tasksService = {
     async getPendingTasks(): Promise<Task[]> {
         if (!supabase) return [];
@@ -47,6 +49,14 @@ export const tasksService = {
         if (error) {
             console.error('Error creating task:', error);
             return null;
+        }
+
+        if (data) {
+            const typeLabel = task.type.charAt(0).toUpperCase() + task.type.slice(1).replace('_', ' ');
+            notificationService.sendSelfNotification(
+                `Nueva Tarea: ${typeLabel} 📋`,
+                `${task.title}${task.description ? ' - ' + task.description : ''}`
+            );
         }
 
         return data as Task;
