@@ -112,8 +112,12 @@ export const notificationService = {
         }
     },
 
-    async sendSelfNotification(title: string, message: string) {
-        if (!ONESIGNAL_APP_ID || !ONESIGNAL_API_KEY) {
+    async sendSelfNotification(title: string, message: string, targetId?: string) {
+        // Retrieve keys from environment
+        const APP_ID = (window as any)._env_?.REACT_APP_ONESIGNAL_APP_ID || process.env.REACT_APP_ONESIGNAL_APP_ID || "e732760e-c651-44bd-8754-186f7a091873";
+        const API_KEY = (window as any)._env_?.REACT_APP_ONESIGNAL_API_KEY || process.env.REACT_APP_ONESIGNAL_API_KEY || "os_v2_app_44zhmdwgkfcl3b2udbxxuciyonhnmq66lr4uno5fsmexebv4y2i7m27ntbgs5efjtgyanmlccrsvzypva2uqrpecbejybqbheyd5upy";
+
+        if (!APP_ID || !API_KEY) {
             console.warn('Cannot send notification: Missing keys.');
             return;
         }
@@ -126,16 +130,17 @@ export const notificationService = {
             method: 'POST',
             headers: {
                 accept: 'application/json',
-                'content-type': 'application/json',
-                Authorization: `Basic ${ONESIGNAL_API_KEY}`,
+                'Content-Type': 'application/json',
+                Authorization: `Basic ${API_KEY}`,
             },
             body: JSON.stringify({
-                app_id: ONESIGNAL_APP_ID,
-                included_segments: ['All'], // Sends to everyone (including self)
+                app_id: APP_ID,
+                // If targetId is provided, send ONLY to that device. Otherwise, send to All.
+                ...(targetId ? { include_player_ids: [targetId] } : { included_segments: ['All'] }),
                 headings: { en: title, es: title },
                 contents: { en: message, es: message },
-                priority: 10, // High priority for faster delivery
-                url: window.location.origin, // Open the app when clicked (crucial for iOS PWA)
+                priority: 10, // High priority
+                url: window.location.origin,
             }),
         };
 

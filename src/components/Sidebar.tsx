@@ -309,6 +309,27 @@ const Sidebar: React.FC = () => {
 
             {/* DEBUG INFO: Reactive Status */}
             <SubscriptionStatus />
+
+            {/* SELF TEST BUTTON */}
+            <div style={{ marginTop: '10px', textAlign: 'center' }}>
+              <button
+                onClick={() => {
+                  const myId = OneSignal.User?.PushSubscription?.id;
+                  if (!myId) { alert("No hay ID para probar."); return; }
+
+                  alert("⏳ Espera 5 segundos y BLOQUEA tu pantalla ahora...");
+                  setTimeout(() => {
+                    notificationService.sendSelfNotification("🧪 Test iPhone", "Si lees esto, el ID funciona.", myId);
+                  }, 5000);
+                }}
+                style={{
+                  background: '#e2e8f0', border: 'none', padding: '5px 10px',
+                  borderRadius: '5px', fontSize: '10px', cursor: 'pointer'
+                }}
+              >
+                🧪 Probar Notificación (5s)
+              </button>
+            </div>
           </div>
           <LogoutButton onClick={logout}>
             <FaSignOutAlt /> Cerrar Sesión
