@@ -98,6 +98,7 @@ export const notificationService = {
                 included_segments: ['All'], // Sends to everyone (including self)
                 headings: { en: title, es: title },
                 contents: { en: message, es: message },
+                priority: 10, // High priority for faster delivery
             }),
         };
 

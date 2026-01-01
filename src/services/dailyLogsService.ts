@@ -8,24 +8,10 @@ export interface DailyLog {
     // Other fields can be added later (temp, humidity, etc.)
 }
 
+import { notificationService } from './notificationService';
+
 export const dailyLogsService = {
-    async getLogByDate(cropId: string, date: string): Promise<DailyLog | null> {
-        if (!supabase) return null;
-
-        const { data, error } = await supabase
-            .from('chakra_daily_logs')
-            .select('*')
-            .eq('crop_id', cropId)
-            .eq('date', date)
-            .single();
-
-        if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows found"
-            console.error('Error fetching daily log:', error);
-            return null;
-        }
-
-        return data as DailyLog;
-    },
+    // ... (rest of the file until upsertLog)
 
     async upsertLog(log: Omit<DailyLog, 'id'>): Promise<DailyLog | null> {
         if (!supabase) return null;
@@ -33,15 +19,21 @@ export const dailyLogsService = {
         // First check if exists to get ID (or use upsert with constraint)
         const { data, error } = await supabase
             .from('chakra_daily_logs')
-            .upsert(log, { onConflict: 'crop_id,date' }) // Assuming composite unique constraint or handling via logic
+            .upsert(log, { onConflict: 'crop_id,date' })
             .select()
             .single();
 
         if (error) {
-            // Fallback if no unique constraint: check existence manually
-            // But for now let's try standard insert/update logic if upsert fails or assuming UI handles it
             console.error('Error upserting log:', error);
             return null;
+        }
+
+        if (data) {
+            const shortNote = data.notes.length > 50 ? data.notes.substring(0, 50) + '...' : data.notes;
+            notificationService.sendSelfNotification(
+                `Nueva Bitácora 📒`,
+                `${data.date}: ${shortNote}`
+            );
         }
 
         return data as DailyLog;
