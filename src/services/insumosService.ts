@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import type { Insumo, HistorialPrecio } from '../types';
+import { notificationService } from './notificationService';
 
 // Obtener todos los insumos
 export async function getInsumos(): Promise<Insumo[]> {
@@ -169,6 +170,12 @@ export async function updateInsumoPrecio(
       console.error('Error al actualizar precio del insumo:', updateError);
       throw updateError;
     }
+
+    // Notificar
+    notificationService.sendSelfNotification(
+      `Actualización de Insumo 📦`,
+      `${insumoActual.nombre}: Nuevo precio $${nuevoPrecio}` + (cantidadComprada ? ` (Compra: ${cantidadComprada})` : '')
+    );
 
     return true;
   } catch (error) {

@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import { Crop } from '../types';
+import { notificationService } from './notificationService';
 
 export const cropsService = {
     async getCrops(): Promise<Crop[]> {
@@ -77,6 +78,13 @@ export const cropsService = {
         if (error) {
             console.error('Error creating crop:', error);
             return null;
+        }
+
+        if (data) {
+            notificationService.sendSelfNotification(
+                `Nuevo Cultivo Iniciado 🌱`,
+                `Se ha creado "${data.name}" en ${data.location}`
+            );
         }
 
         return {

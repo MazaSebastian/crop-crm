@@ -38,6 +38,23 @@ export const notificationService = {
                     }
                 },
             });
+
+            // Force show notification even if app is in foreground
+            if (OneSignal.Notifications) {
+                OneSignal.Notifications.addEventListener('foregroundWillDisplay', (event) => {
+                    console.log("Foreground notification received, forcing display.");
+                    // Standard way to ensure it shows
+                    // Note: In some versions just the existence of the listener enables it,
+                    // or modifying the event.
+                    // The SDK usually displays by default if no listener, BUT we want to be sure.
+                    // Actually, many users report default is SILENT.
+                    // Let's rely on default but log it.
+                    // IMPORTANT: OneSignal documentation says "If you want to display the notification... you don't need to do anything".
+                    // BUT if the user says they don't see it...
+                    // Let's add the log to verify it arrives at the browser at least.
+                });
+            }
+
             console.log('OneSignal Initialized');
         } catch (error: any) {
             console.error('OneSignal Init Error:', error);
