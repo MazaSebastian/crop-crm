@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { notificationService } from './notificationService';
 
 export interface DailyLog {
     id: string;
@@ -7,8 +8,6 @@ export interface DailyLog {
     notes: string;
     // Other fields can be added later (temp, humidity, etc.)
 }
-
-import { notificationService } from './notificationService';
 
 export const dailyLogsService = {
     // ... (rest of the file until upsertLog)
