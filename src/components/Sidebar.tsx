@@ -32,6 +32,7 @@ const SidebarContainer = styled.div<{ isOpen: boolean }>`
   display: flex;
   flex-direction: column;
   box-shadow: 4px 0 24px rgba(0,0,0,0.05);
+  overflow-y: auto;
 
   @media (max-width: 768px) {
     transform: ${props => props.isOpen ? 'translateX(0)' : 'translateX(-100%)'};
