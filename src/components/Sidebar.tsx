@@ -247,8 +247,9 @@ const Sidebar: React.FC = () => {
               onClick={async (e) => {
                 e.preventDefault();
                 // DEBUG: Alert permission status
-                const currentPerm = OneSignal.Notifications?.permission;
-                alert(`Estado Permiso: ${currentPerm}`);
+                // Use native API to get the string 'granted', 'denied', or 'default'
+                const currentPerm = Notification.permission;
+                alert(`Estado Permiso (Nativo): ${currentPerm}`);
 
                 if (currentPerm === 'denied') {
                   alert("⚠️ DENEGADO ANTES: Ve a Configuración -> Notificaciones -> GrowApp -> Permitir.");
@@ -260,7 +261,7 @@ const Sidebar: React.FC = () => {
 
                 // Check again
                 setTimeout(() => {
-                  alert(`Nuevo Estado: ${OneSignal.Notifications?.permission}`);
+                  alert(`Nuevo Estado: ${Notification.permission}`);
                 }, 3000);
               }}
               style={{ color: '#d69e2e', justifyContent: 'center', background: '#fffbeb', border: '1px solid #fef3c7' }}
