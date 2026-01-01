@@ -253,6 +253,12 @@ const Sidebar: React.FC = () => {
             >
               <FaBell /> Suscribir Alertas
             </StyledNavLink>
+
+            {/* DEBUG INFO: Temporary for iOS Troubleshooting */}
+            <div style={{ fontSize: '10px', color: '#718096', marginTop: '8px', wordBreak: 'break-all', textAlign: 'center' }}>
+              Status: {OneSignal.User?.PushSubscription?.optedIn ? '✅ Suscrito' : '❌ Sin Permiso'} <br />
+              ID: {OneSignal.User?.PushSubscription?.id || '---'}
+            </div>
           </div>
           <LogoutButton onClick={logout}>
             <FaSignOutAlt /> Cerrar Sesión
