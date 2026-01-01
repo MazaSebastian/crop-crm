@@ -55,7 +55,26 @@ export const notificationService = {
                 });
             }
 
+            // Disable foreground listener log to reduce noise if confirmed working
+            // OneSignal.Notifications.addEventListener... 
+
             console.log('OneSignal Initialized');
+
+            // DEBUG: Check Subscription Status
+            if (OneSignal.User) {
+                const pushSubscription = OneSignal.User.PushSubscription;
+                console.log("Subscription State:", {
+                    id: pushSubscription.id,
+                    token: pushSubscription.token,
+                    optedIn: pushSubscription.optedIn,
+                });
+
+                // Listener for changes
+                OneSignal.User.PushSubscription.addEventListener("change", (event) => {
+                    console.log("Subscription Changed:", event);
+                });
+            }
+
         } catch (error: any) {
             console.error('OneSignal Init Error:', error);
         }
