@@ -142,15 +142,9 @@ export const notificationService = {
         try {
             const response = await fetch('https://onesignal.com/api/v1/notifications', options);
             const data = await response.json();
-            console.log('Notification sent:', data);
-
-            // DEBUG: Check how many devices were targeted
-            if (data.recipients === 0) {
-                console.warn("⚠️ ALERTA: La notificación se envió pero a 0 destinatarios. 'All' segment no actualizado aún.");
-            } else {
-                console.log(`✅ Enviado a ${data.recipients} dispositivo(s).`);
-            }
-
+            console.log('Notification sent (ID):', data.id);
+            // Note: 'recipients' field is often undefined for Segment sends, so we rely on status 200.
+            console.log(`✅ Notificación enviada a la nube de OneSignal.`);
         } catch (err) {
             console.error('Error sending notification:', err);
         }

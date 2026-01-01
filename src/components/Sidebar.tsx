@@ -20,6 +20,44 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { notificationService } from '../services/notificationService';
 
+const SubscriptionStatus = () => {
+  const [status, setStatus] = useState<{ optedIn: boolean, id: string | null | undefined }>({
+    optedIn: false,
+    id: 'Detectando...'
+  });
+
+  useEffect(() => {
+    // Initial check
+    const check = () => {
+      setStatus({
+        optedIn: !!OneSignal.User?.PushSubscription?.optedIn,
+        id: OneSignal.User?.PushSubscription?.id
+      });
+    };
+
+    // Delay slightly for init
+    setTimeout(check, 1000);
+
+    // Listen for changes
+    const listener = (event: any) => {
+      console.log("Sub change:", event);
+      check();
+    };
+    OneSignal.User?.PushSubscription?.addEventListener("change", listener);
+
+    return () => {
+      OneSignal.User?.PushSubscription?.removeEventListener("change", listener);
+    };
+  }, []);
+
+  return (
+    <div style={{ fontSize: '10px', color: '#718096', marginTop: '8px', wordBreak: 'break-all', textAlign: 'center' }}>
+      Status: {status.optedIn ? '✅ Suscrito' : '❌ Sin Permiso'} <br />
+      ID: {status.id || '---'}
+    </div>
+  );
+};
+
 const SidebarContainer = styled.div<{ isOpen: boolean }>`
   position: fixed;
   top: 0;
@@ -269,11 +307,8 @@ const Sidebar: React.FC = () => {
               <FaBell /> Suscribir Alertas
             </StyledNavLink>
 
-            {/* DEBUG INFO: Temporary for iOS Troubleshooting */}
-            <div style={{ fontSize: '10px', color: '#718096', marginTop: '8px', wordBreak: 'break-all', textAlign: 'center' }}>
-              Status: {OneSignal.User?.PushSubscription?.optedIn ? '✅ Suscrito' : '❌ Sin Permiso'} <br />
-              ID: {OneSignal.User?.PushSubscription?.id || '---'}
-            </div>
+            {/* DEBUG INFO: Reactive Status */}
+            <SubscriptionStatus />
           </div>
           <LogoutButton onClick={logout}>
             <FaSignOutAlt /> Cerrar Sesión
