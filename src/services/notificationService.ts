@@ -135,6 +135,7 @@ export const notificationService = {
                 headings: { en: title, es: title },
                 contents: { en: message, es: message },
                 priority: 10, // High priority for faster delivery
+                url: window.location.origin, // Open the app when clicked (crucial for iOS PWA)
             }),
         };
 
@@ -142,6 +143,14 @@ export const notificationService = {
             const response = await fetch('https://onesignal.com/api/v1/notifications', options);
             const data = await response.json();
             console.log('Notification sent:', data);
+
+            // DEBUG: Check how many devices were targeted
+            if (data.recipients === 0) {
+                console.warn("⚠️ ALERTA: La notificación se envió pero a 0 destinatarios. 'All' segment no actualizado aún.");
+            } else {
+                console.log(`✅ Enviado a ${data.recipients} dispositivo(s).`);
+            }
+
         } catch (err) {
             console.error('Error sending notification:', err);
         }
