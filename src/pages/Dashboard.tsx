@@ -536,169 +536,167 @@ const Dashboard: React.FC = () => {
     <Container>
       <WelcomeHeader>
         <h1>Panel de Control</h1>
-        <WelcomeHeader>
-          <h1>Panel de Control</h1>
-          <p>Bienvenido de nuevo, {user?.name || 'Cultivador'}. Aquí está el estado actual de tus cultivos.</p>
-        </WelcomeHeader>
+        <p>Bienvenido de nuevo, {user?.name || 'Cultivador'}. Aquí está el estado actual de tus cultivos.</p>
+      </WelcomeHeader>
 
-        <StickyBoard>
-          <SectionTitle><FaStickyNote /> Tablero de Notas (Stick-it)</SectionTitle>
-          <StickyGrid>
-            {stickies.map(note => (
-              <StickyNoteCard key={note.id} color={note.color}>
-                <div className="content">{note.content}</div>
-                <div className="footer">
-                  <span>{note.created_by || 'Anónimo'} • {new Date(note.created_at).toLocaleDateString()}</span>
-                  <button className="delete-btn" onClick={(e) => handleDeleteSticky(note.id, e)}><FaTrash /></button>
-                </div>
-              </StickyNoteCard>
-            ))}
-            <AddStickyParams onClick={() => setIsStickyModalOpen(true)}>
-              <FaPlus size={24} />
-              <span style={{ marginTop: '0.5rem', fontWeight: 600 }}>Nueva Nota</span>
-            </AddStickyParams>
-          </StickyGrid>
-        </StickyBoard>
-
-        {/* Sticky Modal */}
-        {isStickyModalOpen && (
-          <ModalOverlay onClick={() => setIsStickyModalOpen(false)}>
-            <ModalContent onClick={e => e.stopPropagation()}>
-              <h3>Nueva Nota Adhesiva</h3>
-              <ColorPicker>
-                {['yellow', 'blue', 'pink', 'green'].map(c => (
-                  <ColorOption
-                    key={c}
-                    color={c}
-                    selected={newStickyColor === c}
-                    onClick={() => setNewStickyColor(c as any)}
-                  />
-                ))}
-              </ColorPicker>
-              <textarea
-                placeholder="Escribe tu recordatorio aquí..."
-                value={newStickyContent}
-                onChange={e => setNewStickyContent(e.target.value)}
-                autoFocus
-              />
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                <Button variant="secondary" onClick={() => setIsStickyModalOpen(false)}>Cancelar</Button>
-                <Button onClick={handleCreateSticky}>Pegar Nota</Button>
+      <StickyBoard>
+        <SectionTitle><FaStickyNote /> Tablero de Notas (Stick-it)</SectionTitle>
+        <StickyGrid>
+          {stickies.map(note => (
+            <StickyNoteCard key={note.id} color={note.color}>
+              <div className="content">{note.content}</div>
+              <div className="footer">
+                <span>{note.created_by || 'Anónimo'} • {new Date(note.created_at).toLocaleDateString()}</span>
+                <button className="delete-btn" onClick={(e) => handleDeleteSticky(note.id, e)}><FaTrash /></button>
               </div>
-            </ModalContent>
-          </ModalOverlay>
-        )}
+            </StickyNoteCard>
+          ))}
+          <AddStickyParams onClick={() => setIsStickyModalOpen(true)}>
+            <FaPlus size={24} />
+            <span style={{ marginTop: '0.5rem', fontWeight: 600 }}>Nueva Nota</span>
+          </AddStickyParams>
+        </StickyGrid>
+      </StickyBoard>
 
-        <WeatherWidget />
-
-        <KPISection>
-          <Link to="/crops" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <KPICard active>
-              <div className="icon-wrapper"><FaSeedling /></div>
-              <div className="label">Cultivos Activos</div>
-              <div className="value">{activeCrops.length} <span className="unit">variedades</span></div>
-              <div className="subtext"><FaChartLine /> En curso</div>
-            </KPICard>
-          </Link>
-
-          {/* Removed Temperature and Humidity cards as requested */}
-
-          <KPICard alert>
-            <div className="icon-wrapper"><FaExclamationTriangle /></div>
-            <div className="label">Alertas</div>
-            <div className="value">{alerts.length} <span className="unit">pendientes</span></div>
-
-            <div className="subtext">Requiere atención</div>
-          </KPICard>
-        </KPISection>
-        <StickyBoard>
-          <SectionTitle><FaStickyNote /> Tablero de Notas (Stick-it)</SectionTitle>
-          <StickyGrid>
-            {stickies.map(note => (
-              <StickyNoteCard key={note.id} color={note.color}>
-                <div className="content">{note.content}</div>
-                <div className="footer">
-                  <span>{note.created_by || 'Anónimo'} • {new Date(note.created_at).toLocaleDateString()}</span>
-                  <button className="delete-btn" onClick={(e) => handleDeleteSticky(note.id, e)}><FaTrash /></button>
-                </div>
-              </StickyNoteCard>
-            ))}
-            <AddStickyParams onClick={() => setIsStickyModalOpen(true)}>
-              <FaPlus size={24} />
-              <span style={{ marginTop: '0.5rem', fontWeight: 600 }}>Nueva Nota</span>
-            </AddStickyParams>
-          </StickyGrid>
-        </StickyBoard>
-
-        {/* Sticky Modal */}
-        {isStickyModalOpen && (
-          <ModalOverlay onClick={() => setIsStickyModalOpen(false)}>
-            <ModalContent onClick={e => e.stopPropagation()}>
-              <h3>Nueva Nota Adhesiva</h3>
-              <ColorPicker>
-                {['yellow', 'blue', 'pink', 'green'].map(c => (
-                  <ColorOption
-                    key={c}
-                    color={c}
-                    selected={newStickyColor === c}
-                    onClick={() => setNewStickyColor(c as any)}
-                  />
-                ))}
-              </ColorPicker>
-              <textarea
-                placeholder="Escribe tu recordatorio aquí..."
-                value={newStickyContent}
-                onChange={e => setNewStickyContent(e.target.value)}
-                autoFocus
-              />
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                <Button variant="secondary" onClick={() => setIsStickyModalOpen(false)}>Cancelar</Button>
-                <Button onClick={handleCreateSticky}>Pegar Nota</Button>
-              </div>
-            </ModalContent>
-          </ModalOverlay>
-        )}
-
-
-
-
-
-        <ContentGrid>
-
-
-          <div>
-            <SectionTitle><FaExclamationTriangle /> Alertas & Tareas</SectionTitle>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-              {alerts.map(alert => (
-                <AlertItem key={alert.id} style={alert.type === 'info' ? { background: '#ebf8ff', borderLeftColor: '#4299e1' } : {}}>
-                  <div className="icon" style={alert.type === 'info' ? { color: '#4299e1' } : {}}>{alert.icon}</div>
-                  <div className="content">
-                    <h5 style={alert.type === 'info' ? { color: '#2b6cb0' } : {}}>{alert.title}</h5>
-                    <p style={alert.type === 'info' ? { color: '#2c5282' } : {}}>{alert.message}</p>
-                  </div>
-                  <AlertActions>
-                    <ActionButtonSmall type="success" onClick={() => handleAction(alert.id, 'done')} title="Marcar como realizado">
-                      <FaCheck />
-                    </ActionButtonSmall>
-                    <ActionButtonSmall type="danger" onClick={() => handleAction(alert.id, 'dismissed')} title="Descartar">
-                      <FaTimes />
-                    </ActionButtonSmall>
-                  </AlertActions>
-
-                </AlertItem>
+      {/* Sticky Modal */}
+      {isStickyModalOpen && (
+        <ModalOverlay onClick={() => setIsStickyModalOpen(false)}>
+          <ModalContent onClick={e => e.stopPropagation()}>
+            <h3>Nueva Nota Adhesiva</h3>
+            <ColorPicker>
+              {['yellow', 'blue', 'pink', 'green'].map(c => (
+                <ColorOption
+                  key={c}
+                  color={c}
+                  selected={newStickyColor === c}
+                  onClick={() => setNewStickyColor(c as any)}
+                />
               ))}
-
-              {alerts.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '2rem', color: '#a0aec0', background: 'white', borderRadius: '0.5rem' }}>
-                  <FaCheckCircle style={{ fontSize: '2rem', marginBottom: '0.5rem', color: '#38a169' }} />
-                  <p>¡Todo al día!</p>
-                </div>
-              )}
-
-
+            </ColorPicker>
+            <textarea
+              placeholder="Escribe tu recordatorio aquí..."
+              value={newStickyContent}
+              onChange={e => setNewStickyContent(e.target.value)}
+              autoFocus
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+              <Button variant="secondary" onClick={() => setIsStickyModalOpen(false)}>Cancelar</Button>
+              <Button onClick={handleCreateSticky}>Pegar Nota</Button>
             </div>
+          </ModalContent>
+        </ModalOverlay>
+      )}
+
+      <WeatherWidget />
+
+      <KPISection>
+        <Link to="/crops" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <KPICard active>
+            <div className="icon-wrapper"><FaSeedling /></div>
+            <div className="label">Cultivos Activos</div>
+            <div className="value">{activeCrops.length} <span className="unit">variedades</span></div>
+            <div className="subtext"><FaChartLine /> En curso</div>
+          </KPICard>
+        </Link>
+
+        {/* Removed Temperature and Humidity cards as requested */}
+
+        <KPICard alert>
+          <div className="icon-wrapper"><FaExclamationTriangle /></div>
+          <div className="label">Alertas</div>
+          <div className="value">{alerts.length} <span className="unit">pendientes</span></div>
+
+          <div className="subtext">Requiere atención</div>
+        </KPICard>
+      </KPISection>
+      <StickyBoard>
+        <SectionTitle><FaStickyNote /> Tablero de Notas (Stick-it)</SectionTitle>
+        <StickyGrid>
+          {stickies.map(note => (
+            <StickyNoteCard key={note.id} color={note.color}>
+              <div className="content">{note.content}</div>
+              <div className="footer">
+                <span>{note.created_by || 'Anónimo'} • {new Date(note.created_at).toLocaleDateString()}</span>
+                <button className="delete-btn" onClick={(e) => handleDeleteSticky(note.id, e)}><FaTrash /></button>
+              </div>
+            </StickyNoteCard>
+          ))}
+          <AddStickyParams onClick={() => setIsStickyModalOpen(true)}>
+            <FaPlus size={24} />
+            <span style={{ marginTop: '0.5rem', fontWeight: 600 }}>Nueva Nota</span>
+          </AddStickyParams>
+        </StickyGrid>
+      </StickyBoard>
+
+      {/* Sticky Modal */}
+      {isStickyModalOpen && (
+        <ModalOverlay onClick={() => setIsStickyModalOpen(false)}>
+          <ModalContent onClick={e => e.stopPropagation()}>
+            <h3>Nueva Nota Adhesiva</h3>
+            <ColorPicker>
+              {['yellow', 'blue', 'pink', 'green'].map(c => (
+                <ColorOption
+                  key={c}
+                  color={c}
+                  selected={newStickyColor === c}
+                  onClick={() => setNewStickyColor(c as any)}
+                />
+              ))}
+            </ColorPicker>
+            <textarea
+              placeholder="Escribe tu recordatorio aquí..."
+              value={newStickyContent}
+              onChange={e => setNewStickyContent(e.target.value)}
+              autoFocus
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+              <Button variant="secondary" onClick={() => setIsStickyModalOpen(false)}>Cancelar</Button>
+              <Button onClick={handleCreateSticky}>Pegar Nota</Button>
+            </div>
+          </ModalContent>
+        </ModalOverlay>
+      )}
+
+
+
+
+
+      <ContentGrid>
+
+
+        <div>
+          <SectionTitle><FaExclamationTriangle /> Alertas & Tareas</SectionTitle>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+            {alerts.map(alert => (
+              <AlertItem key={alert.id} style={alert.type === 'info' ? { background: '#ebf8ff', borderLeftColor: '#4299e1' } : {}}>
+                <div className="icon" style={alert.type === 'info' ? { color: '#4299e1' } : {}}>{alert.icon}</div>
+                <div className="content">
+                  <h5 style={alert.type === 'info' ? { color: '#2b6cb0' } : {}}>{alert.title}</h5>
+                  <p style={alert.type === 'info' ? { color: '#2c5282' } : {}}>{alert.message}</p>
+                </div>
+                <AlertActions>
+                  <ActionButtonSmall type="success" onClick={() => handleAction(alert.id, 'done')} title="Marcar como realizado">
+                    <FaCheck />
+                  </ActionButtonSmall>
+                  <ActionButtonSmall type="danger" onClick={() => handleAction(alert.id, 'dismissed')} title="Descartar">
+                    <FaTimes />
+                  </ActionButtonSmall>
+                </AlertActions>
+
+              </AlertItem>
+            ))}
+
+            {alerts.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '2rem', color: '#a0aec0', background: 'white', borderRadius: '0.5rem' }}>
+                <FaCheckCircle style={{ fontSize: '2rem', marginBottom: '0.5rem', color: '#38a169' }} />
+                <p>¡Todo al día!</p>
+              </div>
+            )}
+
+
           </div>
-        </ContentGrid>
+        </div>
+      </ContentGrid>
     </Container>
   );
 };
