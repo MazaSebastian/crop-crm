@@ -144,14 +144,20 @@ export const notificationService = {
             }),
         };
 
-        try {
-            const response = await fetch('https://onesignal.com/api/v1/notifications', options);
-            const data = await response.json();
+        const response = await fetch('https://onesignal.com/api/v1/notifications', options);
+        const data = await response.json();
+
+        // DEBUG: Show result on screen (Temporary)
+        if (response.ok) {
+            alert(`✅ API Éxito: ID ${data.id?.slice(0, 8)}... Recipientes: ${data.recipients}`);
             console.log('Notification sent (ID):', data.id);
-            // Note: 'recipients' field is often undefined for Segment sends, so we rely on status 200.
-            console.log(`✅ Notificación enviada a la nube de OneSignal.`);
-        } catch (err) {
-            console.error('Error sending notification:', err);
+        } else {
+            alert(`❌ API Error: ${response.status} - ${JSON.stringify(data)}`);
+            console.error('API Error:', data);
         }
+    } catch(err: any) {
+        alert(`🔥 Catch Error: ${err.message}`);
+        console.error('Error sending notification:', err);
     }
+}
 };
