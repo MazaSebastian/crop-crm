@@ -527,7 +527,10 @@ const CropDetail: React.FC = () => {
 
   const handleSave = async () => {
     if (!selectedDate || !id) return;
-    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    // Fix: Force date to noon to avoid timezone shifts (e.g. 20th 00:00 becoming 19th 21:00)
+    const safeDate = new Date(selectedDate);
+    safeDate.setHours(12, 0, 0, 0);
+    const dateStr = format(safeDate, 'yyyy-MM-dd');
 
     if (activeTab === 'task') {
       // Append fertilizer details if applicable
