@@ -172,8 +172,12 @@ export async function updateInsumoPrecio(
     }
 
     // Notificar
+    // Get Current User for Notification Attribution
+    const { data: { user } } = await supabase.auth.getUser();
+    const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Alguien';
+
     notificationService.sendSelfNotification(
-      `Actualización de Insumo 📦`,
+      `Actualización de Insumo (${userName}) 📦`,
       `${insumoActual.nombre}: Nuevo precio $${nuevoPrecio}` + (cantidadComprada ? ` (Compra: ${cantidadComprada})` : '')
     );
 

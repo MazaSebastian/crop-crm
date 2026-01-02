@@ -28,9 +28,13 @@ export const dailyLogsService = {
         }
 
         if (data) {
+            // Get Current User for Notification Attribution
+            const { data: { user } } = await supabase.auth.getUser();
+            const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Alguien';
+
             const shortNote = data.notes.length > 50 ? data.notes.substring(0, 50) + '...' : data.notes;
             notificationService.sendSelfNotification(
-                `Nueva Bitácora 📒`,
+                `Nueva Bitácora (${userName}) 📒`,
                 `${data.date}: ${shortNote}`
             );
         }

@@ -50,10 +50,14 @@ export const expensesService = {
         }
         if (data?.[0]) {
             const m = data[0];
+            // Get Current User for Notification Attribution
+            const { data: { user } } = await supabase.auth.getUser();
+            const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || m.owner || 'Alguien';
+
             // Fire and forget notification
             notificationService.sendSelfNotification(
-                `Nuevo ${m.type === 'INGRESO' ? 'Ingreso 💰' : 'Gasto 💸'}`,
-                `${m.concept}: $${m.amount} (${m.owner})`
+                `Nuevo ${m.type === 'INGRESO' ? 'Ingreso 💰' : 'Gasto 💸'} (${userName})`,
+                `${m.concept}: $${m.amount}`
             );
         }
 

@@ -81,8 +81,12 @@ export const cropsService = {
         }
 
         if (data) {
+            // Get Current User for Notification Attribution
+            const { data: { user } } = await supabase.auth.getUser();
+            const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Alguien';
+
             notificationService.sendSelfNotification(
-                `Nuevo Cultivo Iniciado 🌱`,
+                `Nuevo Cultivo Iniciado (${userName}) 🌱`,
                 `Se ha creado "${data.name}" en ${data.location}`
             );
         }
