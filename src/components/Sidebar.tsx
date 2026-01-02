@@ -20,43 +20,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { notificationService } from '../services/notificationService';
 
-const SubscriptionStatus = () => {
-  const [status, setStatus] = useState<{ optedIn: boolean, id: string | null | undefined }>({
-    optedIn: false,
-    id: 'Detectando...'
-  });
 
-  useEffect(() => {
-    // Initial check
-    const check = () => {
-      setStatus({
-        optedIn: !!OneSignal.User?.PushSubscription?.optedIn,
-        id: OneSignal.User?.PushSubscription?.id
-      });
-    };
-
-    // Delay slightly for init
-    setTimeout(check, 1000);
-
-    // Listen for changes
-    const listener = (event: any) => {
-      console.log("Sub change:", event);
-      check();
-    };
-    OneSignal.User?.PushSubscription?.addEventListener("change", listener);
-
-    return () => {
-      OneSignal.User?.PushSubscription?.removeEventListener("change", listener);
-    };
-  }, []);
-
-  return (
-    <div style={{ fontSize: '10px', color: '#718096', marginTop: '8px', wordBreak: 'break-all', textAlign: 'center' }}>
-      Status: {status.optedIn ? '✅ Suscrito' : '❌ Sin Permiso'} <br />
-      ID: {status.id || '---'}
-    </div>
-  );
-};
 
 const SidebarContainer = styled.div<{ isOpen: boolean }>`
   position: fixed;
@@ -280,55 +244,8 @@ const Sidebar: React.FC = () => {
 
         <UserSection>
           <div style={{ marginBottom: '1rem' }}>
-            <StyledNavLink
-              to="#"
-              onClick={async (e) => {
-                e.preventDefault();
-                // DEBUG: Alert permission status
-                // Use native API to get the string 'granted', 'denied', or 'default'
-                const currentPerm = Notification.permission;
-                alert(`Estado Permiso (Nativo): ${currentPerm}`);
-
-                if (currentPerm === 'denied') {
-                  alert("⚠️ DENEGADO ANTES: Ve a Configuración -> Notificaciones -> GrowApp -> Permitir.");
-                  return;
-                }
-
-                alert("Solicitando...");
-                await notificationService.promptSubscription();
-
-                // Check again
-                setTimeout(() => {
-                  alert(`Nuevo Estado: ${Notification.permission}`);
-                }, 3000);
-              }}
-              style={{ color: '#d69e2e', justifyContent: 'center', background: '#fffbeb', border: '1px solid #fef3c7' }}
-            >
-              <FaBell /> Suscribir Alertas
-            </StyledNavLink>
-
-            {/* DEBUG INFO: Reactive Status */}
-            <SubscriptionStatus />
-
-            {/* SELF TEST BUTTON */}
+            {/* Telegram & Weather Test Buttons */}
             <div style={{ marginTop: '10px', textAlign: 'center' }}>
-              <button
-                onClick={() => {
-                  const myId = OneSignal.User?.PushSubscription?.id;
-                  if (!myId) { alert("No hay ID para probar."); return; }
-
-                  alert("⏳ Espera 5 segundos y BLOQUEA tu pantalla ahora...");
-                  setTimeout(() => {
-                    notificationService.sendSelfNotification("🧪 Test iPhone", "Si lees esto, el ID funciona.", myId);
-                  }, 5000);
-                }}
-                style={{
-                  background: '#e2e8f0', border: 'none', padding: '5px 10px',
-                  borderRadius: '5px', fontSize: '10px', cursor: 'pointer'
-                }}
-              >
-                🧪 Probar Notificación (5s)
-              </button>
 
               <button
                 onClick={async () => {
