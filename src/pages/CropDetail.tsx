@@ -609,238 +609,279 @@ const CropDetail: React.FC = () => {
 
   return (
     <Container>
-      <Header>
-        <BackButton onClick={() => navigate('/crops')}>
-          <FaArrowLeft /> Volver a Cultivos
-        </BackButton>
+  const handleDeleteCrop = async () => {
+    if (!crop) return;
+      // Safety check
+      const confirmName = window.prompt(`⛔ ZONA DE PELIGRO ⛔\n\nEstás a punto de eliminar "${crop.name}" y todo su historial (tareas, notas, gastos).\n\nPara confirmar, escribe el nombre del cultivo exactamente:`);
 
-        <TitleSection>
-          <div>
-            <CropTitle><FaLeaf /> {crop.name}</CropTitle>
-            <MetaGrid>
-              <div><FaMapMarkerAlt /> {crop.location}</div>
-              <div><FaCalendarAlt /> Inicio: {format(new Date(crop.startDate), 'dd MMM yyyy', { locale: es })}</div>
-              {crop.estimatedHarvestDate && (
-                <div><FaSeedling /> Cosecha: {format(new Date(crop.estimatedHarvestDate), 'MMM yyyy', { locale: es })}</div>
-              )}
-            </MetaGrid>
+      if (confirmName !== crop.name) {
+      if (confirmName !== null) alert("Nombre incorrecto. Operación cancelada.");
+      return;
+    }
+
+      const success = await cropsService.deleteCrop(crop.id);
+      if (success) {
+        alert("✅ Cultivo eliminado permanentemente.");
+      navigate('/'); 
+    } else {
+        alert("❌ Error al eliminar el cultivo.");
+    }
+  };
+
+      return (
+      <Container>
+        <Header>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <BackButton onClick={() => navigate('/crops')}>
+              <FaArrowLeft /> Volver a Cultivos
+            </BackButton>
+
+            <button
+              onClick={handleDeleteCrop}
+              style={{
+                background: 'transparent',
+                color: '#e53e3e',
+                border: '1px solid #fed7d7',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontSize: '0.9rem'
+              }}
+            >
+              <FaTrash /> Eliminar Cultivo
+            </button>
           </div>
-        </TitleSection>
-      </Header>
 
-      {/* Monthly View */}
-      <CalendarContainer>
-        <CalendarHeader>
-          <h2><FaCalendarAlt /> Calendario Mensual</h2>
-          <MonthNav>
-            <button onClick={prevMonth}><FaChevronLeft /></button>
-            <span>{format(currentDate, 'MMMM yyyy', { locale: es })}</span>
-            <button onClick={nextMonth}><FaChevronRight /></button>
-          </MonthNav>
-        </CalendarHeader>
+          <TitleSection>
+            <div>
+              <CropTitle><FaLeaf /> {crop.name}</CropTitle>
+              <MetaGrid>
+                <div><FaMapMarkerAlt /> {crop.location}</div>
+                <div><FaCalendarAlt /> Inicio: {format(new Date(crop.startDate), 'dd MMM yyyy', { locale: es })}</div>
+                {crop.estimatedHarvestDate && (
+                  <div><FaSeedling /> Cosecha: {format(new Date(crop.estimatedHarvestDate), 'MMM yyyy', { locale: es })}</div>
+                )}
+              </MetaGrid>
+            </div>
+          </TitleSection>
+        </Header>
 
-        <MonthGrid>
-          {weekDays.map(day => (
-            <DayHeader key={day}>{day}</DayHeader>
-          ))}
+        {/* Monthly View */}
+        <CalendarContainer>
+          <CalendarHeader>
+            <h2><FaCalendarAlt /> Calendario Mensual</h2>
+            <MonthNav>
+              <button onClick={prevMonth}><FaChevronLeft /></button>
+              <span>{format(currentDate, 'MMMM yyyy', { locale: es })}</span>
+              <button onClick={nextMonth}><FaChevronRight /></button>
+            </MonthNav>
+          </CalendarHeader>
 
-          {calendarDays.map((day, idx) => {
-            const dateKey = format(day, 'yyyy-MM-dd');
-            const data = eventsMap.get(dateKey);
-            const hasEvent = !!data;
-            const hasTask = data?.tasks && data.tasks.length > 0;
+          <MonthGrid>
+            {weekDays.map(day => (
+              <DayHeader key={day}>{day}</DayHeader>
+            ))}
 
-            const getTaskColor = (type: string) => {
-              switch (type) {
-                case 'fertilizante': return '#805ad5'; // Purple
-                case 'agua': return '#3182ce'; // Blue
-                case 'defoliacion': return '#d69e2e'; // Orange/Yellow
-                case 'poda_apical': return '#e53e3e'; // Red
-                case 'hst': return '#c53030'; // Dark Red
-                case 'lst': return '#38b2ac'; // Teal
-                case 'enmienda': return '#744210'; // Brown
-                case 'te_compost': return '#276749'; // Dark Green
-                case 'warning': return '#dd6b20'; // Orange
-                case 'danger': return '#e53e3e'; // Red
-                default: return '#718096'; // Gray
+            {calendarDays.map((day, idx) => {
+              const dateKey = format(day, 'yyyy-MM-dd');
+              const data = eventsMap.get(dateKey);
+              const hasEvent = !!data;
+              const hasTask = data?.tasks && data.tasks.length > 0;
+
+              const getTaskColor = (type: string) => {
+                switch (type) {
+                  case 'fertilizante': return '#805ad5'; // Purple
+                  case 'agua': return '#3182ce'; // Blue
+                  case 'defoliacion': return '#d69e2e'; // Orange/Yellow
+                  case 'poda_apical': return '#e53e3e'; // Red
+                  case 'hst': return '#c53030'; // Dark Red
+                  case 'lst': return '#38b2ac'; // Teal
+                  case 'enmienda': return '#744210'; // Brown
+                  case 'te_compost': return '#276749'; // Dark Green
+                  case 'warning': return '#dd6b20'; // Orange
+                  case 'danger': return '#e53e3e'; // Red
+                  default: return '#718096'; // Gray
+                }
+              };
+
+              // Determine background color
+              let cellBg = undefined;
+              let cellText = undefined;
+
+              if (hasTask && data.tasks.length > 0) {
+                // Prioritize: Use the color of the first task found.
+                // We could add complex priority logic here if needed.
+                cellBg = getTaskColor(data.tasks[0].type);
+                cellText = 'white';
+              } else if (data?.log) {
+                // If only log, maybe a soft green?
+                cellBg = '#c6f6d5';
+                cellText = '#22543d';
               }
-            };
 
-            // Determine background color
-            let cellBg = undefined;
-            let cellText = undefined;
+              return (
+                <DayCell
+                  key={idx}
+                  isCurrentMonth={isSameMonth(day, monthStart)}
+                  isToday={isSameDay(day, new Date())}
+                  hasEvent={hasEvent}
+                  backgroundColor={cellBg}
+                  textColor={cellText}
+                  onClick={() => handleDayClick(day)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <span className="day-number">{format(day, 'd')}</span>
 
-            if (hasTask && data.tasks.length > 0) {
-              // Prioritize: Use the color of the first task found.
-              // We could add complex priority logic here if needed.
-              cellBg = getTaskColor(data.tasks[0].type);
-              cellText = 'white';
-            } else if (data?.log) {
-              // If only log, maybe a soft green?
-              cellBg = '#c6f6d5';
-              cellText = '#22543d';
-            }
-
-            return (
-              <DayCell
-                key={idx}
-                isCurrentMonth={isSameMonth(day, monthStart)}
-                isToday={isSameDay(day, new Date())}
-                hasEvent={hasEvent}
-                backgroundColor={cellBg}
-                textColor={cellText}
-                onClick={() => handleDayClick(day)}
-                style={{ cursor: 'pointer' }}
-              >
-                <span className="day-number">{format(day, 'd')}</span>
-
-                {/* Visual Indicators (Dots) - keep dots if multiple tasks, otherwise clean */}
-                <div style={{ display: 'flex', gap: '2px', flexWrap: 'wrap', marginTop: 'auto', justifyContent: 'center' }}>
-                  {(data?.tasks?.length || 0) > 1 && data!.tasks.slice(1).map((t, i) => (
-                    <div key={i} style={{
-                      width: '4px', height: '4px', borderRadius: '50%',
-                      backgroundColor: 'rgba(255,255,255,0.8)'
-                    }} />
-                  ))}
-                  {data?.log && <div style={{ fontSize: '0.7rem', lineHeight: 1 }} title="Diario">📝</div>}
-                </div>
-
-                {hasEvent && (
-                  <Tooltip>
-                    {data?.log && <div className="log-badge" style={{ backgroundColor: '#f0fff4', color: '#2f855a' }}>📝 Diario</div>}
-                    {data?.tasks.map((t, i) => (
-                      <div key={i} className="task-item" style={{ borderLeft: `3px solid ${getTaskColor(t.type)}`, paddingLeft: '0.5rem' }}>
-                        <div><strong style={{ color: getTaskColor(t.type) }}>{t.title}</strong></div>
-                        {t.description && (
-                          <div style={{ fontSize: '0.75rem', color: '#4a5568', marginTop: '0.1rem', whiteSpace: 'pre-wrap' }}>
-                            {t.description.length > 80 ? t.description.substring(0, 80) + '...' : t.description}
-                          </div>
-                        )}
-                      </div>
+                  {/* Visual Indicators (Dots) - keep dots if multiple tasks, otherwise clean */}
+                  <div style={{ display: 'flex', gap: '2px', flexWrap: 'wrap', marginTop: 'auto', justifyContent: 'center' }}>
+                    {(data?.tasks?.length || 0) > 1 && data!.tasks.slice(1).map((t, i) => (
+                      <div key={i} style={{
+                        width: '4px', height: '4px', borderRadius: '50%',
+                        backgroundColor: 'rgba(255,255,255,0.8)'
+                      }} />
                     ))}
-                  </Tooltip>
-                )}
-              </DayCell>
-            )
-          })}
-        </MonthGrid>
-      </CalendarContainer>
-
-
-
-      {isModalOpen && selectedDate && (
-        <ModalOverlay onClick={() => setIsModalOpen(false)}>
-          <Modal onClick={e => e.stopPropagation()}>
-            <ModalHeader>
-              <h3>{format(selectedDate, "EEEE d 'de' MMMM", { locale: es })}</h3>
-              <CloseButton onClick={() => setIsModalOpen(false)}>&times;</CloseButton>
-            </ModalHeader>
-
-            <TabGroup>
-              <Tab active={activeTab === 'task'} onClick={() => setActiveTab('task')}>Nueva Tarea</Tab>
-              <Tab active={activeTab === 'log'} onClick={() => setActiveTab('log')}>Diario de Cultivo</Tab>
-            </TabGroup>
-
-            {activeTab === 'task' ? (
-              <>
-                {/* Task List for the Day */}
-                {selectedDayTasks.length > 0 && (
-                  <div style={{ marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem' }}>
-                    <h4 style={{ margin: '0 0 0.5rem 0', color: '#718096' }}>Tareas Programadas:</h4>
-                    {selectedDayTasks.map(task => (
-                      <div key={task.id} style={{
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        background: '#f7fafc', padding: '0.5rem', borderRadius: '0.375rem', marginBottom: '0.5rem'
-                      }}>
-                        <span style={{ fontWeight: 500, color: '#2d3748' }}>{task.title}</span>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <button onClick={() => handleEditTask(task)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#4299e1' }}>
-                            <FaEdit />
-                          </button>
-                          <button onClick={() => handleDeleteTask(task.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#e53e3e' }}>
-                            <FaTrash />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                    {data?.log && <div style={{ fontSize: '0.7rem', lineHeight: 1 }} title="Diario">📝</div>}
                   </div>
-                )}
 
-                <h4 style={{ margin: '0 0 1rem 0', color: '#2d3748' }}>
-                  {editingTaskId ? 'Editar Tarea' : 'Agendar Nueva Tarea'}
-                  {editingTaskId && <button onClick={() => { setEditingTaskId(null); setTaskForm({ title: '', type: 'info', description: '' }); }} style={{ marginLeft: '1rem', fontSize: '0.8rem', color: '#e53e3e', border: 'none', background: 'none', cursor: 'pointer' }}>Cancelar Edición</button>}
-                </h4>
+                  {hasEvent && (
+                    <Tooltip>
+                      {data?.log && <div className="log-badge" style={{ backgroundColor: '#f0fff4', color: '#2f855a' }}>📝 Diario</div>}
+                      {data?.tasks.map((t, i) => (
+                        <div key={i} className="task-item" style={{ borderLeft: `3px solid ${getTaskColor(t.type)}`, paddingLeft: '0.5rem' }}>
+                          <div><strong style={{ color: getTaskColor(t.type) }}>{t.title}</strong></div>
+                          {t.description && (
+                            <div style={{ fontSize: '0.75rem', color: '#4a5568', marginTop: '0.1rem', whiteSpace: 'pre-wrap' }}>
+                              {t.description.length > 80 ? t.description.substring(0, 80) + '...' : t.description}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </Tooltip>
+                  )}
+                </DayCell>
+              )
+            })}
+          </MonthGrid>
+        </CalendarContainer>
 
-                <FormGroup>
-                  <label>Título</label>
-                  <input
-                    value={taskForm.title}
-                    onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
-                    placeholder="Ej: Riego profundo con CalMag"
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <label>Tipo</label>
-                  <select value={taskForm.type} onChange={e => setTaskForm({ ...taskForm, type: e.target.value as any })}>
-                    <option value="info">Info / Atención</option>
-                    <option value="fertilizante">Fertilizante</option>
-                    <option value="defoliacion">Defoliación</option>
-                    <option value="poda_apical">Poda Apical</option>
-                    <option value="hst">HST (High Stress Training)</option>
-                    <option value="lst">LST (Low Stress Training)</option>
-                    <option value="enmienda">Enmienda</option>
-                    <option value="te_compost">Té de Compost</option>
-                    <option value="agua">Agua / Riego</option>
-                    <option value="warning">Alerta (Warning)</option>
-                    <option value="danger">Urgente (Danger)</option>
-                  </select>
-                </FormGroup>
 
-                {taskForm.type === 'fertilizante' && (
+
+        {isModalOpen && selectedDate && (
+          <ModalOverlay onClick={() => setIsModalOpen(false)}>
+            <Modal onClick={e => e.stopPropagation()}>
+              <ModalHeader>
+                <h3>{format(selectedDate, "EEEE d 'de' MMMM", { locale: es })}</h3>
+                <CloseButton onClick={() => setIsModalOpen(false)}>&times;</CloseButton>
+              </ModalHeader>
+
+              <TabGroup>
+                <Tab active={activeTab === 'task'} onClick={() => setActiveTab('task')}>Nueva Tarea</Tab>
+                <Tab active={activeTab === 'log'} onClick={() => setActiveTab('log')}>Diario de Cultivo</Tab>
+              </TabGroup>
+
+              {activeTab === 'task' ? (
+                <>
+                  {/* Task List for the Day */}
+                  {selectedDayTasks.length > 0 && (
+                    <div style={{ marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem' }}>
+                      <h4 style={{ margin: '0 0 0.5rem 0', color: '#718096' }}>Tareas Programadas:</h4>
+                      {selectedDayTasks.map(task => (
+                        <div key={task.id} style={{
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                          background: '#f7fafc', padding: '0.5rem', borderRadius: '0.375rem', marginBottom: '0.5rem'
+                        }}>
+                          <span style={{ fontWeight: 500, color: '#2d3748' }}>{task.title}</span>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button onClick={() => handleEditTask(task)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#4299e1' }}>
+                              <FaEdit />
+                            </button>
+                            <button onClick={() => handleDeleteTask(task.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#e53e3e' }}>
+                              <FaTrash />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <h4 style={{ margin: '0 0 1rem 0', color: '#2d3748' }}>
+                    {editingTaskId ? 'Editar Tarea' : 'Agendar Nueva Tarea'}
+                    {editingTaskId && <button onClick={() => { setEditingTaskId(null); setTaskForm({ title: '', type: 'info', description: '' }); }} style={{ marginLeft: '1rem', fontSize: '0.8rem', color: '#e53e3e', border: 'none', background: 'none', cursor: 'pointer' }}>Cancelar Edición</button>}
+                  </h4>
+
                   <FormGroup>
-                    <label>Tipo de Fertilizante y Medida</label>
-                    <textarea
-                      value={fertilizerDetails}
-                      onChange={e => setFertilizerDetails(e.target.value)}
-                      placeholder="Ej: Grow Big 5ml/L, CalMag 2ml/L..."
-                      style={{ minHeight: '60px', borderColor: '#48bb78' }}
+                    <label>Título</label>
+                    <input
+                      value={taskForm.title}
+                      onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
+                      placeholder="Ej: Riego profundo con CalMag"
                     />
                   </FormGroup>
-                )}
+                  <FormGroup>
+                    <label>Tipo</label>
+                    <select value={taskForm.type} onChange={e => setTaskForm({ ...taskForm, type: e.target.value as any })}>
+                      <option value="info">Info / Atención</option>
+                      <option value="fertilizante">Fertilizante</option>
+                      <option value="defoliacion">Defoliación</option>
+                      <option value="poda_apical">Poda Apical</option>
+                      <option value="hst">HST (High Stress Training)</option>
+                      <option value="lst">LST (Low Stress Training)</option>
+                      <option value="enmienda">Enmienda</option>
+                      <option value="te_compost">Té de Compost</option>
+                      <option value="agua">Agua / Riego</option>
+                      <option value="warning">Alerta (Warning)</option>
+                      <option value="danger">Urgente (Danger)</option>
+                    </select>
+                  </FormGroup>
+
+                  {taskForm.type === 'fertilizante' && (
+                    <FormGroup>
+                      <label>Tipo de Fertilizante y Medida</label>
+                      <textarea
+                        value={fertilizerDetails}
+                        onChange={e => setFertilizerDetails(e.target.value)}
+                        placeholder="Ej: Grow Big 5ml/L, CalMag 2ml/L..."
+                        style={{ minHeight: '60px', borderColor: '#48bb78' }}
+                      />
+                    </FormGroup>
+                  )}
+                  <FormGroup>
+                    <label>Descripción (Opcional)</label>
+                    <textarea
+                      value={taskForm.description}
+                      onChange={e => setTaskForm({ ...taskForm, description: e.target.value })}
+                    />
+                  </FormGroup>
+                </>
+              ) : (
                 <FormGroup>
-                  <label>Descripción (Opcional)</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <label style={{ margin: 0 }}>Notas del Día</label>
+                    {existingLogId && (
+                      <button onClick={handleDeleteLog} style={{ color: '#e53e3e', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem' }}>
+                        <FaTrash /> Eliminar Registro
+                      </button>
+                    )}
+                  </div>
                   <textarea
-                    value={taskForm.description}
-                    onChange={e => setTaskForm({ ...taskForm, description: e.target.value })}
+                    value={logForm.notes}
+                    onChange={e => setLogForm({ ...logForm, notes: e.target.value })}
+                    placeholder="¿Cómo se ve la planta hoy? ¿Alguna plaga? ¿Crecimiento?"
+                    style={{ minHeight: '200px' }}
                   />
                 </FormGroup>
-              </>
-            ) : (
-              <FormGroup>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <label style={{ margin: 0 }}>Notas del Día</label>
-                  {existingLogId && (
-                    <button onClick={handleDeleteLog} style={{ color: '#e53e3e', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem' }}>
-                      <FaTrash /> Eliminar Registro
-                    </button>
-                  )}
-                </div>
-                <textarea
-                  value={logForm.notes}
-                  onChange={e => setLogForm({ ...logForm, notes: e.target.value })}
-                  placeholder="¿Cómo se ve la planta hoy? ¿Alguna plaga? ¿Crecimiento?"
-                  style={{ minHeight: '200px' }}
-                />
-              </FormGroup>
-            )}
+              )}
 
-            <PrimaryButton onClick={handleSave}>Guardar</PrimaryButton>
-          </Modal>
-        </ModalOverlay>
-      )}
+              <PrimaryButton onClick={handleSave}>Guardar</PrimaryButton>
+            </Modal>
+          </ModalOverlay>
+        )}
 
-    </Container>
-  );
+      </Container>
+      );
 };
 
-export default CropDetail;
+      export default CropDetail;

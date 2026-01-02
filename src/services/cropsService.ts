@@ -100,5 +100,21 @@ export const cropsService = {
             partners: [],
             status: data.status
         };
+    },
+
+    async deleteCrop(id: string): Promise<boolean> {
+        if (!supabase) return false;
+
+        const { error } = await supabase
+            .from('chakra_crops')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error deleting crop:', error);
+            return false;
+        }
+
+        return true;
     }
 };
