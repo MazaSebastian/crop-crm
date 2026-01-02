@@ -77,7 +77,7 @@ export interface Task {
   id: string;
   title: string;
   description?: string;
-  type: 'info' | 'warning' | 'danger';
+  type: 'info' | 'warning' | 'danger' | 'fertilizante' | 'defoliacion' | 'poda_apical' | 'hst' | 'lst' | 'enmienda' | 'te_compost' | 'agua' | 'esquejes';
   status: 'pending' | 'done' | 'dismissed';
   due_date?: string;
   created_at: string;

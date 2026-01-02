@@ -725,15 +725,16 @@ const CropDetail: React.FC = () => {
 
             const getTaskColor = (type: string) => {
               switch (type) {
-                case 'fertilizante': return '#805ad5'; // Purple
-                case 'agua': return '#3182ce'; // Blue
-                case 'defoliacion': return '#d69e2e'; // Orange/Yellow
-                case 'poda_apical': return '#e53e3e'; // Red
-                case 'hst': return '#c53030'; // Dark Red
-                case 'lst': return '#38b2ac'; // Teal
-                case 'enmienda': return '#744210'; // Brown
-                case 'te_compost': return '#276749'; // Dark Green
-                case 'warning': return '#dd6b20'; // Orange
+                case 'fertilizante': return '#48bb78'; // Green
+                case 'defoliacion': return '#ed8936'; // Orange
+                case 'poda_apical': return '#ecc94b'; // Yellow
+                case 'hst': return '#f56565'; // Red
+                case 'lst': return '#4299e1'; // Blue
+                case 'enmienda': return '#9f7aea'; // Purple
+                case 'te_compost': return '#805ad5'; // Dark Purple
+                case 'agua': return '#3182ce'; // Dark Blue
+                case 'esquejes': return '#d53f8c'; // Pink
+                case 'warning': return '#dd6b20'; // Dark Orange
                 case 'danger': return '#e53e3e'; // Red
                 default: return '#718096'; // Gray
               }
@@ -866,6 +867,7 @@ const CropDetail: React.FC = () => {
                     <option value="enmienda">Enmienda</option>
                     <option value="te_compost">Té de Compost</option>
                     <option value="agua">Agua / Riego</option>
+                    <option value="esquejes">Esquejes</option>
                     <option value="warning">Alerta (Warning)</option>
                     <option value="danger">Urgente (Danger)</option>
                   </select>
