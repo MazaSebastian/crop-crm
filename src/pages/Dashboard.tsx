@@ -291,10 +291,11 @@ const StickyNoteCard = styled.div<{ color: string }>`
 
   .content {
     flex: 1;
-    font-family: 'Handlee', 'Segoe UI', cursive, sans-serif;
-    font-size: 1.1rem;
+    font-family: 'Segoe UI', 'Roboto', sans-serif;
+    font-size: 1rem;
     white-space: pre-wrap;
     line-height: 1.5;
+    font-weight: 500;
   }
 
   .footer {
