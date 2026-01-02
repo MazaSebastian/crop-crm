@@ -116,5 +116,27 @@ export const cropsService = {
         }
 
         return true;
+    },
+
+    async updateCrop(id: string, updates: Partial<Crop>): Promise<boolean> {
+        if (!supabase) return false;
+
+        const { error } = await supabase
+            .from('chakra_crops')
+            .update({
+                name: updates.name,
+                location: updates.location,
+                start_date: updates.startDate,
+                estimated_harvest_date: updates.estimatedHarvestDate,
+                status: updates.status
+            })
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error updating crop:', error);
+            return false;
+        }
+
+        return true;
     }
 };
