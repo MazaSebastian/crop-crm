@@ -29,7 +29,11 @@ import {
   FaChartLine,
   FaTrash,
   FaEdit,
-  FaTimes
+  FaTrash,
+  FaEdit,
+  FaTimes,
+  FaCheckCircle,
+  FaRegCircle
 } from 'react-icons/fa';
 
 import { tasksService } from '../services/tasksService';
@@ -525,6 +529,12 @@ const CropDetail: React.FC = () => {
     setIsModalOpen(false);
   };
 
+  const handleToggleTaskStatus = async (taskId: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'done' ? 'pending' : 'done';
+    const success = await tasksService.updateStatus(taskId, newStatus);
+    if (success && id) loadEvents(id);
+  };
+
   const handleSave = async () => {
     if (!selectedDate || !id) return;
     // Fix: Force date to noon to avoid timezone shifts (e.g. 20th 00:00 becoming 19th 21:00)
@@ -783,8 +793,19 @@ const CropDetail: React.FC = () => {
                   <Tooltip>
                     {data?.log && <div className="log-badge" style={{ backgroundColor: '#f0fff4', color: '#2f855a' }}>📝 Diario</div>}
                     {data?.tasks.map((t, i) => (
-                      <div key={i} className="task-item" style={{ borderLeft: `3px solid ${getTaskColor(t.type)}`, paddingLeft: '0.5rem' }}>
-                        <div><strong style={{ color: getTaskColor(t.type) }}>{t.title}</strong></div>
+                      <div key={i} className="task-item" style={{
+                        borderLeft: `3px solid ${getTaskColor(t.type)}`,
+                        paddingLeft: '0.5rem',
+                        opacity: t.status === 'done' ? 0.6 : 1
+                      }}>
+                        <div>
+                          <strong style={{
+                            color: getTaskColor(t.type),
+                            textDecoration: t.status === 'done' ? 'line-through' : 'none'
+                          }}>
+                            {t.title}
+                          </strong>
+                        </div>
                         {t.description && (
                           <div style={{ fontSize: '0.75rem', color: '#4a5568', marginTop: '0.1rem', whiteSpace: 'pre-wrap' }}>
                             {t.description.length > 80 ? t.description.substring(0, 80) + '...' : t.description}
@@ -824,9 +845,25 @@ const CropDetail: React.FC = () => {
                     {selectedDayTasks.map(task => (
                       <div key={task.id} style={{
                         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        background: '#f7fafc', padding: '0.5rem', borderRadius: '0.375rem', marginBottom: '0.5rem'
+                        background: '#f7fafc', padding: '0.5rem', borderRadius: '0.375rem', marginBottom: '0.5rem',
+                        opacity: task.status === 'done' ? 0.7 : 1
                       }}>
-                        <span style={{ fontWeight: 500, color: '#2d3748' }}>{task.title}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <button
+                            onClick={() => handleToggleTaskStatus(task.id, task.status)}
+                            style={{ border: 'none', background: 'none', cursor: 'pointer', color: task.status === 'done' ? '#38a169' : '#cbd5e0', padding: 0, display: 'flex' }}
+                            title={task.status === 'done' ? 'Marcar como pendiente' : 'Marcar como completada'}
+                          >
+                            {task.status === 'done' ? <FaCheckCircle size={18} /> : <FaRegCircle size={18} />}
+                          </button>
+                          <span style={{
+                            fontWeight: 500,
+                            color: '#2d3748',
+                            textDecoration: task.status === 'done' ? 'line-through' : 'none'
+                          }}>
+                            {task.title}
+                          </span>
+                        </div>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                           <button onClick={() => handleEditTask(task)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#4299e1' }}>
                             <FaEdit />
