@@ -542,7 +542,7 @@ const CropDetail: React.FC = () => {
           description: finalDescription,
           type: taskForm.type as any,
         });
-        window.alert('Tarea actualizada');
+
       } else {
         await tasksService.createTask({
           title: taskForm.title,
@@ -551,7 +551,7 @@ const CropDetail: React.FC = () => {
           due_date: dateStr,
           crop_id: id
         });
-        window.alert('Tarea creada');
+
       }
     } else {
       await dailyLogsService.upsertLog({
@@ -559,7 +559,7 @@ const CropDetail: React.FC = () => {
         date: dateStr,
         notes: logForm.notes
       });
-      window.alert('Registro guardado');
+
     }
     // Refresh events map
     if (id) await loadEvents(id);
