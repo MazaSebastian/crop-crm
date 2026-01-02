@@ -290,11 +290,15 @@ const Crops: React.FC = () => {
   const handleCreate = async () => {
     if (!formData.name || !formData.startDate || !formData.location) return;
 
+    // Fix: Force date to noon to avoid timezone shifts (e.g., 20th 00:00 becoming 19th 21:00 in Argentina/UTC-3)
+    const normalizedDate = new Date(formData.startDate);
+    normalizedDate.setHours(12, 0, 0, 0);
+
     const { cropsService } = await import('../services/cropsService');
     const newCrop = await cropsService.createCrop({
       name: formData.name,
       location: formData.location,
-      startDate: formData.startDate,
+      startDate: normalizedDate.toISOString(), // Send as ISO string but normalized to noon
       estimatedHarvestDate: formData.estimatedHarvestDate || undefined
     });
 
