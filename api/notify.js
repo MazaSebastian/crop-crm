@@ -12,42 +12,39 @@ export default async function handler(request, response) {
         return response.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    const { title, message, targetId } = request.body || {};
+    const { title, message } = request.body || {};
 
-    // Hardcoded for immediate debugging (Bypassing Vercel Env Var issues)
-    const APP_ID = "e732760e-c651-44bd-8754-186f7a091873";
-    const API_KEY = "os_v2_app_44zhmdwgkfcl3b2udbxxuciyonhnmq66lr4uno5fsmexebv4y2i7m27ntbgs5efjtgyanmlccrsvzypva2uqrpecbejybqbheyd5upy";
+    // TELEGRAM CONFIGURATION
+    const BOT_TOKEN = "8599613524:AAHfQlPMy9dXTwLPBSIyQHh5rm45alpg-Jw";
+    const CHAT_ID = "870522507";
 
-    if (!APP_ID || !API_KEY) {
-        console.error("Missing Config:", { APP_ID: !!APP_ID, API_KEY: !!API_KEY });
-        return response.status(500).json({ error: 'Server Config Missing' });
+    if (!title && !message) {
+        return response.status(400).json({ error: 'Missing title or message' });
     }
 
     try {
-        const options = {
+        const text = `🌿 *${title}*\n\n${message}`;
+
+        const telegramUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+
+        const telegramResponse = await fetch(telegramUrl, {
             method: 'POST',
-            headers: {
-                accept: 'application/json',
-                'Content-Type': 'application/json',
-                Authorization: `Basic ${API_KEY}`,
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                app_id: APP_ID,
-                ...(targetId ? { include_player_ids: [targetId] } : { included_segments: ['All'] }),
-                headings: { en: title, es: title },
-                contents: { en: message, es: message },
-                priority: 10,
-            }),
-        };
+                chat_id: CHAT_ID,
+                text: text,
+                parse_mode: 'Markdown'
+            })
+        });
 
-        const osResponse = await fetch('https://onesignal.com/api/v1/notifications', options);
-        const data = await osResponse.json();
+        const data = await telegramResponse.json();
 
-        if (!osResponse.ok) {
-            return response.status(osResponse.status).json(data);
+        if (!data.ok) {
+            console.error("Telegram API Error:", data);
+            return response.status(500).json({ error: data.description });
         }
 
-        return response.status(200).json(data);
+        return response.status(200).json({ success: true, platform: 'telegram' });
 
     } catch (error) {
         console.error("Handler Error:", error);
