@@ -329,6 +329,46 @@ const Sidebar: React.FC = () => {
               >
                 🧪 Probar Notificación (5s)
               </button>
+
+              <button
+                onClick={async () => {
+                  alert("Enviando mensaje de prueba a Telegram...");
+                  await notificationService.sendSelfNotification(
+                    "Prueba de Sistema",
+                    "¡El sistema de alertas por Telegram está funcionando correctamente! 🚀"
+                  );
+                  alert("Mensaje enviado. Revisa tu Telegram.");
+                }}
+                style={{
+                  background: '#38A169', color: 'white', border: 'none',
+                  padding: '8px 12px', borderRadius: '5px',
+                  fontSize: '11px', cursor: 'pointer', width: '100%', marginBottom: '5px'
+                }}
+              >
+                📢 Probar Alerta Telegram
+              </button>
+
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch('/api/cron-weather.js', { method: 'POST' }); // Some frameworks allow direct access like this, or via /api/cron-weather if rewritten
+                    // In Vercel file-system routing, /api/cron-weather.js is usually exposed as /api/cron-weather
+                    // Let's try the cleaner URL based on vercel.json rewrite
+                    const res2 = await fetch('/api/cron-weather');
+                    if (res2.ok) alert("☀️ Pronóstico enviado.");
+                    else alert("Error enviando pronóstico.");
+                  } catch (e) {
+                    alert("Error de conexión al probar clima.");
+                  }
+                }}
+                style={{
+                  background: '#3182ce', color: 'white', border: 'none',
+                  padding: '5px 12px', borderRadius: '5px',
+                  fontSize: '10px', cursor: 'pointer', width: '100%'
+                }}
+              >
+                ☀️ Test Clima
+              </button>
             </div>
           </div>
           <LogoutButton onClick={logout}>

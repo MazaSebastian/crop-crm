@@ -7,5 +7,10 @@
   ],
   "buildCommand": "npm run build",
   "outputDirectory": "build",
-  "framework": "create-react-app"
+  "framework": "create-react-app""crons": [
+    {
+      "path": "/api/cron-weather.js",
+      "schedule": "0 11 * * *"
+    }
+  ]
 }
