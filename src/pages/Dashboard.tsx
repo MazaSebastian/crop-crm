@@ -134,7 +134,7 @@ const KPICard = styled.div<{ active?: boolean, alert?: boolean }>`
 
 const ContentGrid = styled.div`
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr;
   gap: 2rem;
 
   @media (max-width: 1100px) {
@@ -611,39 +611,7 @@ const Dashboard: React.FC = () => {
 
 
       <ContentGrid>
-        <div>
-          <SectionTitle><FaLeaf /> Cultivos Destacados</SectionTitle>
-          <MainCard>
-            {activeCrops.length === 0 ? (
-              <p style={{ color: '#718096', fontStyle: 'italic' }}>No hay cultivos activos. ¡Inicia uno nuevo!</p>
-            ) : (
-              activeCrops.slice(0, 3).map((crop) => (
-                <CropRow key={crop.id}>
-                  <div className="crop-info">
-                    <div className="crop-icon"><FaSeedling /></div>
-                    <div className="details">
-                      <h4>{crop.name}</h4>
-                      <p>{crop.location} • {getStage(crop.startDate)}</p>
-                    </div>
-                  </div>
-                  <div className="crop-stats">
-                    <div className="stat">
-                      <div className="val">--</div>
-                      <div className="lbl">Temp</div>
-                    </div>
-                    <div className="stat">
-                      <div className="val">--</div>
-                      <div className="lbl">Hum</div>
-                    </div>
-                  </div>
-                  <div className="status-badge" style={{ background: '#c6f6d5', color: '#22543d' }}>
-                    Saludable
-                  </div>
-                </CropRow>
-              )))}
-          </MainCard>
 
-        </div>
 
         <div>
           <SectionTitle><FaExclamationTriangle /> Alertas & Tareas</SectionTitle>
