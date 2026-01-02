@@ -16,7 +16,12 @@ export default async function handler(request, response) {
 
     // TELEGRAM CONFIGURATION
     const BOT_TOKEN = "8599613524:AAHfQlPMy9dXTwLPBSIyQHh5rm45alpg-Jw";
-    const CHAT_ID = "870522507";
+
+    // Lista de IDs: [Sebastian, Santiago (Pendiente), Otros...]
+    const CHAT_IDS = [
+        "870522507", // Sebastian
+        // "123456789" // Santiago (Agregar aqui cuando tenga el ID)
+    ];
 
     if (!title && !message) {
         return response.status(400).json({ error: 'Missing title or message' });
@@ -24,27 +29,24 @@ export default async function handler(request, response) {
 
     try {
         const text = `🌿 *${title}*\n\n${message}`;
-
         const telegramUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
 
-        const telegramResponse = await fetch(telegramUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: CHAT_ID,
-                text: text,
-                parse_mode: 'Markdown'
+        // Enviar a todos los destinatarios en paralelo
+        const sendPromises = CHAT_IDS.map(chatId =>
+            fetch(telegramUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: text,
+                    parse_mode: 'Markdown'
+                })
             })
-        });
+        );
 
-        const data = await telegramResponse.json();
+        await Promise.all(sendPromises);
 
-        if (!data.ok) {
-            console.error("Telegram API Error:", data);
-            return response.status(500).json({ error: data.description });
-        }
-
-        return response.status(200).json({ success: true, platform: 'telegram' });
+        return response.status(200).json({ success: true, platform: 'telegram', recipients: CHAT_IDS.length });
 
     } catch (error) {
         console.error("Handler Error:", error);
