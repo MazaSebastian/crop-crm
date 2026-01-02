@@ -655,7 +655,38 @@ const CropDetail: React.FC = () => {
 
         <TitleSection>
           <div>
-            <CropTitle><FaLeaf /> {crop.name}</CropTitle>
+            <CropTitle>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <FaLeaf />
+                {crop.name}
+                <button
+                  onClick={async () => {
+                    const newName = window.prompt("Renombrar cultivo:", crop.name);
+                    if (newName && newName.trim() !== "" && newName !== crop.name) {
+                      const success = await cropsService.updateCrop(crop.id, { name: newName });
+                      if (success) {
+                        setCrop({ ...crop, name: newName });
+                      } else {
+                        alert("Error al renombrar.");
+                      }
+                    }
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#a0aec0',
+                    cursor: 'pointer',
+                    fontSize: '1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '5px'
+                  }}
+                  title="Renombrar cultivo"
+                >
+                  <FaEdit />
+                </button>
+              </div>
+            </CropTitle>
             <MetaGrid>
               <div><FaMapMarkerAlt /> {crop.location}</div>
               <div><FaCalendarAlt /> Inicio: {format(new Date(crop.startDate), 'dd MMM yyyy', { locale: es })}</div>
