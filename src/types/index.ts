@@ -127,3 +127,11 @@ export interface InsumoConHistorial extends Insumo {
   porcentaje_variacion?: number;
 }
 
+export interface StickyNote {
+  id: string;
+  content: string;
+  color: 'yellow' | 'blue' | 'pink' | 'green';
+  created_at: string;
+  created_by?: string;
+  user_id?: string;
+}
