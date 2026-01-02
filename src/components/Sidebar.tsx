@@ -351,11 +351,10 @@ const Sidebar: React.FC = () => {
               <button
                 onClick={async () => {
                   try {
-                    const res = await fetch('/api/cron-weather.js', { method: 'POST' }); // Some frameworks allow direct access like this, or via /api/cron-weather if rewritten
-                    // In Vercel file-system routing, /api/cron-weather.js is usually exposed as /api/cron-weather
-                    // Let's try the cleaner URL based on vercel.json rewrite
-                    const res2 = await fetch('/api/cron-weather');
-                    if (res2.ok) alert("☀️ Pronóstico enviado.");
+                    // Call the Vercel Function (Cron) manually
+                    const res = await fetch('/api/cron-weather');
+
+                    if (res.ok) alert("☀️ Pronóstico enviado.");
                     else alert("Error enviando pronóstico.");
                   } catch (e) {
                     alert("Error de conexión al probar clima.");
