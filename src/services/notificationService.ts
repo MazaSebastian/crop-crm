@@ -113,44 +113,26 @@ export const notificationService = {
     },
 
     async sendSelfNotification(title: string, message: string, targetId?: string) {
-        // Retrieve keys from environment
-        const APP_ID = (window as any)._env_?.REACT_APP_ONESIGNAL_APP_ID || process.env.REACT_APP_ONESIGNAL_APP_ID || "e732760e-c651-44bd-8754-186f7a091873";
-        const API_KEY = (window as any)._env_?.REACT_APP_ONESIGNAL_API_KEY || process.env.REACT_APP_ONESIGNAL_API_KEY || "os_v2_app_44zhmdwgkfcl3b2udbxxuciyonhnmq66lr4uno5fsmexebv4y2i7m27ntbgs5efjtgyanmlccrsvzypva2uqrpecbejybqbheyd5upy";
-
-        if (!APP_ID || !API_KEY) {
-            console.warn('Cannot send notification: Missing keys.');
-            return;
-        }
-
-        // Note: Sending notifications from client-side requires the REST API Key.
-        // In a production app with real users, this should be done via backend (Edge Functions).
-        // For this personal tool, we do it here for simplicity.
-
-        const options = {
-            method: 'POST',
-            headers: {
-                accept: 'application/json',
-                'Content-Type': 'application/json',
-                Authorization: `Basic ${API_KEY}`,
-            },
-            body: JSON.stringify({
-                app_id: APP_ID,
-                // If targetId is provided, send ONLY to that device. Otherwise, send to All.
-                ...(targetId ? { include_player_ids: [targetId] } : { included_segments: ['All'] }),
-                headings: { en: title, es: title },
-                contents: { en: message, es: message },
-                priority: 10, // High priority
-                url: window.location.origin,
-            }),
-        };
-
+        // Now requesting OUR own internal API (No CORS issues)
+        // Environment keys are handled in the backend (/api/notify.ts)
         try {
-            const response = await fetch('https://onesignal.com/api/v1/notifications', options);
+            const response = await fetch('/api/notify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title,
+                    message,
+                    targetId
+                })
+            });
+
             const data = await response.json();
 
             // DEBUG: Show result on screen (Temporary)
             if (response.ok) {
-                alert(`✅ API Éxito: ID ${data.id?.slice(0, 8)}... Recipientes: ${data.recipients}`);
+                alert(`✅ API Éxito: ID ${data.id?.slice(0, 8)}...`);
                 console.log('Notification sent (ID):', data.id);
             } else {
                 alert(`❌ API Error: ${response.status} - ${JSON.stringify(data)}`);
