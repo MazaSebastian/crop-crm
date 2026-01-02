@@ -851,10 +851,18 @@ const CropDetail: React.FC = () => {
                     value={taskForm.type}
                     onChange={e => {
                       const newType = e.target.value as any;
+                      const isAutoTitle = newType === 'agua' || newType === 'esquejes';
+
+                      let newTitle = taskForm.title;
+
+                      if (newType === 'agua') newTitle = 'Agua / Riego';
+                      else if (newType === 'esquejes') newTitle = 'Esquejes';
+                      else if (taskForm.title === 'Agua / Riego' || taskForm.title === 'Esquejes') newTitle = '';
+
                       setTaskForm(prevForm => ({
                         ...prevForm,
                         type: newType,
-                        title: newType === 'agua' ? 'Agua / Riego' : (prevForm.title === 'Agua / Riego' ? '' : prevForm.title)
+                        title: newTitle
                       }));
                     }}
                   >
@@ -873,7 +881,7 @@ const CropDetail: React.FC = () => {
                   </select>
                 </FormGroup>
 
-                {taskForm.type !== 'agua' && (
+                {taskForm.type !== 'agua' && taskForm.type !== 'esquejes' && (
                   <FormGroup>
                     <label>Título</label>
                     <input
