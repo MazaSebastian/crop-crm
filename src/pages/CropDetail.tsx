@@ -29,8 +29,6 @@ import {
   FaChartLine,
   FaTrash,
   FaEdit,
-  FaTrash,
-  FaEdit,
   FaTimes,
   FaCheckCircle,
   FaRegCircle
