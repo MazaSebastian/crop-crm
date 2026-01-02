@@ -14,9 +14,9 @@ export default async function handler(request, response) {
 
     const { title, message, targetId } = request.body || {};
 
-    // Vercel exposes environment variables automatically
-    const APP_ID = process.env.REACT_APP_ONESIGNAL_APP_ID;
-    const API_KEY = process.env.REACT_APP_ONESIGNAL_API_KEY;
+    // Hardcoded for immediate debugging (Bypassing Vercel Env Var issues)
+    const APP_ID = "e732760e-c651-44bd-8754-186f7a091873";
+    const API_KEY = "os_v2_app_44zhmdwgkfcl3b2udbxxuciyonhnmq66lr4uno5fsmexebv4y2i7m27ntbgs5efjtgyanmlccrsvzypva2uqrpecbejybqbheyd5upy";
 
     if (!APP_ID || !API_KEY) {
         console.error("Missing Config:", { APP_ID: !!APP_ID, API_KEY: !!API_KEY });
