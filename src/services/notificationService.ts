@@ -132,14 +132,12 @@ export const notificationService = {
 
             // DEBUG: Show result on screen (Temporary)
             if (response.ok) {
-                alert(`✅ API Éxito: ID ${data.id?.slice(0, 8)}...`);
+                // alert(`✅ API Éxito: ID ${data.id?.slice(0, 8)}...`);
                 console.log('Notification sent (ID):', data.id);
             } else {
-                alert(`❌ API Error: ${response.status} - ${JSON.stringify(data)}`);
                 console.error('API Error:', data);
             }
         } catch (err: any) {
-            alert(`🔥 Catch Error: ${err.message}`);
             console.error('Error sending notification:', err);
         }
     }
