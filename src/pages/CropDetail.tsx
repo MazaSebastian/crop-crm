@@ -846,66 +846,85 @@ const CropDetail: React.FC = () => {
                   <input
                     value={taskForm.title}
                     onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
-                    placeholder="Ej: Riego profundo con CalMag"
-                  />
-                </FormGroup>
+                    {/* The original title input was here */}
                 <FormGroup>
-                  <label>Tipo</label>
-                  <select value={taskForm.type} onChange={e => setTaskForm({ ...taskForm, type: e.target.value as any })}>
-                    <option value="info">Info / Atención</option>
-                    <option value="fertilizante">Fertilizante</option>
-                    <option value="defoliacion">Defoliación</option>
-                    <option value="poda_apical">Poda Apical</option>
-                    <option value="hst">HST (High Stress Training)</option>
-                    <option value="lst">LST (Low Stress Training)</option>
-                    <option value="enmienda">Enmienda</option>
-                    <option value="te_compost">Té de Compost</option>
-                    <option value="agua">Agua / Riego</option>
-                    <option value="warning">Alerta (Warning)</option>
-                    <option value="danger">Urgente (Danger)</option>
-                  </select>
-                </FormGroup>
+                    <label>Tipo</label>
+                    <select
+                      value={taskForm.type}
+                      onChange={e => {
+                        const newType = e.target.value as any;
+                        setTaskForm(prevForm => ({
+                          ...prevForm,
+                          type: newType,
+                          title: newType === 'agua' ? 'Agua / Riego' : (prevForm.title === 'Agua / Riego' ? '' : prevForm.title)
+                        }));
+                      }}
+                    >
+                      <option value="info">Info / Atención</option>
+                      <option value="fertilizante">Fertilizante</option>
+                      <option value="defoliacion">Defoliación</option>
+                      <option value="poda_apical">Poda Apical</option>
+                      <option value="hst">HST (High Stress Training)</option>
+                      <option value="lst">LST (Low Stress Training)</option>
+                      <option value="enmienda">Enmienda</option>
+                      <option value="te_compost">Té de Compost</option>
+                      <option value="agua">Agua / Riego</option>
+                      <option value="warning">Alerta (Warning)</option>
+                      <option value="danger">Urgente (Danger)</option>
+                    </select>
+                  </FormGroup>
 
-                {taskForm.type === 'fertilizante' && (
+                  {taskForm.type !== 'agua' && (
+                    <FormGroup>
+                      <label>Título</label>
+                      <input
+                        value={taskForm.title}
+                        onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
+                        placeholder="Ej: Riego profundo con CalMag"
+                      />
+                    </FormGroup>
+                  )}
+
+                  {taskForm.type === 'fertilizante' && (
+                    <FormGroup>
+                      <label>Tipo de Fertilizante y Medida</label>
+                      <textarea
+                        value={fertilizerDetails}
+                        onChange={e => setFertilizerDetails(e.target.value)}
+                        placeholder="Ej: Grow Big 5ml/L, CalMag 2ml/L..."
+                        style={{ minHeight: '60px', borderColor: '#48bb78' }}
+                      />
+                    </FormGroup>
+                  )}
                   <FormGroup>
-                    <label>Tipo de Fertilizante y Medida</label>
+                    <label>Descripción (Opcional)</label>
                     <textarea
-                      value={fertilizerDetails}
-                      onChange={e => setFertilizerDetails(e.target.value)}
-                      placeholder="Ej: Grow Big 5ml/L, CalMag 2ml/L..."
-                      style={{ minHeight: '60px', borderColor: '#48bb78' }}
+                      value={taskForm.description}
+                      onChange={e => setTaskForm({ ...taskForm, description: e.target.value })}
                     />
                   </FormGroup>
-                )}
+                </>
+                ) : (
                 <FormGroup>
-                  <label>Descripción (Opcional)</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <label style={{ margin: 0 }}>Notas del Día</label>
+                    {existingLogId && (
+                      <button onClick={handleDeleteLog} style={{ color: '#e53e3e', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem' }}>
+                        <FaTrash /> Eliminar Registro
+                      </button>
+                    )}
+                  </div>
                   <textarea
-                    value={taskForm.description}
-                    onChange={e => setTaskForm({ ...taskForm, description: e.target.value })}
+                    value={logForm.notes}
+                    onChange={e => setLogForm({ ...logForm, notes: e.target.value })}
+                    placeholder="¿Cómo se ve la planta hoy? ¿Alguna plaga? ¿Crecimiento?"
+                    style={{ minHeight: '200px' }}
                   />
                 </FormGroup>
-              </>
-            ) : (
-              <FormGroup>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <label style={{ margin: 0 }}>Notas del Día</label>
-                  {existingLogId && (
-                    <button onClick={handleDeleteLog} style={{ color: '#e53e3e', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem' }}>
-                      <FaTrash /> Eliminar Registro
-                    </button>
-                  )}
-                </div>
-                <textarea
-                  value={logForm.notes}
-                  onChange={e => setLogForm({ ...logForm, notes: e.target.value })}
-                  placeholder="¿Cómo se ve la planta hoy? ¿Alguna plaga? ¿Crecimiento?"
-                  style={{ minHeight: '200px' }}
-                />
-              </FormGroup>
             )}
 
-            <PrimaryButton onClick={handleSave}>Guardar</PrimaryButton>
-          </Modal>
+                <PrimaryButton onClick={handleSave}>Guardar</PrimaryButton>
+              </Modal>
         </ModalOverlay>
       )}
 
