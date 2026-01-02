@@ -15,8 +15,8 @@ export default async function handler(request, response) {
     const LON = -58.5331;
 
     try {
-        // 1. Fetch Weather
-        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=America%2FArgentina%2FBuenos_Aires&forecast_days=1`;
+        // 1. Fetch Weather (Forecast for 4 days to see 48h ahead)
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=America%2FArgentina%2FBuenos_Aires&forecast_days=4`;
 
         const weatherRes = await fetch(weatherUrl);
         const weatherData = await weatherRes.json();
@@ -25,28 +25,61 @@ export default async function handler(request, response) {
             throw new Error("Failed to fetch weather data");
         }
 
-        const today = weatherData.daily;
-        const max = Math.round(today.temperature_2m_max[0]);
-        const min = Math.round(today.temperature_2m_min[0]);
-        const rain = today.precipitation_sum[0];
-        const code = today.weathercode[0];
+        // Today's Forecast
+        const today = {
+            max: Math.round(weatherData.daily.temperature_2m_max[0]),
+            min: Math.round(weatherData.daily.temperature_2m_min[0]),
+            rain: weatherData.daily.precipitation_sum[0],
+            code: weatherData.daily.weathercode[0]
+        };
+
+        // 48h Forecast (Index 2 -> Today + 2 days)
+        const forecast48h = {
+            date: weatherData.daily.time[2],
+            rain: weatherData.daily.precipitation_sum[2],
+            code: weatherData.daily.weathercode[2]
+        };
 
         // Interpret Code (Simplified WMO)
-        let condition = "Despejado ☀️";
-        if (code > 3) condition = "Nublado ☁️";
-        if (code > 45) condition = "Niebla 🌫️";
-        if (code > 50) condition = "Llovizna 💧";
-        if (code > 60) condition = "Lluvia 🌧️";
-        if (code > 80) condition = "Tormenta ⛈️";
-        if (code > 95) condition = "Tormenta Eléctrica ⚡";
+        const getCondition = (code) => {
+            if (code > 95) return "Tormenta Eléctrica ⚡";
+            if (code > 80) return "Tormenta ⛈️";
+            if (code > 60) return "Lluvia 🌧️";
+            if (code > 50) return "Llovizna 💧";
+            if (code > 45) return "Niebla 🌫️";
+            if (code > 3) return "Nublado ☁️";
+            return "Despejado ☀️";
+        };
+
+        const todayCondition = getCondition(today.code);
+
+        // Calculate Preventive Warning
+        // Trigger if rain > 2mm OR if code indicates significant storm/rain
+        let warningMessage = "";
+        const isRainy48h = forecast48h.rain >= 2.0 || forecast48h.code >= 60;
+
+        if (isRainy48h) {
+            // Get day name (e.g., "Miércoles")
+            const dateObj = new Date(forecast48h.date + 'T00:00:00'); // Prevent timezone shift
+            const dayName = dateObj.toLocaleDateString('es-AR', { weekday: 'long' });
+            const dayNameCap = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+
+            warningMessage = `
+⚠️ *ALERTA TEMPRANA (48hs)*
+Se esperan lluvias (${forecast48h.rain}mm) para el *${dayNameCap}*.
+¡Toma los recaudos necesarios! ☔
+            `.trim();
+        }
 
         // 2. Format Message
         const message = `
 📅 *Pronóstico de Hoy*
 
-${condition}
-🌡️ *Máx:* ${max}°C  |  *Mín:* ${min}°C
-💧 *Lluvia:* ${rain} mm
+${todayCondition}
+🌡️ *Máx:* ${today.max}°C  |  *Mín:* ${today.min}°C
+💧 *Lluvia:* ${today.rain} mm
+
+${warningMessage}
 
 _¡Buenos días! Que tengas una excelente jornada en la huerta._ 🌱
         `.trim();
