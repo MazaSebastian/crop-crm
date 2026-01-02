@@ -557,128 +557,129 @@ const Dashboard: React.FC = () => {
 
           <div className="subtext">Requiere atención</div>
         </KPICard>
-        <StickyBoard>
-          <SectionTitle><FaStickyNote /> Tablero de Notas (Stick-it)</SectionTitle>
-          <StickyGrid>
-            {stickies.map(note => (
-              <StickyNoteCard key={note.id} color={note.color}>
-                <div className="content">{note.content}</div>
-                <div className="footer">
-                  <span>{note.created_by || 'Anónimo'} • {new Date(note.created_at).toLocaleDateString()}</span>
-                  <button className="delete-btn" onClick={(e) => handleDeleteSticky(note.id, e)}><FaTrash /></button>
-                </div>
-              </StickyNoteCard>
-            ))}
-            <AddStickyParams onClick={() => setIsStickyModalOpen(true)}>
-              <FaPlus size={24} />
-              <span style={{ marginTop: '0.5rem', fontWeight: 600 }}>Nueva Nota</span>
-            </AddStickyParams>
-          </StickyGrid>
-        </StickyBoard>
-
-        {/* Sticky Modal */}
-        {isStickyModalOpen && (
-          <ModalOverlay onClick={() => setIsStickyModalOpen(false)}>
-            <ModalContent onClick={e => e.stopPropagation()}>
-              <h3>Nueva Nota Adhesiva</h3>
-              <ColorPicker>
-                {['yellow', 'blue', 'pink', 'green'].map(c => (
-                  <ColorOption
-                    key={c}
-                    color={c}
-                    selected={newStickyColor === c}
-                    onClick={() => setNewStickyColor(c as any)}
-                  />
-                ))}
-              </ColorPicker>
-              <textarea
-                placeholder="Escribe tu recordatorio aquí..."
-                value={newStickyContent}
-                onChange={e => setNewStickyContent(e.target.value)}
-                autoFocus
-              />
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                <Button variant="secondary" onClick={() => setIsStickyModalOpen(false)}>Cancelar</Button>
-                <Button onClick={handleCreateSticky}>Pegar Nota</Button>
+      </KPISection>
+      <StickyBoard>
+        <SectionTitle><FaStickyNote /> Tablero de Notas (Stick-it)</SectionTitle>
+        <StickyGrid>
+          {stickies.map(note => (
+            <StickyNoteCard key={note.id} color={note.color}>
+              <div className="content">{note.content}</div>
+              <div className="footer">
+                <span>{note.created_by || 'Anónimo'} • {new Date(note.created_at).toLocaleDateString()}</span>
+                <button className="delete-btn" onClick={(e) => handleDeleteSticky(note.id, e)}><FaTrash /></button>
               </div>
-            </ModalContent>
-          </ModalOverlay>
-        )}
+            </StickyNoteCard>
+          ))}
+          <AddStickyParams onClick={() => setIsStickyModalOpen(true)}>
+            <FaPlus size={24} />
+            <span style={{ marginTop: '0.5rem', fontWeight: 600 }}>Nueva Nota</span>
+          </AddStickyParams>
+        </StickyGrid>
+      </StickyBoard>
 
-
-        <KPISection>
-
-
-          <ContentGrid>
-            <div>
-              <SectionTitle><FaLeaf /> Cultivos Destacados</SectionTitle>
-              <MainCard>
-                {activeCrops.length === 0 ? (
-                  <p style={{ color: '#718096', fontStyle: 'italic' }}>No hay cultivos activos. ¡Inicia uno nuevo!</p>
-                ) : (
-                  activeCrops.slice(0, 3).map((crop) => (
-                    <CropRow key={crop.id}>
-                      <div className="crop-info">
-                        <div className="crop-icon"><FaSeedling /></div>
-                        <div className="details">
-                          <h4>{crop.name}</h4>
-                          <p>{crop.location} • {getStage(crop.startDate)}</p>
-                        </div>
-                      </div>
-                      <div className="crop-stats">
-                        <div className="stat">
-                          <div className="val">--</div>
-                          <div className="lbl">Temp</div>
-                        </div>
-                        <div className="stat">
-                          <div className="val">--</div>
-                          <div className="lbl">Hum</div>
-                        </div>
-                      </div>
-                      <div className="status-badge" style={{ background: '#c6f6d5', color: '#22543d' }}>
-                        Saludable
-                      </div>
-                    </CropRow>
-                  )))}
-              </MainCard>
-
+      {/* Sticky Modal */}
+      {isStickyModalOpen && (
+        <ModalOverlay onClick={() => setIsStickyModalOpen(false)}>
+          <ModalContent onClick={e => e.stopPropagation()}>
+            <h3>Nueva Nota Adhesiva</h3>
+            <ColorPicker>
+              {['yellow', 'blue', 'pink', 'green'].map(c => (
+                <ColorOption
+                  key={c}
+                  color={c}
+                  selected={newStickyColor === c}
+                  onClick={() => setNewStickyColor(c as any)}
+                />
+              ))}
+            </ColorPicker>
+            <textarea
+              placeholder="Escribe tu recordatorio aquí..."
+              value={newStickyContent}
+              onChange={e => setNewStickyContent(e.target.value)}
+              autoFocus
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+              <Button variant="secondary" onClick={() => setIsStickyModalOpen(false)}>Cancelar</Button>
+              <Button onClick={handleCreateSticky}>Pegar Nota</Button>
             </div>
+          </ModalContent>
+        </ModalOverlay>
+      )}
 
-            <div>
-              <SectionTitle><FaExclamationTriangle /> Alertas & Tareas</SectionTitle>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                {alerts.map(alert => (
-                  <AlertItem key={alert.id} style={alert.type === 'info' ? { background: '#ebf8ff', borderLeftColor: '#4299e1' } : {}}>
-                    <div className="icon" style={alert.type === 'info' ? { color: '#4299e1' } : {}}>{alert.icon}</div>
-                    <div className="content">
-                      <h5 style={alert.type === 'info' ? { color: '#2b6cb0' } : {}}>{alert.title}</h5>
-                      <p style={alert.type === 'info' ? { color: '#2c5282' } : {}}>{alert.message}</p>
+
+
+
+
+      <ContentGrid>
+        <div>
+          <SectionTitle><FaLeaf /> Cultivos Destacados</SectionTitle>
+          <MainCard>
+            {activeCrops.length === 0 ? (
+              <p style={{ color: '#718096', fontStyle: 'italic' }}>No hay cultivos activos. ¡Inicia uno nuevo!</p>
+            ) : (
+              activeCrops.slice(0, 3).map((crop) => (
+                <CropRow key={crop.id}>
+                  <div className="crop-info">
+                    <div className="crop-icon"><FaSeedling /></div>
+                    <div className="details">
+                      <h4>{crop.name}</h4>
+                      <p>{crop.location} • {getStage(crop.startDate)}</p>
                     </div>
-                    <AlertActions>
-                      <ActionButtonSmall type="success" onClick={() => handleAction(alert.id, 'done')} title="Marcar como realizado">
-                        <FaCheck />
-                      </ActionButtonSmall>
-                      <ActionButtonSmall type="danger" onClick={() => handleAction(alert.id, 'dismissed')} title="Descartar">
-                        <FaTimes />
-                      </ActionButtonSmall>
-                    </AlertActions>
-
-                  </AlertItem>
-                ))}
-
-                {alerts.length === 0 && (
-                  <div style={{ textAlign: 'center', padding: '2rem', color: '#a0aec0', background: 'white', borderRadius: '0.5rem' }}>
-                    <FaCheckCircle style={{ fontSize: '2rem', marginBottom: '0.5rem', color: '#38a169' }} />
-                    <p>¡Todo al día!</p>
                   </div>
-                )}
+                  <div className="crop-stats">
+                    <div className="stat">
+                      <div className="val">--</div>
+                      <div className="lbl">Temp</div>
+                    </div>
+                    <div className="stat">
+                      <div className="val">--</div>
+                      <div className="lbl">Hum</div>
+                    </div>
+                  </div>
+                  <div className="status-badge" style={{ background: '#c6f6d5', color: '#22543d' }}>
+                    Saludable
+                  </div>
+                </CropRow>
+              )))}
+          </MainCard>
 
+        </div>
 
+        <div>
+          <SectionTitle><FaExclamationTriangle /> Alertas & Tareas</SectionTitle>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+            {alerts.map(alert => (
+              <AlertItem key={alert.id} style={alert.type === 'info' ? { background: '#ebf8ff', borderLeftColor: '#4299e1' } : {}}>
+                <div className="icon" style={alert.type === 'info' ? { color: '#4299e1' } : {}}>{alert.icon}</div>
+                <div className="content">
+                  <h5 style={alert.type === 'info' ? { color: '#2b6cb0' } : {}}>{alert.title}</h5>
+                  <p style={alert.type === 'info' ? { color: '#2c5282' } : {}}>{alert.message}</p>
+                </div>
+                <AlertActions>
+                  <ActionButtonSmall type="success" onClick={() => handleAction(alert.id, 'done')} title="Marcar como realizado">
+                    <FaCheck />
+                  </ActionButtonSmall>
+                  <ActionButtonSmall type="danger" onClick={() => handleAction(alert.id, 'dismissed')} title="Descartar">
+                    <FaTimes />
+                  </ActionButtonSmall>
+                </AlertActions>
+
+              </AlertItem>
+            ))}
+
+            {alerts.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '2rem', color: '#a0aec0', background: 'white', borderRadius: '0.5rem' }}>
+                <FaCheckCircle style={{ fontSize: '2rem', marginBottom: '0.5rem', color: '#38a169' }} />
+                <p>¡Todo al día!</p>
               </div>
-            </div>
-          </ContentGrid>
-        </Container>
-        );
+            )}
+
+
+          </div>
+        </div>
+      </ContentGrid>
+    </Container>
+  );
 };
 
-        export default Dashboard;
+export default Dashboard;
