@@ -537,6 +537,54 @@ const Dashboard: React.FC = () => {
         <p>Bienvenido de nuevo. Aquí está el estado actual de tus cultivos.</p>
       </WelcomeHeader>
 
+      <StickyBoard>
+        <SectionTitle><FaStickyNote /> Tablero de Notas (Stick-it)</SectionTitle>
+        <StickyGrid>
+          {stickies.map(note => (
+            <StickyNoteCard key={note.id} color={note.color}>
+              <div className="content">{note.content}</div>
+              <div className="footer">
+                <span>{note.created_by || 'Anónimo'} • {new Date(note.created_at).toLocaleDateString()}</span>
+                <button className="delete-btn" onClick={(e) => handleDeleteSticky(note.id, e)}><FaTrash /></button>
+              </div>
+            </StickyNoteCard>
+          ))}
+          <AddStickyParams onClick={() => setIsStickyModalOpen(true)}>
+            <FaPlus size={24} />
+            <span style={{ marginTop: '0.5rem', fontWeight: 600 }}>Nueva Nota</span>
+          </AddStickyParams>
+        </StickyGrid>
+      </StickyBoard>
+
+      {/* Sticky Modal */}
+      {isStickyModalOpen && (
+        <ModalOverlay onClick={() => setIsStickyModalOpen(false)}>
+          <ModalContent onClick={e => e.stopPropagation()}>
+            <h3>Nueva Nota Adhesiva</h3>
+            <ColorPicker>
+              {['yellow', 'blue', 'pink', 'green'].map(c => (
+                <ColorOption
+                  key={c}
+                  color={c}
+                  selected={newStickyColor === c}
+                  onClick={() => setNewStickyColor(c as any)}
+                />
+              ))}
+            </ColorPicker>
+            <textarea
+              placeholder="Escribe tu recordatorio aquí..."
+              value={newStickyContent}
+              onChange={e => setNewStickyContent(e.target.value)}
+              autoFocus
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+              <Button variant="secondary" onClick={() => setIsStickyModalOpen(false)}>Cancelar</Button>
+              <Button onClick={handleCreateSticky}>Pegar Nota</Button>
+            </div>
+          </ModalContent>
+        </ModalOverlay>
+      )}
+
       <WeatherWidget />
 
       <KPISection>
