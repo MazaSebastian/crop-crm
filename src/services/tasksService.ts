@@ -65,7 +65,7 @@ export const tasksService = {
         return data as Task;
     },
 
-    async updateStatus(id: string, status: 'done' | 'dismissed'): Promise<boolean> {
+    async updateStatus(id: string, status: 'pending' | 'done' | 'dismissed'): Promise<boolean> {
         if (!supabase) return false;
 
         const { error } = await supabase
