@@ -7,7 +7,7 @@ export default async function handler(request, response) {
     const BOT_TOKEN = "8599613524:AAHfQlPMy9dXTwLPBSIyQHh5rm45alpg-Jw";
     const CHAT_IDS = [
         "870522507", // Sebastian
-        // "123456789" // Santiago (Pendiente)
+        "1692599686" // Santiago
     ];
 
     // WEATHER CONFIGURATION (Munro/Olivos)

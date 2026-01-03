@@ -20,7 +20,7 @@ export default async function handler(request, response) {
     // Lista de IDs: [Sebastian, Santiago (Pendiente), Otros...]
     const CHAT_IDS = [
         "870522507", // Sebastian
-        // "123456789" // Santiago (Agregar aqui cuando tenga el ID)
+        "1692599686" // Santiago
     ];
 
     if (!title && !message) {
