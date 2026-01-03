@@ -527,10 +527,30 @@ const CropDetail: React.FC = () => {
     setIsModalOpen(false);
   };
 
+  const [processingTaskId, setProcessingTaskId] = useState<string | null>(null);
+
   const handleToggleTaskStatus = async (taskId: string, currentStatus: string) => {
+    if (processingTaskId === taskId) return;
+    setProcessingTaskId(taskId);
+
     const newStatus = currentStatus === 'done' ? 'pending' : 'done';
-    const success = await tasksService.updateStatus(taskId, newStatus);
-    if (success && id) loadEvents(id);
+
+    // Optimistic Update for UI responsiveness
+    setSelectedDayTasks(prev => prev.map(t =>
+      t.id === taskId ? { ...t, status: newStatus as any } : t
+    ));
+
+    const success = await tasksService.updateStatus(taskId, newStatus as any);
+
+    if (success && id) {
+      await loadEvents(id);
+    } else {
+      // Revert on failure
+      setSelectedDayTasks(prev => prev.map(t =>
+        t.id === taskId ? { ...t, status: currentStatus as any } : t
+      ));
+    }
+    setProcessingTaskId(null);
   };
 
   const handleSave = async () => {
