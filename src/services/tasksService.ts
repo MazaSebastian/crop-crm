@@ -78,6 +78,27 @@ export const tasksService = {
             return false;
         }
 
+        // Send Notification if marked as DONE
+        if (status === 'done') {
+            // Fetch task details for notification
+            const { data: taskData } = await supabase
+                .from('chakra_tasks')
+                .select('title')
+                .eq('id', id)
+                .single();
+
+            if (taskData) {
+                // Get Current User
+                const { data: { user } } = await supabase.auth.getUser();
+                const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Alguien';
+
+                notificationService.sendSelfNotification(
+                    `Tarea Completada (${userName})`,
+                    `✅ ${taskData.title}`
+                );
+            }
+        }
+
         return true;
     },
 
