@@ -51,15 +51,7 @@ export const tasksService = {
         }
 
         if (data) {
-            // Get Current User for Notification Attribution
-            const { data: { user } } = await supabase.auth.getUser();
-            const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Alguien';
-
-            const typeLabel = task.type.charAt(0).toUpperCase() + task.type.slice(1).replace('_', ' ');
-            notificationService.sendSelfNotification(
-                `Nueva Tarea (${userName})`, // Title: "Nueva Tarea (Santiago)"
-                `[${typeLabel}] ${task.title}${task.description ? ' - ' + task.description : ''}`
-            );
+            // Notification logic removed as per user request (Only completion notifications active)
         }
 
         return data as Task;
