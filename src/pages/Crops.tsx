@@ -311,12 +311,21 @@ const Crops: React.FC = () => {
       let maxDate = 0;
 
       doneTasks.forEach(t => {
-        const d = new Date(t.due_date || t.created_at).getTime();
+        let dateStr = t.due_date || t.created_at;
+        // If it looks like a simple date (YYYY-MM-DD), force it to noon to avoid timezone back-shift
+        if (dateStr && dateStr.length === 10) {
+          dateStr += 'T12:00:00';
+        }
+        const d = new Date(dateStr).getTime();
         if (d > maxDate) maxDate = d;
       });
 
       logs.forEach(l => {
-        const d = new Date(l.date).getTime();
+        let dateStr = l.date;
+        if (dateStr && dateStr.length === 10) {
+          dateStr += 'T12:00:00';
+        }
+        const d = new Date(dateStr).getTime();
         if (d > maxDate) maxDate = d;
       });
 
