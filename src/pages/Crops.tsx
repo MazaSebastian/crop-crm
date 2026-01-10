@@ -274,192 +274,194 @@ const Crops: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   // New Crop Form State
-  name: '',
+  const [formData, setFormData] = useState({
+    name: '',
     startDate: new Date().toISOString().split('T')[0],
-      estimatedHarvestDate: '',
-        location: '',
-          color: 'green'
-});
-
-// Load initial data
-// Using useState + useEffect instead of useMemo to allow async fetching
-React.useEffect(() => {
-  loadCrops();
-}, []);
-
-const loadCrops = async () => {
-  setLoading(true);
-  // Dynamic import to avoid circular dependency issues if any, or just standard import
-  // Assuming cropsService is imported or import it on top. 
-  // Ideally update imports above.
-  const { cropsService } = await import('../services/cropsService');
-  const data = await cropsService.getCrops();
-  setCrops(data);
-  setLoading(false);
-};
-
-const handleCreate = async () => {
-  if (!formData.name || !formData.startDate || !formData.location) return;
-
-  // Fix: Force date to noon to avoid timezone shifts (e.g., 20th 00:00 becoming 19th 21:00 in Argentina/UTC-3)
-  const normalizedDate = new Date(formData.startDate);
-  normalizedDate.setHours(12, 0, 0, 0);
-
-  const { cropsService } = await import('../services/cropsService');
-  const newCrop = await cropsService.createCrop({
-    name: formData.name,
-    location: formData.location,
-    startDate: normalizedDate.toISOString(), // Send as ISO string but normalized to noon
-    estimatedHarvestDate: formData.estimatedHarvestDate || undefined,
-    color: formData.color
+    estimatedHarvestDate: '',
+    location: '',
+    color: 'green'
   });
 
-  if (newCrop) {
-    setCrops(prev => [newCrop, ...prev]);
-    setIsModalOpen(false);
-    setFormData({
-      name: '',
-      startDate: new Date().toISOString().split('T')[0],
-      estimatedHarvestDate: '',
-      location: '',
-      color: 'green'
+  // Load initial data
+  // Using useState + useEffect instead of useMemo to allow async fetching
+  React.useEffect(() => {
+    loadCrops();
+  }, []);
+
+  const loadCrops = async () => {
+    setLoading(true);
+    // Dynamic import to avoid circular dependency issues if any, or just standard import
+    // Assuming cropsService is imported or import it on top. 
+    // Ideally update imports above.
+    const { cropsService } = await import('../services/cropsService');
+    const data = await cropsService.getCrops();
+    setCrops(data);
+    setLoading(false);
+  };
+
+  const handleCreate = async () => {
+    if (!formData.name || !formData.startDate || !formData.location) return;
+
+    // Fix: Force date to noon to avoid timezone shifts (e.g., 20th 00:00 becoming 19th 21:00 in Argentina/UTC-3)
+    const normalizedDate = new Date(formData.startDate);
+    normalizedDate.setHours(12, 0, 0, 0);
+
+    const { cropsService } = await import('../services/cropsService');
+    const newCrop = await cropsService.createCrop({
+      name: formData.name,
+      location: formData.location,
+      startDate: normalizedDate.toISOString(), // Send as ISO string but normalized to noon
+      estimatedHarvestDate: formData.estimatedHarvestDate || undefined,
+      color: formData.color
     });
-  }
-};
 
-const statusVariant = (s: Crop['status']): 'green' | 'yellow' | 'gray' => {
-  if (s === 'active') return 'green';
-  if (s === 'paused') return 'yellow';
-  return 'gray';
-};
+    if (newCrop) {
+      setCrops(prev => [newCrop, ...prev]);
+      setIsModalOpen(false);
+      setFormData({
+        name: '',
+        startDate: new Date().toISOString().split('T')[0],
+        estimatedHarvestDate: '',
+        location: '',
+        color: 'green'
+      });
+    }
+  };
 
-const getDaysSince = (dateStr: string) => {
-  const diff = new Date().getTime() - new Date(dateStr).getTime();
-  return Math.floor(diff / (1000 * 60 * 60 * 24));
-};
+  const statusVariant = (s: Crop['status']): 'green' | 'yellow' | 'gray' => {
+    if (s === 'active') return 'green';
+    if (s === 'paused') return 'yellow';
+    return 'gray';
+  };
 
-const navigate = useNavigate();
+  const getDaysSince = (dateStr: string) => {
+    const diff = new Date().getTime() - new Date(dateStr).getTime();
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
+  };
 
-const handleCardClick = (id: string) => {
-  navigate(`/crops/${id}`);
-};
+  const navigate = useNavigate();
 
-return (
-  <Container>
-    <Header>
-      <h1>Mis Cultivos</h1>
-      <CreateButton onClick={() => setIsModalOpen(true)}><FaPlus /> Nuevo Cultivo</CreateButton>
-    </Header>
+  const handleCardClick = (id: string) => {
+    navigate(`/crops/${id}`);
+  };
 
-    <Grid>
-      {crops.map(c => (
-        <Card key={c.id} onClick={() => handleCardClick(c.id)} style={{ cursor: 'pointer', borderTop: `4px solid ${getColorHex(c.color)}` }}>
-          <CardHeader style={{ background: `${getColorHex(c.color)}15` }}>
-            <div className="icon" style={{ color: getColorHex(c.color) }}><FaSeedling /></div>
-            <div className="title">{c.name}</div>
-          </CardHeader>
-          <CardBody>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Badge variant={statusVariant(c.status)}>{c.status}</Badge>
-              {/* ID removed as requested */}
-            </div>
+  return (
+    <Container>
+      <Header>
+        <h1>Mis Cultivos</h1>
+        <CreateButton onClick={() => setIsModalOpen(true)}><FaPlus /> Nuevo Cultivo</CreateButton>
+      </Header>
 
-            <InfoRow>
-              <FaMapMarkerAlt /> {c.location ?? 'Sin ubicación'}
-            </InfoRow>
-            <InfoRow>
-              <FaCalendarAlt /> Inicio: {new Date(c.startDate).toLocaleDateString('es-AR')} ({getDaysSince(c.startDate)} días)
-            </InfoRow>
-            {c.estimatedHarvestDate && (
+      <Grid>
+        {crops.map(c => (
+          <Card key={c.id} onClick={() => handleCardClick(c.id)} style={{ cursor: 'pointer', borderTop: `4px solid ${getColorHex(c.color)}` }}>
+            <CardHeader style={{ background: `${getColorHex(c.color)}15` }}>
+              <div className="icon" style={{ color: getColorHex(c.color) }}><FaSeedling /></div>
+              <div className="title">{c.name}</div>
+            </CardHeader>
+            <CardBody>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Badge variant={statusVariant(c.status)}>{c.status}</Badge>
+                {/* ID removed as requested */}
+              </div>
+
               <InfoRow>
-                <FaCalendarAlt /> Fin Previsto: {new Date(c.estimatedHarvestDate).toLocaleDateString('es-AR')}
+                <FaMapMarkerAlt /> {c.location ?? 'Sin ubicación'}
               </InfoRow>
-            )}
-          </CardBody>
-          <ActionBar>
-            <ActionButton title="Registro Diario"><FaThermometerHalf /> Diario</ActionButton>
-            <ActionButton title="Parámetros"><FaTint /> Riego</ActionButton>
-            <ActionButton title="Tareas"><FaTasks /> Tareas</ActionButton>
-          </ActionBar>
-        </Card>
-      ))}
-    </Grid>
+              <InfoRow>
+                <FaCalendarAlt /> Inicio: {new Date(c.startDate).toLocaleDateString('es-AR')} ({getDaysSince(c.startDate)} días)
+              </InfoRow>
+              {c.estimatedHarvestDate && (
+                <InfoRow>
+                  <FaCalendarAlt /> Fin Previsto: {new Date(c.estimatedHarvestDate).toLocaleDateString('es-AR')}
+                </InfoRow>
+              )}
+            </CardBody>
+            <ActionBar>
+              <ActionButton title="Registro Diario"><FaThermometerHalf /> Diario</ActionButton>
+              <ActionButton title="Parámetros"><FaTint /> Riego</ActionButton>
+              <ActionButton title="Tareas"><FaTasks /> Tareas</ActionButton>
+            </ActionBar>
+          </Card>
+        ))}
+      </Grid>
 
-    {/* Create Modal */}
-    {isModalOpen && (
-      <ModalOverlay onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false) }}>
-        <ModalContent>
-          <h2>Nuevo Cultivo</h2>
+      {/* Create Modal */}
+      {isModalOpen && (
+        <ModalOverlay onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false) }}>
+          <ModalContent>
+            <h2>Nuevo Cultivo</h2>
+
+            <FormGroup>
+              <label>Nombre del Cultivo</label>
+              <input
+                type="text"
+                placeholder="Ej: Gorilla Glue #4"
+                value={formData.name}
+                onChange={e => setFormData({ ...formData, name: e.target.value })}
+              />
+            </FormGroup>
+
+          </FormGroup>
 
           <FormGroup>
-            <label>Nombre del Cultivo</label>
+            <label>Color Identificativo</label>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              {['green', 'purple', 'blue', 'orange', 'red'].map(color => (
+                <button
+                  key={color}
+                  onClick={() => setFormData({ ...formData, color })}
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    background: getColorHex(color),
+                    border: formData.color === color ? '3px solid #cbd5e0' : 'none',
+                    cursor: 'pointer',
+                    transform: formData.color === color ? 'scale(1.1)' : 'scale(1)',
+                    transition: 'all 0.2s'
+                  }}
+                />
+              ))}
+            </div>
+          </FormGroup>
+
+          <FormGroup>
+            <label>Ubicación</label>
             <input
               type="text"
-              placeholder="Ej: Gorilla Glue #4"
-              value={formData.name}
-              onChange={e => setFormData({ ...formData, name: e.target.value })}
+              placeholder="Ej: Carpa Indoor 1, Exterior..."
+              value={formData.location}
+              onChange={e => setFormData({ ...formData, location: e.target.value })}
             />
           </FormGroup>
 
-        </FormGroup>
+          <FormGroup>
+            <label>Fecha de Inicio</label>
+            <input
+              type="date"
+              value={formData.startDate}
+              onChange={e => setFormData({ ...formData, startDate: e.target.value })}
+            />
+          </FormGroup>
 
-        <FormGroup>
-          <label>Color Identificativo</label>
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            {['green', 'purple', 'blue', 'orange', 'red'].map(color => (
-              <button
-                key={color}
-                onClick={() => setFormData({ ...formData, color })}
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  background: getColorHex(color),
-                  border: formData.color === color ? '3px solid #cbd5e0' : 'none',
-                  cursor: 'pointer',
-                  transform: formData.color === color ? 'scale(1.1)' : 'scale(1)',
-                  transition: 'all 0.2s'
-                }}
-              />
-            ))}
-          </div>
-        </FormGroup>
+          <FormGroup>
+            <label>Fecha Finalización (Estimada)</label>
+            <input
+              type="date"
+              value={formData.estimatedHarvestDate}
+              onChange={e => setFormData({ ...formData, estimatedHarvestDate: e.target.value })}
+            />
+          </FormGroup>
 
-        <FormGroup>
-          <label>Ubicación</label>
-          <input
-            type="text"
-            placeholder="Ej: Carpa Indoor 1, Exterior..."
-            value={formData.location}
-            onChange={e => setFormData({ ...formData, location: e.target.value })}
-          />
-        </FormGroup>
-
-        <FormGroup>
-          <label>Fecha de Inicio</label>
-          <input
-            type="date"
-            value={formData.startDate}
-            onChange={e => setFormData({ ...formData, startDate: e.target.value })}
-          />
-        </FormGroup>
-
-        <FormGroup>
-          <label>Fecha Finalización (Estimada)</label>
-          <input
-            type="date"
-            value={formData.estimatedHarvestDate}
-            onChange={e => setFormData({ ...formData, estimatedHarvestDate: e.target.value })}
-          />
-        </FormGroup>
-
-        <ModalActions>
-          <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-          <Button onClick={handleCreate}>Crear Cultivo</Button>
-        </ModalActions>
-      </ModalContent>
+          <ModalActions>
+            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
+            <Button onClick={handleCreate}>Crear Cultivo</Button>
+          </ModalActions>
+        </ModalContent>
         </ModalOverlay>
-)}
+  )
+}
     </Container >
   );
 };
