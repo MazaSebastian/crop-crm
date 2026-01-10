@@ -763,7 +763,7 @@ const CropDetail: React.FC = () => {
       {/* Color Picker Modal */}
       {isColorPickerOpen && (
         <ModalOverlay onClick={() => setIsColorPickerOpen(false)}>
-          <ModalContent onClick={e => e.stopPropagation()} style={{ maxWidth: '300px' }}>
+          <Modal onClick={e => e.stopPropagation()} style={{ maxWidth: '300px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h3 style={{ margin: 0 }}>Elegir Color</h3>
               <button
@@ -794,7 +794,7 @@ const CropDetail: React.FC = () => {
                 />
               ))}
             </div>
-          </ModalContent>
+          </Modal>
         </ModalOverlay>
       )}
 
