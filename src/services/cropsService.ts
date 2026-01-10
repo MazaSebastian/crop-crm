@@ -24,7 +24,8 @@ export const cropsService = {
             estimatedHarvestDate: c.estimated_harvest_date,
             photoUrl: c.photo_url,
             partners: [], // Not yet implemented in DB fully
-            status: c.status
+            status: c.status,
+            color: c.color || 'green'
         }));
     },
 
@@ -56,7 +57,8 @@ export const cropsService = {
             estimatedHarvestDate: data.estimated_harvest_date,
             photoUrl: data.photo_url,
             partners: [],
-            status: data.status
+            status: data.status,
+            color: data.color || 'green'
         };
     },
 
@@ -70,7 +72,8 @@ export const cropsService = {
                 location: crop.location,
                 start_date: crop.startDate,
                 estimated_harvest_date: crop.estimatedHarvestDate,
-                status: 'active'
+                status: 'active',
+                color: crop.color || 'green'
             }])
             .select()
             .single();
@@ -98,7 +101,8 @@ export const cropsService = {
             startDate: data.start_date,
             photoUrl: data.photo_url,
             partners: [],
-            status: data.status
+            status: data.status,
+            color: data.color || 'green'
         };
     },
 
@@ -128,7 +132,8 @@ export const cropsService = {
                 location: updates.location,
                 start_date: updates.startDate,
                 estimated_harvest_date: updates.estimatedHarvestDate,
-                status: updates.status
+                status: updates.status,
+                color: updates.color
             })
             .eq('id', id);
 
