@@ -8,9 +8,12 @@ import {
   FaTasks,
   FaPlus,
   FaCalendarAlt,
-  FaMapMarkerAlt
+  FaCalendarAlt,
+  FaMapMarkerAlt,
+  FaClock
 } from 'react-icons/fa';
-import type { Crop } from '../types';
+import type { Crop, Task } from '../types';
+import { dailyLogsService } from '../services/dailyLogsService';
 
 
 
@@ -277,6 +280,7 @@ const Crops: React.FC = () => {
   const [crops, setCrops] = useState<Crop[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [lastActivityMap, setLastActivityMap] = useState<Record<string, string>>({});
 
   // New Crop Form State
   const [formData, setFormData] = useState({
@@ -293,6 +297,38 @@ const Crops: React.FC = () => {
     loadCrops();
   }, []);
 
+  const loadLastActivities = async (cropsData: Crop[]) => {
+    const activityMap: Record<string, string> = {};
+
+    await Promise.all(cropsData.map(async (crop) => {
+      // Fetch tasks and logs in parallel for this crop
+      const [tasks, logs] = await Promise.all([
+        import('../services/tasksService').then(m => m.tasksService.getTasksByCropId(crop.id)),
+        dailyLogsService.getLogsByCropId(crop.id)
+      ]);
+
+      const doneTasks = tasks.filter(t => t.status === 'done');
+
+      let maxDate = 0;
+
+      doneTasks.forEach(t => {
+        const d = new Date(t.due_date || t.created_at).getTime();
+        if (d > maxDate) maxDate = d;
+      });
+
+      logs.forEach(l => {
+        const d = new Date(l.date).getTime();
+        if (d > maxDate) maxDate = d;
+      });
+
+      if (maxDate > 0) {
+        activityMap[crop.id] = new Date(maxDate).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      }
+    }));
+
+    setLastActivityMap(activityMap);
+  };
+
   const loadCrops = async () => {
     setLoading(true);
     // Dynamic import to avoid circular dependency issues if any, or just standard import
@@ -301,6 +337,10 @@ const Crops: React.FC = () => {
     const { cropsService } = await import('../services/cropsService');
     const data = await cropsService.getCrops();
     setCrops(data);
+
+    // Load last activities
+    loadLastActivities(data);
+
     setLoading(false);
   };
 
@@ -381,12 +421,10 @@ const Crops: React.FC = () => {
                   <FaCalendarAlt /> Fin Previsto: {new Date(c.estimatedHarvestDate).toLocaleDateString('es-AR')}
                 </InfoRow>
               )}
+              <InfoRow style={{ marginTop: '0.5rem', borderTop: '1px solid #edf2f7', paddingTop: '0.5rem' }}>
+                <FaClock /> Última actividad: {lastActivityMap[c.id] || '-'}
+              </InfoRow>
             </CardBody>
-            <ActionBar>
-              <ActionButton title="Registro Diario"><FaThermometerHalf /> Diario</ActionButton>
-              <ActionButton title="Parámetros"><FaTint /> Riego</ActionButton>
-              <ActionButton title="Tareas"><FaTasks /> Tareas</ActionButton>
-            </ActionBar>
           </Card>
         ))}
       </Grid>
