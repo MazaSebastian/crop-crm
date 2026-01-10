@@ -382,10 +382,15 @@ const PrimaryButton = styled.button`
 const getColorHex = (colorName?: string) => {
   switch (colorName) {
     case 'green': return '#38a169';
-    case 'purple': return '#805ad5';
     case 'blue': return '#3182ce';
+    case 'purple': return '#805ad5';
     case 'orange': return '#dd6b20';
     case 'red': return '#e53e3e';
+    case 'pink': return '#d53f8c';
+    case 'teal': return '#319795';
+    case 'cyan': return '#0bc5ea';
+    case 'yellow': return '#d69e2e';
+    case 'gray': return '#718096';
     default: return '#38a169';
   }
 };
@@ -776,8 +781,8 @@ const CropDetail: React.FC = () => {
               </button>
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', padding: '1rem 0' }}>
-              {['green', 'purple', 'blue', 'orange', 'red'].map(color => (
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', padding: '1rem 0', flexWrap: 'wrap' }}>
+              {['green', 'blue', 'purple', 'orange', 'red', 'pink', 'teal', 'cyan', 'yellow', 'gray'].map(color => (
                 <button
                   key={color}
                   onClick={() => handleUpdateColor(color)}

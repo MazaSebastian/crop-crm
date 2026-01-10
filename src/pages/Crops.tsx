@@ -260,10 +260,15 @@ const Button = styled.button<{ variant?: 'primary' | 'secondary' }>`
 const getColorHex = (colorName?: string) => {
   switch (colorName) {
     case 'green': return '#38a169';
-    case 'purple': return '#805ad5';
     case 'blue': return '#3182ce';
+    case 'purple': return '#805ad5';
     case 'orange': return '#dd6b20';
     case 'red': return '#e53e3e';
+    case 'pink': return '#d53f8c';
+    case 'teal': return '#319795';
+    case 'cyan': return '#0bc5ea';
+    case 'yellow': return '#d69e2e';
+    case 'gray': return '#718096';
     default: return '#38a169';
   }
 };
