@@ -8,7 +8,6 @@ import {
   FaTasks,
   FaPlus,
   FaCalendarAlt,
-  FaCalendarAlt,
   FaMapMarkerAlt,
   FaClock
 } from 'react-icons/fa';
