@@ -402,66 +402,64 @@ const Crops: React.FC = () => {
               />
             </FormGroup>
 
-          </FormGroup>
+            <FormGroup>
+              <label>Color Identificativo</label>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                {['green', 'purple', 'blue', 'orange', 'red'].map(color => (
+                  <button
+                    key={color}
+                    onClick={() => setFormData({ ...formData, color })}
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      background: getColorHex(color),
+                      border: formData.color === color ? '3px solid #cbd5e0' : 'none',
+                      cursor: 'pointer',
+                      transform: formData.color === color ? 'scale(1.1)' : 'scale(1)',
+                      transition: 'all 0.2s'
+                    }}
+                  />
+                ))}
+              </div>
+            </FormGroup>
 
-          <FormGroup>
-            <label>Color Identificativo</label>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              {['green', 'purple', 'blue', 'orange', 'red'].map(color => (
-                <button
-                  key={color}
-                  onClick={() => setFormData({ ...formData, color })}
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    background: getColorHex(color),
-                    border: formData.color === color ? '3px solid #cbd5e0' : 'none',
-                    cursor: 'pointer',
-                    transform: formData.color === color ? 'scale(1.1)' : 'scale(1)',
-                    transition: 'all 0.2s'
-                  }}
-                />
-              ))}
-            </div>
-          </FormGroup>
+            <FormGroup>
+              <label>Ubicación</label>
+              <input
+                type="text"
+                placeholder="Ej: Carpa Indoor 1, Exterior..."
+                value={formData.location}
+                onChange={e => setFormData({ ...formData, location: e.target.value })}
+              />
+            </FormGroup>
 
-          <FormGroup>
-            <label>Ubicación</label>
-            <input
-              type="text"
-              placeholder="Ej: Carpa Indoor 1, Exterior..."
-              value={formData.location}
-              onChange={e => setFormData({ ...formData, location: e.target.value })}
-            />
-          </FormGroup>
+            <FormGroup>
+              <label>Fecha de Inicio</label>
+              <input
+                type="date"
+                value={formData.startDate}
+                onChange={e => setFormData({ ...formData, startDate: e.target.value })}
+              />
+            </FormGroup>
 
-          <FormGroup>
-            <label>Fecha de Inicio</label>
-            <input
-              type="date"
-              value={formData.startDate}
-              onChange={e => setFormData({ ...formData, startDate: e.target.value })}
-            />
-          </FormGroup>
+            <FormGroup>
+              <label>Fecha Finalización (Estimada)</label>
+              <input
+                type="date"
+                value={formData.estimatedHarvestDate}
+                onChange={e => setFormData({ ...formData, estimatedHarvestDate: e.target.value })}
+              />
+            </FormGroup>
 
-          <FormGroup>
-            <label>Fecha Finalización (Estimada)</label>
-            <input
-              type="date"
-              value={formData.estimatedHarvestDate}
-              onChange={e => setFormData({ ...formData, estimatedHarvestDate: e.target.value })}
-            />
-          </FormGroup>
-
-          <ModalActions>
-            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-            <Button onClick={handleCreate}>Crear Cultivo</Button>
-          </ModalActions>
-        </ModalContent>
+            <ModalActions>
+              <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
+              <Button onClick={handleCreate}>Crear Cultivo</Button>
+            </ModalActions>
+          </ModalContent>
         </ModalOverlay>
-  )
-}
+      )
+      }
     </Container >
   );
 };
