@@ -398,7 +398,9 @@ const CropDetail: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
 
   // Modal State
+  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [activeTab, setActiveTab] = useState<'task' | 'log'>('task');
 
