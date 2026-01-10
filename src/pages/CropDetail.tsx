@@ -906,18 +906,27 @@ const CropDetail: React.FC = () => {
                     value={taskForm.type}
                     onChange={e => {
                       const newType = e.target.value as any;
-                      const isAutoTitle = newType === 'agua' || newType === 'esquejes';
 
-                      let newTitle = taskForm.title;
-
-                      if (newType === 'agua') newTitle = 'Agua / Riego';
-                      else if (newType === 'esquejes') newTitle = 'Esquejes';
-                      else if (taskForm.title === 'Agua / Riego' || taskForm.title === 'Esquejes') newTitle = '';
+                      // Auto-set title based on type label
+                      const typeLabels: { [key: string]: string } = {
+                        'info': 'Nota Informativa',
+                        'warning': 'Alerta',
+                        'danger': 'Urgente',
+                        'fertilizante': 'Fertilizante',
+                        'defoliacion': 'Defoliación',
+                        'poda_apical': 'Poda Apical',
+                        'hst': 'HST (High Stress)',
+                        'lst': 'LST (Low Stress)',
+                        'enmienda': 'Enmienda',
+                        'te_compost': 'Té de Compost',
+                        'agua': 'Agua / Riego',
+                        'esquejes': 'Esquejes'
+                      };
 
                       setTaskForm(prevForm => ({
                         ...prevForm,
                         type: newType,
-                        title: newTitle
+                        title: typeLabels[newType] || 'Tarea'
                       }));
                     }}
                   >
@@ -936,16 +945,15 @@ const CropDetail: React.FC = () => {
                   </select>
                 </FormGroup>
 
-                {taskForm.type !== 'agua' && taskForm.type !== 'esquejes' && (
-                  <FormGroup>
-                    <label>Título</label>
-                    <input
-                      value={taskForm.title}
-                      onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
-                      placeholder="Ej: Riego profundo con CalMag"
-                    />
-                  </FormGroup>
-                )}
+                <FormGroup>
+                  <label>Aclaraciones / Detalles (Opcional)</label>
+                  <textarea
+                    value={taskForm.description}
+                    onChange={e => setTaskForm({ ...taskForm, description: e.target.value })}
+                    placeholder="Ej: 5 litros, pH 6.2, Proporción 2ml/L..."
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0', minHeight: '80px', fontFamily: 'inherit' }}
+                  />
+                </FormGroup>
 
                 {taskForm.type === 'fertilizante' && (
                   <FormGroup>
