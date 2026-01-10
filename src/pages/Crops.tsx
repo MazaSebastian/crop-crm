@@ -13,6 +13,7 @@ import {
 } from 'react-icons/fa';
 import type { Crop, Task } from '../types';
 import { dailyLogsService } from '../services/dailyLogsService';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 
 
@@ -397,6 +398,10 @@ const Crops: React.FC = () => {
   const handleCardClick = (id: string) => {
     navigate(`/crops/${id}`);
   };
+
+  if (loading) {
+    return <LoadingSpinner text="Cargando tus cultivos..." fullScreen />;
+  }
 
   return (
     <Container>

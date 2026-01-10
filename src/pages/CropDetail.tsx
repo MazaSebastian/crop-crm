@@ -40,6 +40,7 @@ import { dailyLogsService } from '../services/dailyLogsService';
 import { cropsService } from '../services/cropsService';
 import { Crop, Task } from '../types';
 import { DailyLog } from '../services/dailyLogsService';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 interface EventData {
   tasks: Task[];
@@ -641,20 +642,7 @@ const CropDetail: React.FC = () => {
   }
 
   if (!crop) {
-    return (
-      <Container>
-        <Header>
-          <BackButton onClick={() => navigate('/crops')}>
-            <FaArrowLeft /> Volver
-          </BackButton>
-        </Header>
-        <div style={{ padding: '2rem', textAlign: 'center', color: '#718096' }}>
-          <h2>⏳ Cargando Datos...</h2>
-          <p>Intentando cargar cultivo ID: <strong>{id || 'No ID detected'}</strong></p>
-          <p><small>Versión de depuración activa.</small></p>
-        </div>
-      </Container>
-    );
+    return <LoadingSpinner text="Cargando detalles del cultivo..." fullScreen />;
   }
 
   const handleDeleteCrop = async () => {
