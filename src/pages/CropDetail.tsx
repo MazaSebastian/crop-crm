@@ -31,7 +31,8 @@ import {
   FaEdit,
   FaTimes,
   FaCheckCircle,
-  FaRegCircle
+  FaRegCircle,
+  FaPalette
 } from 'react-icons/fa';
 
 import { tasksService } from '../services/tasksService';
@@ -377,6 +378,17 @@ const PrimaryButton = styled.button`
   &:active { transform: translateY(0); }
 `;
 
+
+const getColorHex = (colorName?: string) => {
+  switch (colorName) {
+    case 'green': return '#38a169';
+    case 'purple': return '#805ad5';
+    case 'blue': return '#3182ce';
+    case 'orange': return '#dd6b20';
+    case 'red': return '#e53e3e';
+    default: return '#38a169';
+  }
+};
 
 const CropDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
