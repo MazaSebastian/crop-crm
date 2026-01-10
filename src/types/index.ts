@@ -38,6 +38,7 @@ export interface Crop {
   photoUrl?: string;
   partners: CropPartner[]; // pensado para 2 personas
   status: 'active' | 'paused' | 'completed';
+  color?: string; // New field for color
 }
 
 export interface EnvParams {
