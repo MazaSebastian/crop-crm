@@ -669,6 +669,15 @@ const CropDetail: React.FC = () => {
     }
   };
 
+  const handleUpdateColor = async (newColor: string) => {
+    if (!crop) return;
+    const success = await cropsService.updateCrop(crop.id, { color: newColor });
+    if (success) {
+      setCrop({ ...crop, color: newColor });
+      setIsColorPickerOpen(false);
+    }
+  };
+
   return (
     <Container>
       <Header>
@@ -728,6 +737,16 @@ const CropDetail: React.FC = () => {
                 >
                   <FaEdit />
                 </button>
+
+                <button
+                  onClick={() => setIsColorPickerOpen(true)}
+                  style={{
+                    border: 'none', background: 'none', cursor: 'pointer', color: getColorHex(crop.color), padding: '0.25rem', display: 'flex'
+                  }}
+                  title="Cambiar Color"
+                >
+                  <FaPalette size={16} />
+                </button>
               </div>
             </CropTitle>
             <MetaGrid>
@@ -740,6 +759,44 @@ const CropDetail: React.FC = () => {
           </div>
         </TitleSection>
       </Header>
+
+      {/* Color Picker Modal */}
+      {isColorPickerOpen && (
+        <ModalOverlay onClick={() => setIsColorPickerOpen(false)}>
+          <ModalContent onClick={e => e.stopPropagation()} style={{ maxWidth: '300px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 style={{ margin: 0 }}>Elegir Color</h3>
+              <button
+                onClick={() => setIsColorPickerOpen(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#a0aec0' }}
+              >
+                &times;
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', padding: '1rem 0' }}>
+              {['green', 'purple', 'blue', 'orange', 'red'].map(color => (
+                <button
+                  key={color}
+                  onClick={() => handleUpdateColor(color)}
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: getColorHex(color),
+                    border: crop.color === color ? '3px solid #cbd5e0' : 'none',
+                    cursor: 'pointer',
+                    transform: crop.color === color ? 'scale(1.1)' : 'scale(1)',
+                    transition: 'all 0.2s',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                  }}
+                  title={color}
+                />
+              ))}
+            </div>
+          </ModalContent>
+        </ModalOverlay>
+      )}
 
       {/* Monthly View */}
       <CalendarContainer>
